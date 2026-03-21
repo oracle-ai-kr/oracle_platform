@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🦑 SQUID GAME</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--panel:#141414;--panel2:#1c1c1c;
+  --red:#e8002a;--red2:#ff1a42;--green:#00c853;--green2:#00e676;
+  --gold:#ffd600;--text:#f0ece8;--text2:#9a9490;--text3:#4a4642;
+  --border-r:rgba(232,0,42,.22);--radius:14px;
+  --shadow-r:0 4px 24px rgba(232,0,42,.2);--shadow-g:0 4px 24px rgba(0,200,83,.15);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;overflow:hidden;}
+#bgCanvas{position:fixed;inset:0;z-index:0;opacity:.5;}
+#header{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:54px;
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+  background:rgba(10,10,10,.95);border-bottom:1px solid rgba(232,0,42,.15);
+  backdrop-filter:blur(16px);
+}
+#platformBtn{
+  width:34px;height:34px;border-radius:9px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:var(--text2);font-size:.82rem;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .2s;flex-shrink:0;
+}
+#platformBtn:active{background:rgba(255,255,255,.12);transform:scale(.93);}
+.header-logo{font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.1em;color:var(--red2);text-shadow:0 0 12px rgba(232,0,42,.45);flex:1;}
+.header-pts{display:flex;align-items:center;gap:5px;background:rgba(255,214,0,.08);border:1px solid rgba(255,214,0,.18);border-radius:9px;padding:5px 9px;font-size:.7rem;color:var(--gold);font-weight:900;}
+#main{position:fixed;top:54px;left:0;right:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 30px;z-index:1;}
+#main::-webkit-scrollbar{display:none;}
+.hero{position:relative;padding:32px 20px 28px;text-align:center;background:linear-gradient(180deg,rgba(232,0,42,.08) 0%,transparent 100%);border-bottom:1px solid rgba(232,0,42,.1);overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(232,0,42,.12),transparent 70%);pointer-events:none;}
+.hero-shapes{position:absolute;top:12px;left:0;right:0;display:flex;justify-content:space-around;padding:0 20px;font-size:.7rem;color:rgba(255,255,255,.07);letter-spacing:.1em;pointer-events:none;}
+.hero-emblem{font-size:4rem;margin-bottom:10px;display:block;filter:drop-shadow(0 0 24px rgba(232,0,42,.5));animation:emblemFloat 3s ease-in-out infinite;}
+@keyframes emblemFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hero-title{font-family:'Black Han Sans',sans-serif;font-size:2rem;letter-spacing:.15em;color:var(--text);text-shadow:0 0 30px rgba(232,0,42,.3);margin-bottom:4px;}
+.hero-title-sub{font-family:'Black Han Sans',sans-serif;font-size:1rem;letter-spacing:.25em;color:var(--red2);margin-bottom:10px;}
+.hero-desc{font-size:.72rem;color:var(--text2);line-height:1.7;}
+.hero-shapes-bottom{display:flex;justify-content:center;gap:16px;margin-top:16px;}
+.shape-badge{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:.7rem;font-weight:900;}
+.shape-o{background:rgba(232,0,42,.15);border:1.5px solid rgba(232,0,42,.5);color:var(--red2);box-shadow:0 0 8px rgba(232,0,42,.3);}
+.shape-t{background:rgba(0,200,83,.12);border:1.5px solid rgba(0,200,83,.5);color:var(--green2);box-shadow:0 0 8px rgba(0,200,83,.25);}
+.shape-s{background:rgba(0,140,255,.12);border:1.5px solid rgba(0,140,255,.5);color:#4db8ff;box-shadow:0 0 8px rgba(0,140,255,.25);}
+.balance-card{margin:14px 14px 0;background:var(--panel);border-radius:var(--radius);border:1px solid rgba(255,255,255,.07);overflow:hidden;}
+.bal-top{padding:14px 16px;background:linear-gradient(135deg,rgba(232,0,42,.06),rgba(0,200,83,.04));border-bottom:1px solid rgba(255,255,255,.05);}
+.bal-label{font-size:.62rem;color:var(--text3);letter-spacing:.1em;margin-bottom:4px;}
+.bal-amount{font-family:'Black Han Sans',sans-serif;font-size:1.7rem;letter-spacing:.04em;color:var(--text);}
+.bal-amount span{font-size:.9rem;color:var(--text2);margin-left:4px;}
+.bal-pts-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.bal-pts-label{font-size:.62rem;color:var(--text3);}
+.bal-pts-val{font-size:.72rem;font-weight:900;color:var(--gold);}
+.bal-btns{display:flex;}
+.bal-btn{flex:1;padding:13px 10px;border:none;font-family:'Black Han Sans',sans-serif;font-size:.82rem;letter-spacing:.04em;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.bal-btn.charge{background:linear-gradient(135deg,rgba(232,0,42,.18),rgba(232,0,42,.08));color:var(--red2);border-right:1px solid rgba(255,255,255,.06);}
+.bal-btn.withdraw{background:linear-gradient(135deg,rgba(0,200,83,.12),rgba(0,200,83,.05));color:var(--green2);}
+.bal-btn:active{opacity:.7;}
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.85);backdrop-filter:blur(8px);display:none;align-items:flex-end;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal-sheet{background:var(--panel2);border-radius:22px 22px 0 0;width:100%;max-height:85vh;overflow-y:auto;padding:20px 18px 40px;animation:sheetUp .3s ease;}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);margin:0 auto 18px;}
+.sheet-title{font-family:'Black Han Sans',sans-serif;font-size:1rem;letter-spacing:.05em;margin-bottom:16px;text-align:center;}
+.exch-tabs{display:flex;gap:8px;margin-bottom:16px;}
+.exch-tab{flex:1;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:var(--text2);font-family:'Black Han Sans',sans-serif;font-size:.8rem;cursor:pointer;text-align:center;transition:all .2s;}
+.exch-tab.active-r{background:rgba(232,0,42,.15);border-color:rgba(232,0,42,.35);color:var(--red2);}
+.exch-tab.active-g{background:rgba(0,200,83,.12);border-color:rgba(0,200,83,.3);color:var(--green2);}
+.exch-info{background:rgba(255,255,255,.04);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:.78rem;color:var(--text2);line-height:1.8;}
+.exch-info b{color:var(--text);}
+.exch-presets{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.preset-btn{flex:1;min-width:56px;padding:8px 4px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--text2);font-size:.72rem;cursor:pointer;text-align:center;transition:all .2s;}
+.preset-btn:active{background:rgba(255,255,255,.12);}
+.exch-input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 14px;color:var(--text);font-size:.9rem;outline:none;margin-bottom:12px;}
+.exch-input:focus{border-color:var(--red2);}
+.exch-result{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:.8rem;color:var(--text2);text-align:center;}
+.exch-do-btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.04em;cursor:pointer;transition:all .2s;}
+.exch-do-btn.red{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:var(--shadow-r);}
+.exch-do-btn.green{background:linear-gradient(135deg,var(--green),var(--green2));color:#0a0a0a;box-shadow:var(--shadow-g);}
+.exch-do-btn:disabled{opacity:.3;cursor:not-allowed;}
+.exch-cancel{width:100%;padding:12px;border:none;border-radius:12px;margin-top:8px;background:rgba(255,255,255,.06);color:var(--text2);font-family:'Black Han Sans',sans-serif;font-size:.82rem;cursor:pointer;}
+.enter-wrap{padding:14px;}
+.enter-btn{width:100%;padding:18px;border:none;border-radius:var(--radius);font-family:'Black Han Sans',sans-serif;font-size:1.1rem;letter-spacing:.08em;color:#fff;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--red) 0%,var(--red2) 50%,#c8001e 100%);box-shadow:0 4px 28px rgba(232,0,42,.4);}
+.enter-btn::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);}
+.enter-btn:active{transform:scale(.97);}
+.enter-btn-sub{font-size:.65rem;opacity:.75;display:block;margin-top:3px;letter-spacing:.05em;}
+.season-preview{padding:0 14px 14px;}
+.preview-title{font-size:.65rem;letter-spacing:.15em;color:var(--text3);text-transform:uppercase;margin-bottom:10px;text-align:center;}
+.season-chips{display:flex;gap:8px;}
+.season-chip{flex:1;padding:12px 8px;border-radius:12px;text-align:center;border:1px solid;position:relative;overflow:hidden;}
+.s1-chip{background:rgba(232,0,42,.06);border-color:rgba(232,0,42,.2);}
+.s2-chip{background:rgba(0,200,83,.05);border-color:rgba(0,200,83,.15);}
+.s3-chip{background:rgba(255,214,0,.04);border-color:rgba(255,214,0,.15);}
+.chip-badge{font-family:'Black Han Sans',sans-serif;font-size:.58rem;letter-spacing:.08em;margin-bottom:4px;}
+.s1-chip .chip-badge{color:var(--red2);}
+.s2-chip .chip-badge{color:var(--green2);}
+.s3-chip .chip-badge{color:var(--gold);}
+.chip-count{font-size:.7rem;font-weight:900;color:var(--text2);}
+.chip-progress{height:3px;border-radius:2px;background:rgba(255,255,255,.07);margin-top:6px;overflow:hidden;}
+.chip-prog-fill{height:100%;border-radius:2px;transition:width .5s;}
+.s1-chip .chip-prog-fill{background:var(--red2);}
+.s2-chip .chip-prog-fill{background:var(--green2);}
+.s3-chip .chip-prog-fill{background:var(--gold);}
+.rules-wrap{padding:0 14px 14px;}
+.rules-card{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:var(--radius);padding:14px 16px;}
+.rules-title{font-family:'Black Han Sans',sans-serif;font-size:.82rem;letter-spacing:.05em;color:var(--text2);margin-bottom:10px;}
+.rule-row{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;}
+.rule-row:last-child{margin-bottom:0;}
+.rule-icon{font-size:.9rem;flex-shrink:0;margin-top:1px;}
+.rule-text{font-size:.72rem;color:var(--text2);line-height:1.6;}
+.rule-text b{color:var(--text);}
+.red{color:var(--red2);}
+.grn{color:var(--green2);}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:rgba(14,12,12,.97);border:1px solid var(--border-r);border-radius:10px;padding:10px 18px;font-size:.8rem;color:var(--text);opacity:0;transition:all .3s;pointer-events:none;z-index:500;white-space:nowrap;max-width:88vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.hero{animation:fadeUp .4s ease both;}
+.balance-card{animation:fadeUp .4s .08s ease both;}
+.enter-wrap{animation:fadeUp .4s .14s ease both;}
+.season-preview{animation:fadeUp .4s .2s ease both;}
+.rules-wrap{animation:fadeUp .4s .26s ease both;}
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<div id="header">
+  <button id="platformBtn" onclick="goPlatform()">⬡</button>
+  <div class="header-logo">○ △ □ &nbsp; SQUID GAME</div>
+  <div class="header-pts">🪙 <span id="ptsVal">0</span>P</div>
+</div>
+<div id="main">
+  <div class="hero">
+    <div class="hero-shapes">○ &nbsp;&nbsp; △ &nbsp;&nbsp; □ &nbsp;&nbsp; ○ &nbsp;&nbsp; △ &nbsp;&nbsp; □</div>
+    <span class="hero-emblem">🦑</span>
+    <div class="hero-title">SQUID GAME</div>
+    <div class="hero-title-sub">오징어 게임</div>
+    <div class="hero-desc">시즌 1~3 · 총 12개 게임<br>생존하여 상금을 획득하라</div>
+    <div class="hero-shapes-bottom">
+      <div class="shape-badge shape-o">○</div>
+      <div class="shape-badge shape-t">△</div>
+      <div class="shape-badge shape-s">□</div>
+    </div>
+  </div>
+  <div class="balance-card">
+    <div class="bal-top">
+      <div class="bal-label">GAME BALANCE</div>
+      <div class="bal-amount"><span id="balVal">0</span><span>원</span></div>
+      <div class="bal-pts-row">
+        <span class="bal-pts-label">보유 포인트</span>
+        <span class="bal-pts-val">🪙 <span id="balPts">0</span>P</span>
+        <span class="bal-pts-label" style="margin-left:6px;">· 1P = 100,000원</span>
+      </div>
+    </div>
+    <div class="bal-btns">
+      <button class="bal-btn charge" onclick="openExch('charge')">⬆ P → 게임머니</button>
+      <button class="bal-btn withdraw" onclick="openExch('withdraw')">⬇ 게임머니 → P</button>
+    </div>
+  </div>
+  <div class="enter-wrap">
+    <button class="enter-btn" onclick="enterGame()">
+      게임 입장
+      <span class="enter-btn-sub">▶ squid game에 참가하시겠습니까?</span>
+    </button>
+  </div>
+  <div class="season-preview">
+    <div class="preview-title">∘ 진행 현황 ∘</div>
+    <div class="season-chips">
+      <div class="season-chip s1-chip">
+        <div class="chip-badge">SEASON 1</div>
+        <div class="chip-count"><span id="s1prog">0</span>/6</div>
+        <div class="chip-progress"><div class="chip-prog-fill" id="s1bar" style="width:0%"></div></div>
+      </div>
+      <div class="season-chip s2-chip">
+        <div class="chip-badge">SEASON 2</div>
+        <div class="chip-count"><span id="s2prog">0</span>/3</div>
+        <div class="chip-progress"><div class="chip-prog-fill" id="s2bar" style="width:0%"></div></div>
+      </div>
+      <div class="season-chip s3-chip">
+        <div class="chip-badge">SEASON 3</div>
+        <div class="chip-count"><span id="s3prog">0</span>/3</div>
+        <div class="chip-progress"><div class="chip-prog-fill" id="s3bar" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="rules-wrap">
+    <div class="rules-card">
+      <div class="rules-title">📋 게임 안내</div>
+      <div class="rule-row"><span class="rule-icon">⚔️</span><div class="rule-text"><b>신규 도전</b> — 입장료 <span class="red">₩300,000</span> · 클리어 시 <span class="grn">₩600,000</span> 획득</div></div>
+      <div class="rule-row"><span class="rule-icon">🔄</span><div class="rule-text"><b>재도전</b> — 입장료 <span class="red">₩100,000</span> · 클리어 시 <span class="grn">₩180,000</span> 획득</div></div>
+      <div class="rule-row"><span class="rule-icon">🏆</span><div class="rule-text"><b>시즌 완료 보상</b> — S1 <span class="grn">200만</span> · S2 <span class="grn">150만</span> · S3 <span class="grn">200만</span></div></div>
+      <div class="rule-row"><span class="rule-icon">👑</span><div class="rule-text"><b>전체 완료</b> — 올클리어 <span class="grn">₩5,000,000</span> 대보상</div></div>
+      <div class="rule-row"><span class="rule-icon">💡</span><div class="rule-text">잔액 부족 시 <b>재도전으로 파밍</b> 후 다음 게임에 도전하세요</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 환전 모달 -->
+<div class="modal-bg" id="exchModal">
+  <div class="modal-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">💱 환전</div>
+    <div class="exch-tabs">
+      <button class="exch-tab active-r" id="tabCharge" onclick="switchTab('charge')">⬆ P → 게임머니</button>
+      <button class="exch-tab" id="tabWithdraw" onclick="switchTab('withdraw')">⬇ 게임머니 → P</button>
+    </div>
+    <div id="secCharge">
+      <div class="exch-info">보유 포인트: <b><span id="eg_pts">0</span>P</b><br>현재 잔액: <b><span id="eg_bal">0</span>원</b><br>1P = ₩100,000</div>
+      <div class="exch-presets">
+        <button class="preset-btn" onclick="addPts(1)">+1P</button>
+        <button class="preset-btn" onclick="addPts(5)">+5P</button>
+        <button class="preset-btn" onclick="addPts(10)">+10P</button>
+        <button class="preset-btn" onclick="setPts50()">50%</button>
+      </div>
+      <input class="exch-input" type="number" id="egInput" placeholder="포인트 입력" oninput="onEgInput()" min="1">
+      <div class="exch-result" id="egResult">— 원 충전</div>
+      <button class="exch-do-btn red" id="egDoBtn" onclick="doCharge()" disabled>충전하기</button>
+    </div>
+    <div id="secWithdraw" style="display:none">
+      <div class="exch-info">현재 잔액: <b><span id="ep_bal">0</span>원</b><br>보유 포인트: <b><span id="ep_pts">0</span>P</b><br>₩100,000 = 1P (10만원 단위)</div>
+      <div class="exch-presets">
+        <button class="preset-btn" onclick="addWon(100000)">+10만</button>
+        <button class="preset-btn" onclick="addWon(500000)">+50만</button>
+        <button class="preset-btn" onclick="addWon(1000000)">+100만</button>
+        <button class="preset-btn" onclick="setWon50()">50%</button>
+      </div>
+      <input class="exch-input" type="number" id="epInput" placeholder="금액 입력 (10만원 단위)" oninput="onEpInput()" step="100000">
+      <div class="exch-result" id="epResult">— P 출금</div>
+      <button class="exch-do-btn green" id="epDoBtn" onclick="doWithdraw()" disabled>출금하기</button>
+    </div>
+    <button class="exch-cancel" onclick="closeExch()">닫기</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script>
+const KEY_POINTS='MG_POINTS',KEY_BAL='MG_BAL_SQUID',KEY_CLEAR='SQ_CLEAR_STATE',P_TO_WON=100000;
+const S1=['sq_redlight','sq_dalgona','sq_tug','sq_marble','sq_glass','sq_squid'];
+const S2=['sq_redlight2','sq_penta','sq_mingle'];
+const S3=['sq_hideseek','sq_jumprope','sq_skysquid'];
+let points=0,balance=0,clearState={},exchTab='charge',egVal=0,epVal=0;
+
+function init(){
+  points=parseInt(localStorage.getItem(KEY_POINTS)||'0')||0;
+  balance=parseInt(localStorage.getItem(KEY_BAL)||'0')||0;
+  clearState=JSON.parse(localStorage.getItem(KEY_CLEAR)||'{}');
+  render(); drawBg();
+}
+function render(){
+  document.getElementById('ptsVal').textContent=points.toLocaleString('ko-KR');
+  document.getElementById('balVal').textContent=balance.toLocaleString('ko-KR');
+  document.getElementById('balPts').textContent=points.toLocaleString('ko-KR');
+  const s1=S1.filter(id=>clearState[id]).length;
+  const s2=S2.filter(id=>clearState[id]).length;
+  const s3=S3.filter(id=>clearState[id]).length;
+  document.getElementById('s1prog').textContent=s1;
+  document.getElementById('s2prog').textContent=s2;
+  document.getElementById('s3prog').textContent=s3;
+  document.getElementById('s1bar').style.width=`${(s1/6)*100}%`;
+  document.getElementById('s2bar').style.width=`${(s2/3)*100}%`;
+  document.getElementById('s3bar').style.width=`${(s3/3)*100}%`;
+}
+function enterGame(){window.location.href='squid_hub.html';}
+function goPlatform(){window.location.href='platform.html';}
+function openExch(tab){
+  egVal=0;epVal=0;
+  document.getElementById('egInput').value='';
+  document.getElementById('epInput').value='';
+  document.getElementById('egDoBtn').disabled=true;
+  document.getElementById('epDoBtn').disabled=true;
+  document.getElementById('eg_pts').textContent=points.toLocaleString('ko-KR');
+  document.getElementById('eg_bal').textContent=balance.toLocaleString('ko-KR');
+  document.getElementById('ep_bal').textContent=balance.toLocaleString('ko-KR');
+  document.getElementById('ep_pts').textContent=points.toLocaleString('ko-KR');
+  switchTab(tab);
+  document.getElementById('exchModal').classList.add('show');
+}
+function closeExch(){document.getElementById('exchModal').classList.remove('show');}
+function switchTab(tab){
+  exchTab=tab;
+  document.getElementById('secCharge').style.display=tab==='charge'?'block':'none';
+  document.getElementById('secWithdraw').style.display=tab==='withdraw'?'block':'none';
+  document.getElementById('tabCharge').className='exch-tab'+(tab==='charge'?' active-r':'');
+  document.getElementById('tabWithdraw').className='exch-tab'+(tab==='withdraw'?' active-g':'');
+}
+function addPts(p){egVal=Math.min((egVal||0)+p,points);document.getElementById('egInput').value=egVal;refreshEg();}
+function setPts50(){egVal=Math.floor(points*.5);document.getElementById('egInput').value=egVal;refreshEg();}
+function onEgInput(){egVal=Math.min(Math.max(0,parseInt(document.getElementById('egInput').value)||0),points);refreshEg();}
+function refreshEg(){
+  const won=egVal*P_TO_WON;
+  document.getElementById('egResult').textContent=egVal>0?`${egVal}P → ₩${won.toLocaleString('ko-KR')} 충전`:'— 원 충전';
+  document.getElementById('egDoBtn').disabled=egVal<1;
+}
+function doCharge(){
+  if(egVal<1||egVal>points){showToast('⚠️ 포인트를 확인하세요');return;}
+  const won=egVal*P_TO_WON;
+  points-=egVal;balance+=won;
+  localStorage.setItem(KEY_POINTS,points);localStorage.setItem(KEY_BAL,balance);
+  closeExch();render();showToast(`✅ ${egVal}P → ₩${won.toLocaleString('ko-KR')} 충전 완료!`);
+}
+function addWon(w){epVal=Math.min((epVal||0)+w,balance);document.getElementById('epInput').value=epVal;refreshEp();}
+function setWon50(){const h=Math.floor(balance*.5);epVal=Math.floor(h/P_TO_WON)*P_TO_WON;document.getElementById('epInput').value=epVal;refreshEp();}
+function onEpInput(){epVal=Math.min(Math.max(0,parseInt(document.getElementById('epInput').value)||0),balance);refreshEp();}
+function refreshEp(){
+  const pts=Math.floor(epVal/P_TO_WON);
+  const valid=epVal>=P_TO_WON&&epVal%P_TO_WON===0;
+  document.getElementById('epResult').textContent=valid?`₩${epVal.toLocaleString('ko-KR')} → +${pts}P`:'10만원 단위로 입력하세요';
+  document.getElementById('epDoBtn').disabled=!valid;
+}
+function doWithdraw(){
+  if(epVal<P_TO_WON||epVal%P_TO_WON!==0){showToast('⚠️ 10만원 단위로 입력하세요');return;}
+  if(epVal>balance){showToast('⚠️ 잔액이 부족합니다');return;}
+  const pts=Math.floor(epVal/P_TO_WON);
+  balance-=epVal;points+=pts;
+  localStorage.setItem(KEY_POINTS,points);localStorage.setItem(KEY_BAL,balance);
+  closeExch();render();showToast(`✅ ₩${epVal.toLocaleString('ko-KR')} → +${pts}P 출금 완료!`);
+}
+function drawBg(){
+  const canvas=document.getElementById('bgCanvas'),ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const chars=['○','△','□'],colors=['rgba(232,0,42,','rgba(0,200,83,','rgba(0,140,255,'];
+  const shapes=Array.from({length:18},(_,i)=>({
+    x:Math.random()*canvas.width,y:Math.random()*canvas.height,
+    char:chars[i%3],color:colors[i%3],
+    size:Math.random()*12+8,alpha:Math.random()*.06+.02,
+    vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3
+  }));
+  function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    shapes.forEach(s=>{
+      ctx.font=`${s.size}px sans-serif`;
+      ctx.fillStyle=s.color+s.alpha+')';
+      ctx.fillText(s.char,s.x,s.y);
+      s.x+=s.vx;s.y+=s.vy;
+      if(s.x<-20)s.x=canvas.width+20;if(s.x>canvas.width+20)s.x=-20;
+      if(s.y<-20)s.y=canvas.height+20;if(s.y>canvas.height+20)s.y=-20;
+    });
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+function showToast(msg,dur=2500){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),dur);
+}
+window.addEventListener('focus',()=>{
+  points=parseInt(localStorage.getItem(KEY_POINTS)||'0')||0;
+  balance=parseInt(localStorage.getItem(KEY_BAL)||'0')||0;
+  clearState=JSON.parse(localStorage.getItem(KEY_CLEAR)||'{}');
+  render();
+});
+init();
+</script>
+</body>
+</html>
