@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🦑 오징어 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--panel:#141414;--panel2:#1c1c1c;
+  --red:#e8002a;--red2:#ff1a42;--red3:#ff6680;
+  --green:#00c853;--green2:#00e676;
+  --blue:#008cff;--blue2:#4db8ff;
+  --gold:#ffd600;--text:#f0ece8;--text2:#9a9490;--text3:#4a4642;
+  --border-r:rgba(232,0,42,.22);--border-g:rgba(0,200,83,.18);--radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;overflow:hidden;}
+
+/* ── 배경 ── */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 15% 15%,rgba(232,0,42,.07) 0%,transparent 50%),
+    radial-gradient(circle at 85% 85%,rgba(0,200,83,.05) 0%,transparent 50%);
+}
+
+/* ── 헤더 ── */
+#header{
+  position:fixed;top:0;left:0;right:0;z-index:100;height:54px;
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+  background:rgba(10,10,10,.96);border-bottom:1px solid var(--border-r);
+  backdrop-filter:blur(16px);
+}
+#backBtn{
+  width:34px;height:34px;border-radius:9px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:var(--text2);font-size:1rem;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;transition:all .2s;
+}
+#backBtn:active{transform:scale(.92);background:rgba(255,255,255,.12);}
+.header-title{font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.08em;color:var(--red2);flex:1;}
+#balBox{
+  display:flex;align-items:center;gap:4px;
+  background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);
+  border-radius:9px;padding:5px 9px;font-size:.7rem;color:var(--red2);font-weight:900;white-space:nowrap;
+}
+
+/* ── 메인 ── */
+#main{
+  position:fixed;top:54px;left:0;right:0;bottom:0;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 12px 30px;z-index:1;
+}
+#main::-webkit-scrollbar{display:none;}
+
+/* ── 타이틀 배너 ── */
+.title-banner{
+  background:linear-gradient(135deg,rgba(232,0,42,.1),rgba(0,200,83,.05));
+  border:1px solid rgba(232,0,42,.18);border-radius:14px;
+  padding:16px;margin-bottom:14px;text-align:center;position:relative;overflow:hidden;
+}
+.title-banner::after{
+  content:'○  △  □';position:absolute;bottom:8px;right:12px;
+  font-size:.6rem;color:rgba(255,255,255,.07);letter-spacing:.3em;pointer-events:none;
+}
+.title-emblem{font-size:2.4rem;margin-bottom:6px;filter:drop-shadow(0 0 16px rgba(232,0,42,.5));}
+.title-main{font-family:'Black Han Sans',sans-serif;font-size:1.3rem;letter-spacing:.1em;}
+.title-sub{font-size:.68rem;color:var(--text2);margin-top:3px;}
+
+/* ── 전체 진행률 ── */
+.progress-wrap{margin-bottom:14px;}
+.progress-label{display:flex;justify-content:space-between;margin-bottom:5px;}
+.prog-text{font-size:.68rem;color:var(--text3);}
+.prog-count{font-size:.72rem;font-weight:900;color:var(--green2);}
+.prog-bar-bg{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+.prog-bar-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--green));border-radius:3px;transition:width .6s ease;}
+
+/* ── 잔액 부족 알림 ── */
+.low-bal{
+  display:none;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:10px;margin-bottom:12px;
+  background:rgba(232,0,42,.07);border:1px solid rgba(232,0,42,.22);
+}
+.low-bal.show{display:flex;}
+.low-bal-text{flex:1;font-size:.7rem;color:var(--text2);line-height:1.5;}
+.low-bal-btn{
+  padding:6px 12px;border:none;border-radius:8px;
+  background:linear-gradient(135deg,var(--red),var(--red2));
+  color:#fff;font-size:.68rem;font-weight:900;cursor:pointer;white-space:nowrap;
+}
+
+/* ── 시즌 섹션 ── */
+.season-section{margin-bottom:18px;}
+.season-header{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 12px;border-radius:10px;margin-bottom:8px;border:1px solid;
+}
+.season-header.s1{background:rgba(232,0,42,.07);border-color:rgba(232,0,42,.22);}
+.season-header.s2{background:rgba(0,200,83,.05);border-color:rgba(0,200,83,.18);}
+.season-header.s3{background:rgba(255,214,0,.05);border-color:rgba(255,214,0,.18);}
+.season-badge{
+  font-family:'Black Han Sans',sans-serif;font-size:.65rem;
+  padding:2px 8px;border-radius:20px;flex-shrink:0;
+}
+.s1 .season-badge{background:rgba(232,0,42,.2);color:var(--red2);border:1px solid rgba(232,0,42,.35);}
+.s2 .season-badge{background:rgba(0,200,83,.15);color:var(--green2);border:1px solid rgba(0,200,83,.3);}
+.s3 .season-badge{background:rgba(255,214,0,.12);color:var(--gold);border:1px solid rgba(255,214,0,.28);}
+.season-name{font-family:'Black Han Sans',sans-serif;font-size:.88rem;flex:1;}
+.season-prog{font-size:.65rem;font-weight:900;}
+.s1 .season-prog{color:var(--red2);}
+.s2 .season-prog{color:var(--green2);}
+.s3 .season-prog{color:var(--gold);}
+.season-done-badge{
+  font-size:.58rem;font-weight:900;padding:2px 7px;border-radius:10px;
+  background:rgba(0,200,83,.15);color:var(--green2);border:1px solid rgba(0,200,83,.28);
+}
+
+/* ── 게임 카드 ── */
+.game-card{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 12px;border-radius:var(--radius);margin-bottom:7px;
+  border:1px solid rgba(255,255,255,.06);background:var(--panel);
+  position:relative;overflow:hidden;transition:all .18s;cursor:pointer;
+}
+.game-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.game-card.cleared::before{background:var(--green);}
+.game-card.next::before{background:var(--red2);}
+.game-card.locked::before{background:var(--text3);}
+
+.game-card.cleared{border-color:rgba(0,200,83,.18);background:linear-gradient(135deg,rgba(0,200,83,.04),var(--panel));}
+.game-card.next{
+  border-color:rgba(232,0,42,.4);
+  background:linear-gradient(135deg,rgba(232,0,42,.08),var(--panel));
+  box-shadow:0 0 16px rgba(232,0,42,.14);
+  animation:nextPulse 2.2s ease infinite;
+}
+@keyframes nextPulse{0%,100%{box-shadow:0 0 16px rgba(232,0,42,.14)}50%{box-shadow:0 0 24px rgba(232,0,42,.28)}}
+.game-card.locked{opacity:.38;filter:grayscale(.5);cursor:default;}
+.game-card:not(.locked):active{transform:scale(.98);}
+
+.card-num{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Black Han Sans',sans-serif;font-size:.78rem;flex-shrink:0;border:2px solid;
+}
+.cleared .card-num{background:rgba(0,200,83,.14);border-color:var(--green);color:var(--green2);}
+.next    .card-num{background:rgba(232,0,42,.18);border-color:var(--red2);color:var(--red2);}
+.locked  .card-num{background:rgba(255,255,255,.04);border-color:var(--text3);color:var(--text3);}
+
+.card-info{flex:1;min-width:0;}
+.card-name{font-family:'Black Han Sans',sans-serif;font-size:.85rem;letter-spacing:.02em;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cleared .card-name{color:var(--green2);}
+.next    .card-name{color:var(--red2);}
+.locked  .card-name{color:var(--text3);}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap;}
+.tag{font-size:.56rem;font-weight:900;padding:2px 6px;border-radius:4px;}
+.tag.t-retry{background:rgba(0,200,83,.1);color:var(--green2);border:1px solid rgba(0,200,83,.18);}
+.tag.t-new{background:rgba(232,0,42,.1);color:var(--red2);border:1px solid rgba(232,0,42,.2);}
+.tag.t-locked{background:rgba(255,255,255,.04);color:var(--text3);border:1px solid rgba(255,255,255,.07);}
+.tag.t-clear{background:rgba(0,200,83,.1);color:var(--green2);border:1px solid rgba(0,200,83,.18);}
+.tag.t-diff{background:none;border:none;color:var(--text3);padding-left:0;}
+
+.card-btn{
+  padding:7px 13px;border:none;border-radius:8px;
+  font-family:'Black Han Sans',sans-serif;font-size:.72rem;letter-spacing:.02em;
+  cursor:pointer;transition:all .18s;white-space:nowrap;flex-shrink:0;
+}
+.cleared .card-btn{background:rgba(0,200,83,.12);color:var(--green2);border:1px solid rgba(0,200,83,.25);}
+.next    .card-btn{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 2px 10px rgba(232,0,42,.35);}
+.locked  .card-btn{background:rgba(255,255,255,.05);color:var(--text3);pointer-events:none;}
+.card-btn:active{opacity:.8;}
+
+/* ── 시즌 완료 배너 ── */
+.season-clear-banner{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 13px;border-radius:var(--radius);margin-top:8px;
+  background:linear-gradient(135deg,rgba(0,200,83,.12),rgba(0,200,83,.04));
+  border:1px solid rgba(0,200,83,.25);
+}
+.scb-icon{font-size:1.3rem;}
+.scb-info{flex:1;}
+.scb-title{font-family:'Black Han Sans',sans-serif;font-size:.82rem;color:var(--green2);}
+.scb-desc{font-size:.62rem;color:var(--text2);margin-top:1px;}
+.scb-reward{font-size:.8rem;font-weight:900;color:var(--gold);}
+
+/* ── 결과 모달 ── */
+.modal-bg{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.show{display:flex;}
+.modal-box{
+  background:var(--panel2);border-radius:20px;
+  padding:28px 22px;width:100%;max-width:340px;
+  text-align:center;position:relative;overflow:hidden;
+  animation:popIn .28s ease;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+.modal-box::after{
+  content:'○  △  □';position:absolute;bottom:10px;right:14px;
+  font-size:.6rem;color:rgba(255,255,255,.06);letter-spacing:.2em;pointer-events:none;
+}
+.result-icon{font-size:3.2rem;margin-bottom:10px;display:block;}
+.result-title{font-family:'Black Han Sans',sans-serif;font-size:1.35rem;letter-spacing:.06em;margin-bottom:6px;}
+.result-title.win{color:var(--green2);}
+.result-title.lose{color:var(--red2);}
+.result-desc{font-size:.78rem;color:var(--text2);line-height:1.7;margin-bottom:14px;white-space:pre-line;}
+.result-reward{
+  border-radius:10px;padding:10px;margin-bottom:16px;
+  font-size:.88rem;font-weight:900;
+}
+.result-reward.earn{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.22);color:var(--green2);}
+.result-reward.loss{background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);color:var(--red3);}
+.modal-btn{
+  width:100%;padding:13px;border:none;border-radius:12px;
+  font-family:'Black Han Sans',sans-serif;font-size:.9rem;letter-spacing:.04em;
+  cursor:pointer;transition:all .2s;margin-bottom:8px;
+}
+.modal-btn:last-child{margin-bottom:0;}
+.modal-btn.primary{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 3px 14px rgba(232,0,42,.35);}
+.modal-btn.secondary{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.09);}
+.modal-btn:active{opacity:.8;}
+
+/* ── 시즌/전체 완료 모달 ── */
+.season-modal .modal-box{background:linear-gradient(160deg,#0a1a0a,#1a0a0a);border:1px solid rgba(0,200,83,.28);}
+.allclear-modal .modal-box{background:linear-gradient(160deg,#1a1200,#0a0a12);border:1px solid rgba(255,214,0,.35);box-shadow:0 0 40px rgba(255,214,0,.1);}
+
+/* ── 토스트 ── */
+#toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(16px);
+  background:rgba(14,12,12,.97);border:1px solid var(--border-r);
+  border-radius:10px;padding:9px 18px;font-size:.8rem;color:var(--text);
+  opacity:0;transition:all .3s;pointer-events:none;z-index:500;
+  white-space:nowrap;max-width:88vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── 파티클 ── */
+.particle{position:fixed;pointer-events:none;z-index:400;font-size:1.1rem;animation:pfly 1.3s ease forwards;}
+@keyframes pfly{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(-110px) rotate(360deg)}}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.title-banner{animation:fadeUp .4s ease both;}
+.progress-wrap{animation:fadeUp .4s .06s ease both;}
+#gameList{animation:fadeUp .4s .12s ease both;}
+</style>
+</head>
+<body>
+
+<!-- 헤더 -->
+<div id="header">
+  <button id="backBtn" onclick="goBack()">←</button>
+  <div class="header-title">🦑 SQUID GAME</div>
+  <div id="balBox">💰 <span id="balVal">0</span>원</div>
+  <button onclick="testCharge()" style="padding:5px 8px;border:1px solid rgba(255,214,0,.4);border-radius:7px;background:rgba(255,214,0,.12);color:#ffd600;font-size:.6rem;font-weight:900;cursor:pointer;">+100만</button>
+</div>
+
+<!-- 메인 -->
+<div id="main">
+  <div class="title-banner">
+    <div class="title-emblem">🦑</div>
+    <div class="title-main">오징어 게임</div>
+    <div class="title-sub">시즌 1~3 · 총 12개 게임 · 생존하라</div>
+    <div style="display:flex;justify-content:center;gap:14px;margin-top:12px;">
+      <span style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;background:rgba(232,0,42,.15);border:1.5px solid rgba(232,0,42,.5);color:var(--red2);box-shadow:0 0 8px rgba(232,0,42,.3);">○</span>
+      <span style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;background:rgba(0,200,83,.12);border:1.5px solid rgba(0,200,83,.5);color:var(--green2);box-shadow:0 0 8px rgba(0,200,83,.25);">△</span>
+      <span style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:900;background:rgba(0,140,255,.12);border:1.5px solid rgba(0,140,255,.5);color:#4db8ff;box-shadow:0 0 8px rgba(0,140,255,.25);">□</span>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span class="prog-text">전체 진행률</span>
+      <span class="prog-count" id="progCount">0 / 12</span>
+    </div>
+    <div class="prog-bar-bg"><div class="prog-bar-fill" id="progBar" style="width:0%"></div></div>
+  </div>
+
+  <div class="low-bal" id="lowBal">
+    <span style="font-size:1.1rem">⚠️</span>
+    <div class="low-bal-text">잔액 부족! 재도전으로 자금을 모으거나<br>squid_index에서 포인트를 충전하세요.</div>
+    <button class="low-bal-btn" onclick="goBack()">충전하러 가기</button>
+  </div>
+
+  <div id="gameList"></div>
+</div>
+
+<!-- 결과 모달 -->
+<div class="modal-bg" id="resultModal">
+  <div class="modal-box" id="resultBox">
+    <span class="result-icon" id="rIcon">🎉</span>
+    <div class="result-title" id="rTitle">클리어!</div>
+    <div class="result-desc" id="rDesc"></div>
+    <div class="result-reward" id="rReward"></div>
+    <button class="modal-btn primary" onclick="closeResult()">확인</button>
+    <button class="modal-btn secondary" id="retryBtn" style="display:none" onclick="retryGame()">다시 도전</button>
+  </div>
+</div>
+
+<!-- 시즌 완료 모달 -->
+<div class="modal-bg season-modal" id="seasonModal">
+  <div class="modal-box">
+    <span class="result-icon" id="sIcon">🏆</span>
+    <div class="result-title win" id="sTitle"></div>
+    <div class="result-desc" id="sDesc"></div>
+    <div class="result-reward earn" id="sReward"></div>
+    <button class="modal-btn primary" onclick="closeSeasonModal()">계속 진행하기</button>
+  </div>
+</div>
+
+<!-- 전체 완료 모달 -->
+<div class="modal-bg allclear-modal" id="allClearModal">
+  <div class="modal-box">
+    <span class="result-icon">🦑</span>
+    <div class="result-title" style="color:var(--gold)">ALL CLEAR!</div>
+    <div class="result-desc">시즌 1~3 모든 게임 클리어!\n당신은 진정한 생존자입니다.</div>
+    <div class="result-reward earn" id="acReward"></div>
+    <button class="modal-btn primary" onclick="closeAllClear()">홈으로</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ════════════════════════════
+// 상수
+// ════════════════════════════
+const KEY_BAL    = 'MG_BAL_SQUID';
+const KEY_CLEAR  = 'SQ_CLEAR_STATE';
+const KEY_SEASON = 'SQ_SEASON_CLEAR';
+const KEY_ALL    = 'SQ_ALL_CLEAR';
+
+const ENTRY_RETRY = 100000;
+const ENTRY_NEW   = 300000;
+const REWARD_CLEAR = 600000;
+const REWARD_RETRY = 180000;
+const SEASON_REWARDS = {s1:2000000, s2:1500000, s3:2000000};
+const ALL_CLEAR_REWARD = 5000000;
+
+const SEASONS = [
+  { id:'s1', name:'시즌 1', badge:'SEASON 1', cls:'s1',
+    games:[
+      {id:'sq_redlight', name:'무궁화 꽃이 피었습니다', icon:'🌸', file:'sq_redlight.html', diff:'★★☆☆☆'},
+      {id:'sq_dalgona',  name:'달고나 뽑기',           icon:'🍭', file:'sq_dalgona.html',  diff:'★★★☆☆'},
+      {id:'sq_tug',      name:'줄다리기',              icon:'🪢', file:'sq_tug.html',      diff:'★★★☆☆'},
+      {id:'sq_marble',   name:'구슬치기',              icon:'🔵', file:'sq_marble.html',   diff:'★★★★☆'},
+      {id:'sq_glass',    name:'유리 징검다리',         icon:'🪟', file:'sq_glass.html',    diff:'★★★★☆'},
+      {id:'sq_squid',    name:'오징어 게임',           icon:'🦑', file:'sq_squid.html',    diff:'★★★★★'},
+    ]
+  },
+  { id:'s2', name:'시즌 2', badge:'SEASON 2', cls:'s2',
+    games:[
+      {id:'sq_redlight2',name:'무궁화꽃 (강화)',        icon:'🌸', file:'sq_redlight2.html',diff:'★★★★☆'},
+      {id:'sq_penta',    name:'6인7각 펜타슬론',        icon:'🎭', file:'sq_penta.html',    diff:'★★★★☆'},
+      {id:'sq_mingle',   name:'Mingle',                icon:'👥', file:'sq_mingle.html',   diff:'★★★☆☆'},
+    ]
+  },
+  { id:'s3', name:'시즌 3', badge:'SEASON 3', cls:'s3',
+    games:[
+      {id:'sq_hideseek', name:'Hide and Seek',         icon:'👁️', file:'sq_hideseek.html', diff:'★★★★☆'},
+      {id:'sq_jumprope', name:'Jump Rope',             icon:'🪃', file:'sq_jumprope.html', diff:'★★★★☆'},
+      {id:'sq_skysquid', name:'Sky Squid Game',        icon:'🌌', file:'sq_skysquid.html', diff:'★★★★★'},
+    ]
+  },
+];
+
+// ════════════════════════════
+// 상태
+// ════════════════════════════
+let balance     = 0;
+let clearState  = {};
+let seasonClear = {s1:false, s2:false, s3:false};
+let allClear    = false;
+let currentGame = null;
+let isNewChallenge = false;
+
+// ════════════════════════════
+// 초기화
+// ════════════════════════════
+function init(){
+  load();
+  render();
+  // 개별 게임에서 돌아왔을 때 결과 확인
+  const result = sessionStorage.getItem('SQ_GAME_RESULT');
+  if(result){
+    sessionStorage.removeItem('SQ_GAME_RESULT');
+    const {gameId, outcome} = JSON.parse(result);
+    currentGame = findGame(gameId);
+    isNewChallenge = !clearState[gameId];
+    // 이미 입장료는 게임 시작 시 차감됨
+    if(outcome === 'clear') handleClear(gameId);
+    else handleFail(gameId);
+  }
+}
+
+function load(){
+  balance     = parseInt(localStorage.getItem(KEY_BAL)    || '0') || 0;
+  clearState  = JSON.parse(localStorage.getItem(KEY_CLEAR)  || '{}');
+  seasonClear = JSON.parse(localStorage.getItem(KEY_SEASON) || '{"s1":false,"s2":false,"s3":false}');
+  allClear    = JSON.parse(localStorage.getItem(KEY_ALL)    || 'false');
+}
+
+function findGame(gameId){
+  for(const s of SEASONS) for(const g of s.games) if(g.id === gameId) return g;
+  return null;
+}
+
+// ════════════════════════════
+// 렌더링
+// ════════════════════════════
+function render(){
+  document.getElementById('balVal').textContent = balance.toLocaleString('ko-KR');
+  updateProgress();
+  buildList();
+  checkLowBal();
+}
+
+function updateProgress(){
+  const total = 12;
+  const cleared = Object.values(clearState).filter(Boolean).length;
+  document.getElementById('progCount').textContent = `${cleared} / ${total}`;
+  document.getElementById('progBar').style.width = `${(cleared/total)*100}%`;
+}
+
+function getNextId(){
+  for(const s of SEASONS) for(const g of s.games) if(!clearState[g.id]) return g.id;
+  return null;
+}
+
+function buildList(){
+  const list = document.getElementById('gameList');
+  list.innerHTML = '';
+  const nextId = getNextId();
+
+  SEASONS.forEach(season => {
+    const sec = document.createElement('div');
+    sec.className = 'season-section';
+
+    const clearedCnt = season.games.filter(g => clearState[g.id]).length;
+    const isDone = clearedCnt === season.games.length;
+
+    // 시즌 잠금 판단
+    const s1Done = SEASONS[0].games.every(g => clearState[g.id]);
+    const s2Done = SEASONS[1].games.every(g => clearState[g.id]);
+    let seasonLocked = false;
+    if(season.id === 's2' && !s1Done) seasonLocked = true;
+    if(season.id === 's3' && (!s1Done || !s2Done)) seasonLocked = true;
+
+    sec.innerHTML = `
+      <div class="season-header ${season.cls}">
+        <span class="season-badge">${season.badge}</span>
+        <span class="season-name">${season.name}</span>
+        <span class="season-prog">${clearedCnt}/${season.games.length}</span>
+        ${isDone && seasonClear[season.id] ? '<span class="season-done-badge">✅ 완료</span>' : ''}
+      </div>`;
+
+    season.games.forEach((game, idx) => {
+      const isCleared = !!clearState[game.id];
+      const isNext    = game.id === nextId;
+      let isLocked    = seasonLocked;
+      if(!isLocked && idx > 0 && !clearState[season.games[idx-1].id]) isLocked = true;
+
+      let cls, btnText, tags;
+      if(isCleared){
+        cls     = 'cleared';
+        btnText = '재도전';
+        tags    = `<span class="tag t-clear">✅ 클리어</span><span class="tag t-retry">10만원</span>`;
+      } else if(isNext && !isLocked){
+        cls     = 'next';
+        btnText = '도전!';
+        tags    = `<span class="tag t-new">⚔️ 30만원</span>`;
+      } else {
+        cls     = 'locked';
+        btnText = '🔒';
+        tags    = `<span class="tag t-locked">🔒 잠김</span>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = `game-card ${cls}`;
+      card.innerHTML = `
+        <div class="card-num">${idx+1}</div>
+        <div class="card-info">
+          <div class="card-name">${game.icon} ${game.name}</div>
+          <div class="card-tags">${tags}<span class="tag t-diff">${game.diff}</span></div>
+        </div>
+        <button class="card-btn" ${cls==='locked'?'disabled':''}
+          onclick="${cls!=='locked'?`startGame('${game.id}')`:''}">${btnText}</button>`;
+      sec.appendChild(card);
+    });
+
+    // 시즌 완료 배너
+    if(isDone){
+      const banner = document.createElement('div');
+      banner.className = 'season-clear-banner';
+      banner.innerHTML = `
+        <div class="scb-icon">🏆</div>
+        <div class="scb-info">
+          <div class="scb-title">${season.name} 완료!</div>
+          <div class="scb-desc">${seasonClear[season.id]?'보상 수령 완료':'시즌 보상 수령!'}</div>
+        </div>
+        <div class="scb-reward">+${SEASON_REWARDS[season.id].toLocaleString('ko-KR')}원</div>`;
+      sec.appendChild(banner);
+    }
+
+    list.appendChild(sec);
+  });
+}
+
+function checkLowBal(){
+  const nextId = getNextId();
+  const el = document.getElementById('lowBal');
+  if(nextId && balance < ENTRY_NEW) el.classList.add('show');
+  else el.classList.remove('show');
+}
+
+// ════════════════════════════
+// 게임 시작
+// ════════════════════════════
+function startGame(gameId){
+  const game = findGame(gameId);
+  if(!game) return;
+
+  const isCleared = !!clearState[gameId];
+  const fee = isCleared ? ENTRY_RETRY : ENTRY_NEW;
+
+  if(balance < fee){
+    showToast(`⚠️ 잔액 부족! ${fee.toLocaleString('ko-KR')}원 필요`);
+    return;
+  }
+
+  // 입장료 차감 후 저장
+  balance -= fee;
+  localStorage.setItem(KEY_BAL, balance);
+
+  // 현재 게임 정보 sessionStorage에 저장 (게임 파일에서 읽음)
+  sessionStorage.setItem('SQ_CURRENT_GAME', JSON.stringify({
+    gameId: game.id,
+    gameName: game.name,
+    isNew: !isCleared,
+    fee,
+  }));
+
+  // 게임 파일로 이동
+  window.location.href = game.file;
+}
+
+// ════════════════════════════
+// 결과 처리
+// ════════════════════════════
+function handleClear(gameId){
+  const wasCleared = !isNewChallenge;
+  const reward = wasCleared ? REWARD_RETRY : REWARD_CLEAR;
+
+  balance += reward;
+  localStorage.setItem(KEY_BAL, balance);
+
+  if(!wasCleared){
+    clearState[gameId] = true;
+    localStorage.setItem(KEY_CLEAR, JSON.stringify(clearState));
+  }
+
+  spawnParticles('🎉');
+
+  const box = document.getElementById('resultBox');
+  box.style.border = '1px solid rgba(0,200,83,.3)';
+  document.getElementById('rIcon').textContent  = wasCleared ? '✅' : '🎊';
+  const rTitle = document.getElementById('rTitle');
+  rTitle.textContent  = wasCleared ? '클리어!' : '첫 클리어!';
+  rTitle.className    = 'result-title win';
+  document.getElementById('rDesc').textContent  = wasCleared
+    ? '재도전 성공! 보상을 획득했습니다.'
+    : '축하합니다! 게임을 클리어했습니다.\n다음 게임이 잠금 해제되었습니다!';
+  const rr = document.getElementById('rReward');
+  rr.className   = 'result-reward earn';
+  rr.textContent = `+${reward.toLocaleString('ko-KR')}원 획득!`;
+  document.getElementById('retryBtn').style.display = 'none';
+  document.getElementById('resultModal').classList.add('show');
+}
+
+function handleFail(gameId){
+  const fee = isNewChallenge ? ENTRY_NEW : ENTRY_RETRY;
+  const box = document.getElementById('resultBox');
+  box.style.border = '1px solid rgba(232,0,42,.3)';
+  document.getElementById('rIcon').textContent = '💀';
+  const rTitle = document.getElementById('rTitle');
+  rTitle.textContent = '탈락!';
+  rTitle.className   = 'result-title lose';
+  document.getElementById('rDesc').textContent =
+    `아쉽게도 실패했습니다.\n입장료 ${fee.toLocaleString('ko-KR')}원이 차감되었습니다.`;
+  const rr = document.getElementById('rReward');
+  rr.className   = 'result-reward loss';
+  rr.textContent = `-${fee.toLocaleString('ko-KR')}원`;
+  document.getElementById('retryBtn').style.display = 'block';
+  document.getElementById('resultModal').classList.add('show');
+}
+
+function closeResult(){
+  document.getElementById('resultModal').classList.remove('show');
+  render();
+  checkSeasonClear();
+}
+
+function retryGame(){
+  document.getElementById('resultModal').classList.remove('show');
+  render();
+  if(currentGame) startGame(currentGame.id);
+}
+
+// ════════════════════════════
+// 시즌/전체 완료
+// ════════════════════════════
+function checkSeasonClear(){
+  for(const s of SEASONS){
+    const allDone = s.games.every(g => clearState[g.id]);
+    if(allDone && !seasonClear[s.id]){
+      const reward = SEASON_REWARDS[s.id];
+      balance += reward;
+      localStorage.setItem(KEY_BAL, balance);
+      seasonClear[s.id] = true;
+      localStorage.setItem(KEY_SEASON, JSON.stringify(seasonClear));
+
+      document.getElementById('sIcon').textContent  = s.id==='s3' ? '👑' : '🏆';
+      document.getElementById('sTitle').textContent = `${s.name} 완료!`;
+      document.getElementById('sDesc').textContent  =
+        `${s.name}의 모든 게임을 클리어했습니다!\n${s.id==='s3'?'최종 시즌까지 돌파!':'다음 시즌이 열립니다!'}`;
+      document.getElementById('sReward').textContent = `🎁 시즌 보상 +${reward.toLocaleString('ko-KR')}원!`;
+      spawnParticles('🏆');
+      document.getElementById('seasonModal').classList.add('show');
+      return;
+    }
+  }
+  checkAllClear();
+}
+
+function closeSeasonModal(){
+  document.getElementById('seasonModal').classList.remove('show');
+  render();
+  checkAllClear();
+}
+
+function checkAllClear(){
+  if(allClear) return;
+  if(!SEASONS.every(s => s.games.every(g => clearState[g.id]))) return;
+  allClear = true;
+  localStorage.setItem(KEY_ALL, 'true');
+  balance += ALL_CLEAR_REWARD;
+  localStorage.setItem(KEY_BAL, balance);
+  document.getElementById('acReward').textContent = `🎁 최종 보상 +${ALL_CLEAR_REWARD.toLocaleString('ko-KR')}원!`;
+  spawnParticles('🦑');
+  setTimeout(() => document.getElementById('allClearModal').classList.add('show'), 500);
+}
+
+function closeAllClear(){
+  document.getElementById('allClearModal').classList.remove('show');
+  render();
+  goBack();
+}
+
+// ════════════════════════════
+// 유틸
+// ════════════════════════════
+function goBack(){ window.location.href = 'squid_index.html'; }
+
+// 테스트용 충전
+function testCharge(){
+  balance += 1000000;
+  localStorage.setItem(KEY_BAL, balance);
+  render();
+  showToast('✅ 테스트 100만원 충전!');
+}
+
+function showToast(msg, dur=2500){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), dur);
+}
+
+function spawnParticles(emoji){
+  for(let i=0;i<10;i++) setTimeout(()=>{
+    const p = document.createElement('div');
+    p.className='particle'; p.textContent=emoji;
+    p.style.left=`${Math.random()*80+10}vw`;
+    p.style.top=`${Math.random()*40+20}vh`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), 1400);
+  }, i*80);
+}
+
+init();
+</script>
+</body>
+</html>
