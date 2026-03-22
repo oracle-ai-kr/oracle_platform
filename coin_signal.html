@@ -4276,7 +4276,14 @@ async function fetchLiveMetrics(){
     }
   }catch(_){}
 
-  return {totalVol,btcVol,btcDom,btcDomGlobal,domDelta,volDelta,breadth,btcAtrPct,btcChange,fundingRate,openInterest,longRatio,shortRatio,kimchiPremium};
+  // ── 공포탐욕지수 (alternative.me 무료 API) ──
+  let fearGreed=null,fearGreedLabel=null;
+  try{
+    const fng=await fetchJSON('https://api.alternative.me/fng/?limit=1',8000);
+    if(fng?.data?.[0]){fearGreed=parseInt(fng.data[0].value);fearGreedLabel=fng.data[0].value_classification;}
+  }catch(_){}
+
+  return {totalVol,btcVol,btcDom,btcDomGlobal,domDelta,volDelta,breadth,btcAtrPct,btcChange,fundingRate,openInterest,longRatio,shortRatio,kimchiPremium,fearGreed,fearGreedLabel};
 }
 
 function computeRiskScore(metrics){
@@ -4333,6 +4340,15 @@ function computeRiskScore(metrics){
     else if(kp>=5)add(5,`김프 높음 +${kp.toFixed(1)}%`);
     else if(kp<=-5)add(-5,`역프리미엄 ${kp.toFixed(1)}% — 과매도 가능`);
   }
+  // v7: 공포탐욕지수 (Fear & Greed Index)
+  if(metrics.fearGreed!=null){
+    const fg=metrics.fearGreed;
+    if(fg<=10)add(-10,`극단 공포 ${fg} — 역발상 매수 기회 가능`);
+    else if(fg<=25)add(-5,`공포 구간 ${fg} — 과매도 영역`);
+    else if(fg>=90)add(25,`극단 탐욕 ${fg} — 버블 위험 극대`);
+    else if(fg>=75)add(15,`탐욕 과열 ${fg} — 고점 리스크`);
+    else if(fg>=60)add(5,`탐욕 구간 ${fg} — 주의`);
+  }
   score=clamp(Math.round(score),0,100);
   const level=score>=75?'EXTREME':score>=55?'HIGH':score>=35?'MID':'LOW';
   const actionMap={LOW:'정상 — 분석기 신호 그대로 사용',MID:'주의 — 신규 진입 보수적으로',HIGH:'경고 — 신뢰도 상한 60% 적용',EXTREME:'제동 — 신규 BUY → HOLD 강제'};
@@ -4381,6 +4397,7 @@ async function runRisk(){
       ...(m.longRatio!=null?[{label:'롱/숏 비율', val:`${m.longRatio.toFixed(1)}% / ${m.shortRatio.toFixed(1)}%`, c:m.longRatio>=65||m.longRatio<=35?'var(--orange)':'var(--text)'}]:[]),
       ...(m.openInterest!=null?[{label:'미결제약정(OI)', val:m.openInterest.toLocaleString('en-US',{maximumFractionDigits:0}), c:'var(--text)'}]:[]),
       ...(m.kimchiPremium!=null?[{label:'김치 프리미엄', val:(m.kimchiPremium>=0?'+':'')+m.kimchiPremium.toFixed(1)+'%', c:m.kimchiPremium>=8?'var(--red)':m.kimchiPremium>=5?'var(--orange)':m.kimchiPremium<=-3?'var(--green)':'var(--text)'}]:[]),
+      ...(m.fearGreed!=null?[{label:'공포탐욕지수', val:`${m.fearGreed} (${m.fearGreedLabel||''})`, c:m.fearGreed<=25?'var(--red)':m.fearGreed>=75?'var(--orange)':m.fearGreed>=60?'var(--yellow)':'var(--green)'}]:[]),
     ].map(x=>`<div class="metric-item"><div class="metric-label">${x.label}</div><div class="metric-val" style="color:${x.c}">${x.val}</div></div>`).join('');
 
     const rc=document.getElementById('riskReasonCard');
