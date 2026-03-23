@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사주명리 — 오늘의 운세</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" crossorigin="anonymous"></script>
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-light: #f0d080;
+  --gold-dim: rgba(201,168,76,0.15);
+  --gold-border: rgba(201,168,76,0.2);
+  --bg: #08080e;
+  --bg2: #0e0e18;
+  --bg3: rgba(255,255,255,0.03);
+  --text: #ddd8cc;
+  --text-dim: #888;
+  --text-muted: #555;
+  --wood: #6db87a; --fire: #e07850; --earth: #c8a050; --metal: #8ab0c8; --water: #5898d8;
+  --radius: 16px; --radius-sm: 10px;
+  --serif: 'Noto Serif KR', serif; --sans: 'Noto Sans KR', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(201,168,76,0.04) 0%,transparent 60%),radial-gradient(ellipse 50% 50% at 80% 90%,rgba(60,20,140,0.07) 0%,transparent 60%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(1px 1px at 35% 5%,rgba(255,255,255,0.2) 0%,transparent 100%),radial-gradient(1px 1px at 65% 20%,rgba(255,255,255,0.2) 0%,transparent 100%),radial-gradient(1px 1px at 82% 8%,rgba(255,255,255,0.15) 0%,transparent 100%),radial-gradient(1px 1px at 50% 70%,rgba(255,255,255,0.1) 0%,transparent 100%),radial-gradient(1px 1px at 90% 55%,rgba(255,255,255,0.15) 0%,transparent 100%);pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:40px 20px 100px;}
+
+/* Header */
+.site-header{text-align:center;margin-bottom:36px;animation:fadeDown 0.7s ease;}
+.header-emblem{display:inline-flex;align-items:center;justify-content:center;width:68px;height:68px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.12),rgba(201,168,76,0.03));border:1px solid var(--gold-border);font-size:30px;margin-bottom:14px;box-shadow:0 0 30px rgba(201,168,76,0.08);}
+.site-title{font-family:var(--serif);font-size:26px;font-weight:700;background:linear-gradient(135deg,#a07830,#f0d080,#c9a84c,#e8c060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px;letter-spacing:2px;}
+.site-sub{font-size:12px;color:var(--text-muted);letter-spacing:2px;}
+.today-badge{display:inline-flex;align-items:center;gap:8px;margin-top:10px;padding:6px 16px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:20px;font-size:12px;color:var(--gold);letter-spacing:1px;}
+.date-display{font-size:12px;color:var(--text-muted);margin-top:8px;}
+
+/* Main tabs (TOP) */
+.main-tabs{display:flex;gap:0;margin-bottom:24px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:5px;}
+.main-tab{flex:1;padding:12px 6px;background:transparent;border:1px solid transparent;border-radius:10px;color:var(--text-muted);font-size:12px;cursor:pointer;text-align:center;transition:all 0.22s;font-family:var(--sans);line-height:1.4;}
+.main-tab.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);font-weight:500;}
+.main-tab:hover:not(.active){border-color:rgba(255,255,255,0.1);color:var(--text);}
+
+/* Cards */
+.card{background:var(--bg3);border:1px solid var(--gold-border);border-radius:var(--radius);padding:26px;margin-bottom:14px;backdrop-filter:blur(8px);position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-border),transparent);}
+.card-title{font-size:15px;font-weight:600;color:var(--gold);margin-bottom:18px;display:flex;align-items:center;gap:8px;font-family:var(--serif);}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-field{display:flex;flex-direction:column;gap:6px;}
+.form-field.full{grid-column:1/-1;}
+.field-label{font-size:11px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.field-hint{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:10px;color:var(--text-muted);cursor:help;position:relative;}
+.field-hint:hover .hint-popup{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}
+.hint-popup{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);background:#1a1a28;border:1px solid var(--gold-border);border-radius:8px;padding:10px 14px;width:220px;font-size:12px;color:var(--text);line-height:1.7;opacity:0;pointer-events:none;transition:all 0.2s;z-index:100;white-space:normal;}
+.hint-popup::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gold-border);}
+input,select,textarea{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);color:var(--text);font-family:var(--sans);font-size:15px;padding:12px 14px;outline:none;transition:border-color 0.2s;width:100%;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:rgba(201,168,76,0.4);}
+input::placeholder,textarea::placeholder{color:var(--text-muted);}
+select option{background:#1a1a28;}
+textarea{resize:vertical;min-height:100px;line-height:1.7;}
+.gender-btns{display:flex;gap:8px;}
+.gender-btn{flex:1;padding:11px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);color:var(--text-dim);font-size:14px;cursor:pointer;transition:all 0.2s;font-family:var(--sans);}
+.gender-btn.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);}
+.btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7a5a20,#c9a84c,#a07830,#e0c060);border:none;border-radius:12px;color:#080808;font-family:var(--sans);font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;position:relative;overflow:hidden;transition:opacity 0.2s,transform 0.1s;margin-top:6px;}
+.btn-main::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.15) 50%,transparent 100%);transform:translateX(-100%);transition:transform 0.5s;}
+.btn-main:hover::after{transform:translateX(100%);}
+.btn-main:hover{opacity:0.9;}.btn-main:active{transform:scale(0.99);}
+.btn-secondary{padding:10px 20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text-dim);font-family:var(--sans);font-size:13px;cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{border-color:rgba(255,255,255,0.2);color:var(--text);}
+
+/* Share bar */
+.share-bar{display:flex;gap:8px;margin-bottom:16px;}
+.share-btn{flex:1;padding:11px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.share-btn:hover{opacity:0.85;transform:translateY(-1px);}
+.share-btn-kakao{background:#FEE500;color:#3C1E1E;border-color:#FEE500;font-weight:600;}
+.share-btn-img{background:rgba(201,168,76,0.1);color:var(--gold);border-color:var(--gold-border);}
+.share-btn-copy{background:rgba(255,255,255,0.04);color:var(--text-dim);}
+#saveOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px;}
+#saveOverlay.show{display:flex;}
+
+/* Analysis body */
+.analysis-body{font-size:14px;line-height:2;color:#ccc8bc;white-space:pre-wrap;font-family:var(--sans);font-weight:300;}
+.cursor-blink{display:inline-block;width:2px;height:1.1em;background:var(--gold);margin-left:2px;vertical-align:middle;animation:blink 0.9s infinite;}
+
+/* Info box */
+.info-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--text-muted);line-height:1.8;margin-top:12px;}
+.info-box b{color:var(--text-dim);}
+
+/* Loading */
+.loading-state{text-align:center;padding:32px 0;color:var(--text-muted);font-size:14px;line-height:2;}
+.loading-spinner{display:inline-block;width:24px;height:24px;border:2px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px;}
+
+/* 오늘의 한마디 특별 디자인 */
+.word-of-day{text-align:center;padding:28px 20px;background:radial-gradient(ellipse at center,rgba(201,168,76,0.08) 0%,transparent 70%);border-radius:14px;margin-bottom:20px;position:relative;}
+.word-of-day::before{content:'✦';position:absolute;top:14px;left:14px;font-size:10px;color:rgba(201,168,76,0.3);}
+.word-of-day::after{content:'✦';position:absolute;bottom:14px;right:14px;font-size:10px;color:rgba(201,168,76,0.3);}
+.word-text{font-family:var(--serif);font-size:18px;line-height:1.9;color:var(--text);font-weight:400;letter-spacing:0.5px;}
+
+/* 타로 카드 */
+.tarot-options{display:flex;gap:10px;margin-bottom:18px;}
+.tarot-option{flex:1;padding:12px 8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:10px;color:var(--text-muted);font-size:13px;cursor:pointer;transition:all 0.2s;text-align:center;font-family:var(--sans);}
+.tarot-option.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);}
+.tarot-deck{display:flex;justify-content:center;gap:16px;padding:24px 0;flex-wrap:wrap;}
+.tarot-card{width:80px;height:130px;background:linear-gradient(135deg,#1a1228,#0f0c1e);border:1px solid rgba(140,100,200,0.3);border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:28px;transition:all 0.3s;position:relative;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.4);}
+.tarot-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(140,100,200,0.08),transparent);pointer-events:none;}
+.tarot-card:hover{transform:translateY(-6px) scale(1.03);border-color:rgba(201,168,76,0.5);box-shadow:0 12px 28px rgba(0,0,0,0.5),0 0 20px rgba(201,168,76,0.12);}
+.tarot-card.selected{transform:translateY(-10px) scale(1.05);border-color:var(--gold);box-shadow:0 16px 32px rgba(0,0,0,0.5),0 0 30px rgba(201,168,76,0.25);background:linear-gradient(135deg,#2a1a3a,#1a0e2e);}
+.tarot-card.revealed{animation:cardReveal 0.5s ease forwards;}
+.tarot-back{font-size:22px;opacity:0.5;}
+.tarot-card-pattern{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;}
+.tarot-card-border{position:absolute;inset:4px;border:1px solid rgba(140,100,200,0.15);border-radius:7px;pointer-events:none;}
+.card-count-info{font-size:12px;color:var(--text-muted);text-align:center;margin-bottom:12px;}
+.selected-cards-display{display:flex;justify-content:center;gap:12px;margin:14px 0;}
+.selected-card-chip{padding:6px 14px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:20px;font-size:12px;color:var(--gold);font-family:var(--serif);}
+
+/* 꿈해몽 */
+.dream-input-wrap{position:relative;}
+.dream-char-count{position:absolute;bottom:10px;right:12px;font-size:11px;color:var(--text-muted);}
+
+/* 운세 점수 바 */
+.fortune-scores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0;}
+.fscore-item{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 14px;}
+.fscore-label{font-size:11px;color:var(--text-muted);margin-bottom:6px;}
+.fscore-bar-wrap{height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.fscore-bar{height:100%;border-radius:2px;transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1);}
+.fscore-val{font-size:13px;font-weight:600;}
+
+/* 일진 정보 박스 */
+.iljin-box{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.iljin-chip{padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:20px;font-size:12px;color:var(--text-dim);}
+.iljin-chip b{color:var(--gold);}
+
+/* Pillar compact */
+.pillars-compact{display:flex;gap:6px;margin-bottom:18px;}
+.pillar-mini{flex:1;background:rgba(255,255,255,0.02);border:1px solid var(--gold-border);border-radius:10px;padding:10px 6px;text-align:center;}
+.pillar-mini-label{font-size:9px;color:var(--text-muted);margin-bottom:4px;}
+.pillar-mini-char{font-family:var(--serif);font-size:16px;font-weight:700;margin-bottom:2px;}
+
+.hidden{display:none!important;}
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes cardReveal{0%{transform:translateY(-10px) scale(1.05) rotateY(90deg)}100%{transform:translateY(-10px) scale(1.05) rotateY(0deg)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+.anim-in{animation:fadeIn 0.4s ease forwards;}
+.float{animation:float 3s ease-in-out infinite;}
+
+@media(max-width:520px){
+  .form-grid{grid-template-columns:1fr;}
+  .site-title{font-size:22px;}
+  #app{padding:28px 14px 80px;}
+  .main-tabs .main-tab{font-size:11px;padding:10px 4px;}
+  .fortune-scores{grid-template-columns:1fr;}
+  .tarot-card{width:68px;height:110px;}
+}
+</style>
+</head>
+<body>
+<script>if(!sessionStorage.getItem("ORACLE_ENTRY")<body><body>window.self===window.top){window.location.replace("index.html");}</script>
+<a href="index.html" id="oracleBackBtn" style="position:fixed;top:12px;right:12px;z-index:9999;display:flex;align-items:center;gap:5px;background:rgba(8,8,8,.85);border:1px solid rgba(200,168,75,.3);border-radius:10px;padding:6px 12px;font-size:.72rem;font-weight:700;color:#e8cc7a;text-decoration:none;backdrop-filter:blur(8px);box-shadow:0 2px 12px rgba(0,0,0,.4);transition:opacity .2s;"><span style="font-size:.85rem;">←</span> ORACLE</a>
+<div id="app">
+
+  <header class="site-header">
+    <div class="header-emblem float">☀️</div>
+    <h1 class="site-title">오늘의 운세</h1>
+    <p class="site-sub">단기운 · 오늘 하루를 읽다</p>
+    <div class="today-badge" id="todayBadge">⚡ 오늘의 기운 로딩중...</div>
+    <div class="date-display" id="dateDisplay"></div>
+  </header>
+
+  <!-- ══ INPUT SCREEN ══ -->
+  <div id="inputScreen">
+
+    <!-- TOP MAIN TABS -->
+    <div class="main-tabs">
+      <button class="main-tab active" onclick="setMainTab('fortune')" id="mtab-fortune">☀️<br>오늘의 운세</button>
+      <button class="main-tab" onclick="setMainTab('tarot')" id="mtab-tarot">🃏<br>오늘의 타로</button>
+      <button class="main-tab" onclick="setMainTab('word')" id="mtab-word">💬<br>오늘의 한마디</button>
+      <button class="main-tab" onclick="setMainTab('dream')" id="mtab-dream">🌙<br>꿈해몽</button>
+    </div>
+
+    <!-- ── 오늘의 운세 입력 ── -->
+    <div id="form-fortune" class="form-section">
+      <div class="card">
+        <div class="card-title">☀️ 오늘의 운세</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="field-label">태어난 해</label>
+            <input type="number" id="f_year" placeholder="예: 1990" min="1900" max="2024">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 월</label>
+            <select id="f_month"><option value="">월 선택</option>
+              <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+              <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+              <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 일</label>
+            <input type="number" id="f_day" placeholder="1~31" min="1" max="31">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 시간 <div class="field-hint">?<div class="hint-popup">모르면 12시로 두세요.</div></div></label>
+            <select id="f_hour">
+              <option value="12">모름 (12시)</option>
+              <option value="0">0시</option><option value="1">1시</option><option value="2">2시</option>
+              <option value="3">3시</option><option value="4">4시</option><option value="5">5시</option>
+              <option value="6">6시</option><option value="7">7시</option><option value="8">8시</option>
+              <option value="9">9시</option><option value="10">10시</option><option value="11">11시</option>
+              <option value="13">13시</option><option value="14">14시</option><option value="15">15시</option>
+              <option value="16">16시</option><option value="17">17시</option><option value="18">18시</option>
+              <option value="19">19시</option><option value="20">20시</option><option value="21">21시</option>
+              <option value="22">22시</option><option value="23">23시</option>
+            </select>
+          </div>
+          <div class="form-field full">
+            <label class="field-label">성별</label>
+            <div class="gender-btns">
+              <button class="gender-btn active" onclick="setGender('남','fortune')" id="gender-남-fortune">👨 남성</button>
+              <button class="gender-btn" onclick="setGender('여','fortune')" id="gender-여-fortune">👩 여성</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn-main" onclick="startFortune()">☀️ 오늘 운세 보기</button>
+        <div class="info-box">💡 생년월일과 오늘 일진을 결합해 재물·연애·직장·건강 운을 세분화해서 분석해드립니다.</div>
+      </div>
+    </div>
+
+    <!-- ── 오늘의 한마디 입력 ── -->
+    <div id="form-word" class="form-section hidden">
+      <div class="card">
+        <div class="card-title">💬 오늘의 한마디</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="field-label">태어난 해</label>
+            <input type="number" id="w_year" placeholder="예: 1990" min="1900" max="2024">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 월</label>
+            <select id="w_month"><option value="">월</option>
+              <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+              <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+              <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 일</label>
+            <input type="number" id="w_day" placeholder="1~31" min="1" max="31">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 시간</label>
+            <select id="w_hour">
+              <option value="12">모름 (12시)</option>
+              <option value="0">0시</option><option value="1">1시</option><option value="2">2시</option>
+              <option value="3">3시</option><option value="4">4시</option><option value="5">5시</option>
+              <option value="6">6시</option><option value="7">7시</option><option value="8">8시</option>
+              <option value="9">9시</option><option value="10">10시</option><option value="11">11시</option>
+              <option value="13">13시</option><option value="14">14시</option><option value="15">15시</option>
+              <option value="16">16시</option><option value="17">17시</option><option value="18">18시</option>
+              <option value="19">19시</option><option value="20">20시</option><option value="21">21시</option>
+              <option value="22">22시</option><option value="23">23시</option>
+            </select>
+          </div>
+          <div class="form-field full">
+            <label class="field-label">성별</label>
+            <div class="gender-btns">
+              <button class="gender-btn active" onclick="setGender('남','word')" id="gender-남-word">👨 남성</button>
+              <button class="gender-btn" onclick="setGender('여','word')" id="gender-여-word">👩 여성</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn-main" onclick="startWord()">💬 오늘의 한마디 받기</button>
+        <div class="info-box">💡 사주와 오늘 기운을 분석해 당신에게 딱 맞는 오늘 하루의 핵심 메시지를 전달해드립니다.</div>
+      </div>
+    </div>
+
+    <!-- ── 오늘의 타로 입력 ── -->
+    <div id="form-tarot" class="form-section hidden">
+      <div class="card">
+        <div class="card-title">🃏 오늘의 타로</div>
+        <div class="form-field" style="margin-bottom:16px;">
+          <label class="field-label">카드 수 선택</label>
+          <div class="tarot-options">
+            <button class="tarot-option active" onclick="setTarotCount(1)" id="topt-1">🃏 1장<br><span style="font-size:11px;color:var(--text-muted)">오늘 핵심 메시지</span></button>
+            <button class="tarot-option" onclick="setTarotCount(3)" id="topt-3">🃏🃏🃏 3장<br><span style="font-size:11px;color:var(--text-muted)">과거·현재·미래</span></button>
+          </div>
+        </div>
+        <div class="form-field" style="margin-bottom:16px;">
+          <label class="field-label">오늘의 궁금한 점 (선택사항)</label>
+          <input type="text" id="t_question" placeholder="예: 오늘 중요한 미팅이 있어요..." maxlength="60">
+        </div>
+        <button class="btn-main" onclick="startTarot()">🔮 카드 뽑기 시작</button>
+        <div class="info-box">💡 78장 타로 덱에서 카드를 뽑습니다. 직관을 믿고 끌리는 카드를 선택하세요.</div>
+      </div>
+    </div>
+
+    <!-- ── 꿈해몽 입력 ── -->
+    <div id="form-dream" class="form-section hidden">
+      <div class="card">
+        <div class="card-title">🌙 꿈해몽</div>
+        <div class="form-field" style="margin-bottom:16px;">
+          <label class="field-label">꿈의 내용을 적어주세요 <div class="field-hint">?<div class="hint-popup">최대한 구체적으로 적어주실수록 더 정확한 풀이가 가능합니다. 사람, 장소, 색깔, 느낌 등을 포함해주세요.</div></div></label>
+          <div class="dream-input-wrap">
+            <textarea id="d_dream" placeholder="예: 큰 파도가 몰려오는 꿈을 꿨는데, 처음에는 무서웠지만 파도 위에 올라타서 서핑을 하게 됐어요. 하늘은 맑았고 기분이 상쾌했습니다..." rows="6" oninput="updateDreamCount()"></textarea>
+            <span class="dream-char-count" id="dreamCount">0 / 500</span>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="field-label">꿈을 꾼 날짜</label>
+            <input type="date" id="d_date">
+          </div>
+          <div class="form-field">
+            <label class="field-label">꿈속 감정</label>
+            <select id="d_emotion">
+              <option value="">선택 (선택사항)</option>
+              <option>😊 좋은 느낌</option>
+              <option>😨 무서운 느낌</option>
+              <option>😰 불안한 느낌</option>
+              <option>😢 슬픈 느낌</option>
+              <option>😤 화나는 느낌</option>
+              <option>😮 놀라운 느낌</option>
+              <option>🤔 이상한 느낌</option>
+              <option>😌 평화로운 느낌</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-main" onclick="startDream()" style="margin-top:6px;">🌙 꿈해몽 풀기</button>
+        <div class="info-box">💡 꿈해몽은 잠재의식과 앞으로의 기운을 읽는 방법입니다. 꿈의 상징과 에너지를 분석해드립니다.</div>
+      </div>
+    </div>
+
+  </div><!-- /inputScreen -->
+
+  <!-- ══ RESULT SCREEN ══ -->
+  <div id="resultScreen" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <button class="btn-secondary" onclick="goBack()">← 다시 보기</button>
+      <div id="resultTitle" style="font-size:14px;color:var(--text-dim);"></div>
+    </div>
+    <div class="share-bar" id="shareBar" style="display:none;">
+      <button class="share-btn share-btn-kakao" onclick="shareKakao()"><span style="font-size:16px">💬</span> 카카오 공유</button>
+      <button class="share-btn share-btn-img" onclick="saveAsImage()"><span style="font-size:16px">📸</span> 이미지 저장</button>
+      <button class="share-btn share-btn-copy" onclick="copyLink()"><span style="font-size:16px">🔗</span> 링크 복사</button>
+    </div>
+    <div id="saveOverlay"><div class="loading-spinner"></div><div>이미지 생성 중...</div></div>
+    <div id="panel-result" class="card anim-in"></div>
+  </div>
+
+  <!-- ══ TAROT SCREEN ══ -->
+  <div id="tarotScreen" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <button class="btn-secondary" onclick="goBack()">← 다시 보기</button>
+      <div id="tarotTitle" style="font-size:14px;color:var(--text-dim);"></div>
+    </div>
+    <div id="tarotDeckArea" class="card">
+      <div class="card-title">🃏 카드를 선택하세요</div>
+      <div id="cardCountInfo" class="card-count-info"></div>
+      <div class="tarot-deck" id="tarotDeck"></div>
+      <div id="selectedCardsDisplay" class="selected-cards-display" style="display:none;"></div>
+      <button class="btn-main" id="tarotRevealBtn" onclick="revealTarot()" style="display:none;">🔮 카드 해석하기</button>
+    </div>
+    <div id="panel-tarot" class="card anim-in hidden"></div>
+    <div class="share-bar" id="shareBarTarot" style="display:none;margin-top:14px;">
+      <button class="share-btn share-btn-kakao" onclick="shareKakao()"><span>💬</span> 카카오 공유</button>
+      <button class="share-btn share-btn-img" onclick="saveAsImage()"><span>📸</span> 이미지 저장</button>
+      <button class="share-btn share-btn-copy" onclick="copyLink()"><span>🔗</span> 링크 복사</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<script>
+const API_URL = 'https://api.anthropic.com/v1/messages';
+const 천간 = ["갑","을","병","정","무","기","경","신","임","계"];
+const 지지 = ["자","축","인","묘","진","사","오","미","신","유","술","해"];
+const 오행Map = {갑:"나무",을:"나무",병:"불",정:"불",무:"흙",기:"흙",경:"쇠",신:"쇠",임:"물",계:"물"};
+const 지지오행 = {자:"물",축:"흙",인:"나무",묘:"나무",진:"흙",사:"불",오:"불",미:"흙",신:"쇠",유:"쇠",술:"흙",해:"물"};
+const 오행색 = {나무:"#6db87a",불:"#e07850",흙:"#c8a050",쇠:"#8ab0c8",물:"#5898d8"};
+const 오행이모지 = {나무:"🌳",불:"🔥",흙:"🌍",쇠:"⚙️",물:"💧"};
+const 지지동물 = {자:"쥐",축:"소",인:"호랑이",묘:"토끼",진:"용",사:"뱀",오:"말",미:"양",신:"원숭이",유:"닭",술:"개",해:"돼지"};
+
+// ── 78장 타로 카드 데이터 ──
+const TAROT_CARDS = [
+  // 메이저 아르카나
+  {id:0,name:"바보",emoji:"🌟",desc:"새로운 시작, 순수함, 모험심",rev:"무모함, 준비부족"},
+  {id:1,name:"마법사",emoji:"✨",desc:"의지력, 창의력, 집중력",rev:"조작, 속임수"},
+  {id:2,name:"여사제",emoji:"🌙",desc:"직관, 내면의 지혜, 비밀",rev:"숨겨진 정보"},
+  {id:3,name:"여황제",emoji:"🌸",desc:"풍요, 창조, 모성애",rev:"창의력 막힘"},
+  {id:4,name:"황제",emoji:"⚡",desc:"권위, 안정, 리더십",rev:"고집, 경직"},
+  {id:5,name:"교황",emoji:"🙏",desc:"전통, 조언, 정신적 가이드",rev:"규칙에 얽매임"},
+  {id:6,name:"연인",emoji:"💞",desc:"사랑, 선택, 조화",rev:"불균형, 잘못된 선택"},
+  {id:7,name:"전차",emoji:"🏆",desc:"승리, 의지, 통제",rev:"공격성, 방향 상실"},
+  {id:8,name:"힘",emoji:"🦁",desc:"내면의 힘, 용기, 인내",rev:"자기 의심"},
+  {id:9,name:"은둔자",emoji:"🕯️",desc:"성찰, 고독, 내면 탐구",rev:"고립, 방황"},
+  {id:10,name:"운명의 바퀴",emoji:"🎡",desc:"변화, 사이클, 행운",rev:"불운, 저항"},
+  {id:11,name:"정의",emoji:"⚖️",desc:"공정, 균형, 진실",rev:"불공정, 편견"},
+  {id:12,name:"매달린 남자",emoji:"🔄",desc:"희생, 다른 관점, 대기",rev:"집착, 순교"},
+  {id:13,name:"죽음",emoji:"🌺",desc:"변화, 끝과 시작, 전환",rev:"변화 저항"},
+  {id:14,name:"절제",emoji:"🌊",desc:"균형, 인내, 조화",rev:"불균형, 과잉"},
+  {id:15,name:"악마",emoji:"🔥",desc:"속박, 물질주의, 그림자",rev:"해방, 각성"},
+  {id:16,name:"탑",emoji:"⚡",desc:"급격한 변화, 각성, 파괴",rev:"내부 변화"},
+  {id:17,name:"별",emoji:"⭐",desc:"희망, 영감, 치유",rev:"절망, 비관"},
+  {id:18,name:"달",emoji:"🌙",desc:"환상, 직관, 무의식",rev:"혼란, 공포"},
+  {id:19,name:"태양",emoji:"☀️",desc:"성공, 기쁨, 활력",rev:"에너지 과부하"},
+  {id:20,name:"심판",emoji:"🎺",desc:"각성, 재탄생, 용서",rev:"자기 비판"},
+  {id:21,name:"세계",emoji:"🌍",desc:"완성, 성취, 통합",rev:"미완성"},
+  // 마이너 아르카나 (선택)
+  {id:22,name:"완드 에이스",emoji:"🌟",desc:"새로운 시작, 열정, 창의성",rev:"에너지 부족"},
+  {id:23,name:"컵 에이스",emoji:"💧",desc:"감정의 시작, 사랑, 직관",rev:"감정 차단"},
+  {id:24,name:"소드 에이스",emoji:"⚡",desc:"명확함, 진실, 아이디어",rev:"혼란"},
+  {id:25,name:"펜타클 에이스",emoji:"💰",desc:"물질적 시작, 기회, 풍요",rev:"기회 놓침"},
+  {id:26,name:"완드 3",emoji:"🌅",desc:"확장, 장기 계획, 리더십",rev:"방해"},
+  {id:27,name:"컵 2",emoji:"💑",desc:"파트너십, 사랑, 연결",rev:"단절"},
+  {id:28,name:"소드 5",emoji:"⚔️",desc:"갈등, 승리와 패배",rev:"화해"},
+  {id:29,name:"펜타클 6",emoji:"🤝",desc:"나눔, 관대함, 균형",rev:"불균형"},
+  {id:30,name:"완드 퀸",emoji:"👑",desc:"자신감, 결단력, 카리스마",rev:"고집"},
+  {id:31,name:"컵 킹",emoji:"🌊",desc:"감정 지배, 지혜, 균형",rev:"감정 조작"},
+  {id:32,name:"소드 잭",emoji:"💫",desc:"날카로운 지성, 진실 추구",rev:"가십"},
+  {id:33,name:"펜타클 9",emoji:"🌿",desc:"독립, 풍요, 자립",rev:"물질 의존"},
+];
+
+// ── UI 상태 ──
+let genderState = {fortune:'남',word:'남'};
+let currentMainTab = 'fortune';
+let tarotCount = 1;
+let selectedCards = [];
+let tarotQuestion = '';
+const STORAGE_KEY = 'saju_today_info';
+
+function setMainTab(tab) {
+  currentMainTab = tab;
+  ['fortune','tarot','word','dream'].forEach(t=>{
+    document.getElementById('mtab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('form-'+t).classList.toggle('hidden',t!==tab);
+  });
+}
+function setGender(g, group) {
+  genderState[group] = g;
+  ['남','여'].forEach(x=>{const b=document.getElementById(`gender-${x}-${group}`);if(b)b.classList.toggle('active',x===g);});
+}
+function setTarotCount(n) {
+  tarotCount = n;
+  ['1','3'].forEach(x=>{document.getElementById('topt-'+x).classList.toggle('active',String(n)===x);});
+}
+function updateDreamCount() {
+  const v = document.getElementById('d_dream').value.length;
+  document.getElementById('dreamCount').textContent = `${v} / 500`;
+}
+function showScreen(id) {
+  ['inputScreen','resultScreen','tarotScreen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function goBack() { showScreen('inputScreen'); selectedCards=[]; }
+function initTodayBadge() {
+  const n=new Date();
+  const days=['일','월','화','수','목','금','토'];
+  const saju=getTodayGanji();
+  const oh=오행Map[saju.일주.천간];
+  document.getElementById('todayBadge').textContent=`${오행이모지[oh]||'⚡'} 오늘 일진: ${saju.일주.천간}${saju.일주.지지}(${oh})`;
+  document.getElementById('dateDisplay').textContent=`${n.getFullYear()}년 ${n.getMonth()+1}월 ${n.getDate()}일 (${days[n.getDay()]})`;
+  // Set default date for dream
+  const dateInput=document.getElementById('d_date');
+  if(dateInput) dateInput.value=n.toISOString().split('T')[0];
+}
+
+// ── 사주 엔진 ──
+function getJeolgiDay(year,month){const C=[[1,6.11,0.242477],[2,4.84,0.242210],[3,6.22,0.242556],[4,5.07,0.242153],[5,5.52,0.242353],[6,6.18,0.242218],[7,7.01,0.242343],[8,7.14,0.242370],[9,8.01,0.242193],[10,8.06,0.242353],[11,7.18,0.242293],[12,7.09,0.242218]];const[,base,coeff]=C[month-1];const y=year-1900;return Math.floor(base+coeff*y-Math.floor(y/4));}
+function getSajuMonth(y,m,d){return d<getJeolgiDay(y,m)?(m===1?12:m-1):m;}
+function calcJulianDay(y,m,d){const a=Math.floor((14-m)/12);const yy=y-a;const mm=m+12*a-2;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)+32045;}
+function getSaju(year,month,day,hour){
+  const yBase=(year-4)%60;
+  const yTG=천간[((yBase%10)+10)%10];const yEB=지지[((yBase%12)+12)%12];
+  const sm=getSajuMonth(year,month,day);
+  const mEB=지지[(sm+1)%12];
+  const yTGI=천간.indexOf(yTG);
+  const mTG=천간[((((yTGI%5)*2+(sm-1))%10)+10)%10];
+  const jd=calcJulianDay(year,month,day);
+  const dBase=(jd+49)%60;
+  const dTG=천간[dBase%10];const dEB=지지[dBase%12];
+  const eh=hour===23?0:hour;
+  const hIdx=Math.floor((eh+1)/2)%12;
+  const hEB=지지[hIdx];
+  const dTGI=천간.indexOf(dTG);
+  const hTG=천간[((((dTGI%5)*2+hIdx)%10)+10)%10];
+  return{연주:{천간:yTG,지지:yEB},월주:{천간:mTG,지지:mEB},일주:{천간:dTG,지지:dEB},시주:{천간:hTG,지지:hEB}};
+}
+function getTodayGanji(){const n=new Date();return getSaju(n.getFullYear(),n.getMonth()+1,n.getDate(),12);}
+function buildSajuStr(saju,year,month,day,hour,gender){
+  return `연주:${saju.연주.천간}${saju.연주.지지}(${오행Map[saju.연주.천간]}/${지지동물[saju.연주.지지]}띠) 월주:${saju.월주.천간}${saju.월주.지지} 일주:${saju.일주.천간}${saju.일주.지지}(${오행Map[saju.일주.천간]}) 시주:${saju.시주.천간}${saju.시주.지지} / ${gender}성 ${year}년생`;
+}
+
+// ── API ──
+const SYSTEM_FORTUNE = `당신은 30년 경력의 사주명리 전문가입니다. 오늘 하루의 운세를 생생하고 구체적으로 분석합니다.
+
+절대 규칙:
+- 한자·전문용어 금지
+- 오늘 하루에 실질적으로 도움이 되는 구체적 조언
+- 재물·연애·직장·건강을 각각 세분화
+- 따뜻하고 친근한 말투
+- 부정적인 것도 조심할 점으로 긍정적 표현
+- 이모지 적절히 사용
+- 항상 한국어로 응답`;
+
+const SYSTEM_WORD = `당신은 사주명리와 동양철학을 바탕으로 따뜻한 한마디를 전하는 전문가입니다.
+
+절대 규칙:
+- 오늘 사주와 일진을 분석해 맞춤형 메시지 1개를 핵심으로
+- 시적이고 깊이 있으면서도 실용적인 한마디
+- 이후 그 말의 배경과 오늘 하루 적용 방법을 자세히 설명
+- 따뜻하고 힘이 되는 말투
+- 이모지 적절히 사용
+- 항상 한국어로 응답`;
+
+const SYSTEM_TAROT = `당신은 20년 경력의 타로 마스터입니다. 타로 카드의 상징과 에너지를 깊이 있게 해석합니다.
+
+절대 규칙:
+- 카드의 정방향/역방향 의미를 현실적으로 적용
+- 추상적 상징을 구체적인 현실 상황으로 연결
+- 질문이 있으면 그 맥락에서 해석
+- 카드들 사이의 에너지 흐름과 연결 분석
+- 행동 지침을 구체적으로 제시
+- 따뜻하고 지혜로운 말투
+- 이모지 적절히 사용
+- 항상 한국어로 응답`;
+
+const SYSTEM_DREAM = `당신은 30년 경력의 꿈해몽 전문가이자 심리 상담사입니다. 동양의 꿈해몽과 심층심리학을 결합해 꿈을 분석합니다.
+
+절대 규칙:
+- 꿈의 주요 상징과 이미지 각각의 의미 분석
+- 꿈 전체의 메시지와 잠재의식이 말하려는 것
+- 현실 삶과의 연결고리
+- 꿈이 암시하는 앞으로의 기운
+- 꿈을 통한 자기 이해와 성장 방향
+- 따뜻하고 심도 있는 분석
+- 이모지 적절히 사용
+- 항상 한국어로 응답`;
+
+async function callClaude(userMsg, system, maxTokens=2000, timeoutMs=25000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=>ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(API_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      signal: ctrl.signal,
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:maxTokens,system,messages:[{role:'user',content:userMsg}]})
+    });
+    if(!res.ok) throw new Error(`API 오류: ${res.status}`);
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  } catch(e) {
+    if(e?.name === 'AbortError') throw new Error('요청 시간이 초과되었습니다. (네트워크 상태를 확인 후 다시 시도해주세요)');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+
+async function typeToPanel(panelId, titleHtml, text, extraHtml='') {
+  const el = document.getElementById(panelId);
+  const chunkSize=10, delay=10;
+  let d=0;
+  while(d<text.length){
+    d=Math.min(d+chunkSize,text.length);
+    const cursor=d<text.length?'<span class="cursor-blink"></span>':'';
+    el.innerHTML=`${titleHtml}<div class="analysis-body">${escHtml(text.slice(0,d))}${cursor}</div>`;
+    if(d<text.length) await new Promise(r=>setTimeout(r,delay));
+  }
+  el.innerHTML=`${titleHtml}<div class="analysis-body">${escHtml(text)}</div>${extraHtml}`;
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function loadingHtml(msg){return `<div class="loading-state"><div class="loading-spinner"></div><br>${msg}</div>`;}
+
+async function nextPaint(){return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));}
+function errorHtml(msg, retryFnName){
+  return `<div class="loading-state" style="padding:28px 0;">`+
+    `<div style=\"font-size:20px;margin-bottom:10px;\">❌</div>`+
+    `<div style=\"line-height:1.9;\">${escHtml(String(msg||'오류가 발생했습니다.'))}</div>`+
+    `<div style=\"margin-top:14px;\">`+
+      `<button class=\"btn-secondary\" onclick=\"${retryFnName}()\">다시 시도</button>`+
+    `</div></div>`;
+}
+
+// ── 오늘의 운세 ──
+async function startFortune() {
+  let year=parseInt(document.getElementById('f_year').value);
+  let month=parseInt(document.getElementById('f_month').value);
+  let day=parseInt(document.getElementById('f_day').value);
+  const hour=parseInt(document.getElementById('f_hour').value)||12;
+  const gender=genderState.fortune;
+  if(!year||!month||!day){alert('생년월일을 입력해주세요.');return;}
+
+  const saju=getSaju(year,month,day,hour);
+  showScreen('resultScreen');
+  document.getElementById('resultTitle').textContent=`${year}.${month}.${day} · ${gender}성`;
+  const panel=document.getElementById('panel-result');
+  panel.innerHTML=loadingHtml('오늘 운세를 정밀 분석 중입니다...<br>☀️ 일진과 사주의 기운을 읽는 중...');
+
+  
+  await nextPaint();
+  const todaySaju=getTodayGanji();
+  const todayTG=todaySaju.일주.천간, todayEB=todaySaju.일주.지지;
+  const todayOh=오행Map[todayTG];
+  const now=new Date();
+  const sajuStr=buildSajuStr(saju,year,month,day,hour,gender);
+
+  // 사주 기둥 표시
+  const pillarsHtml = buildPillarsCompact(saju);
+  const iljinHtml = `<div class="iljin-box">
+    <div class="iljin-chip">📅 오늘 일진: <b>${todayTG}${todayEB}</b></div>
+    <div class="iljin-chip">${오행이모지[todayOh]} 오늘 기운: <b>${todayOh}</b></div>
+    <div class="iljin-chip">🐾 <b>${지지동물[saju.연주.지지]}</b>띠</div>
+  </div>`;
+
+  const titleHtml = `<div class="card-title">☀️ ${now.getMonth()+1}월 ${now.getDate()}일 오늘의 운세</div>
+    ${iljinHtml}${pillarsHtml}`;
+
+  try {
+const text = await callClaude(
+    `내 사주: ${sajuStr}\n오늘(${now.getMonth()+1}월 ${now.getDate()}일) 일진: ${todayTG}${todayEB}(${todayOh})\n\n오늘의 상세 운세를 아래 항목으로 분석해주세요:\n\n⚡ 오늘의 전체 기운 (3문장 이상, 구체적으로)\n\n🔢 오늘 운세 점수 — 아래 형식으로 반드시 포함:\n재물운 점수: XX점\n연애운 점수: XX점\n직장운 점수: XX점\n건강운 점수: XX점\n\n💰 재물·금전운 상세 분석 (오늘 돈과 관련해 주의할 것, 기회)\n❤️ 연애·인간관계운 상세 분석 (오늘 만나는 사람들과의 기운)\n💼 직장·일·공부운 상세 분석 (오늘 집중해야 할 것, 피해야 할 것)\n🏥 건강·에너지운 (오늘 몸과 마음 관리 포인트)\n🎯 오늘의 행운 포인트 3가지\n⚠️ 오늘 꼭 조심해야 할 1가지\n✅ 오늘 추천 행동 3가지`,
+    SYSTEM_FORTUNE, 2000
+  );
+
+  // 점수 파싱
+  const scores = {재물:75,연애:75,직장:75,건강:75};
+  const patterns = [{key:'재물',re:/재물운 점수[:\s]*(\d+)/},{key:'연애',re:/연애운 점수[:\s]*(\d+)/},{key:'직장',re:/직장운 점수[:\s]*(\d+)/},{key:'건강',re:/건강운 점수[:\s]*(\d+)/}];
+  patterns.forEach(({key,re})=>{const m=text.match(re);if(m)scores[key]=parseInt(m[1]);});
+  const scoreColor=(v)=>v>=80?'#6db87a':v>=60?'#c9a84c':'#e07850';
+  const scoresHtml = `<div class="fortune-scores">
+    ${Object.entries(scores).map(([k,v])=>`<div class="fscore-item">
+      <div class="fscore-label">${{재물:'💰 재물운',연애:'❤️ 연애운',직장:'💼 직장운',건강:'🏥 건강운'}[k]}</div>
+      <div class="fscore-bar-wrap"><div class="fscore-bar" style="width:${v}%;background:${scoreColor(v)}"></div></div>
+      <div class="fscore-val" style="color:${scoreColor(v)}">${v}점</div>
+    </div>`).join('')}
+  </div>`;
+
+  const cleanText = text.replace(/[재물연애직장건강]운 점수[:\s]*\d+점?/g,'').trim();
+  await typeToPanel('panel-result', titleHtml + scoresHtml, cleanText);
+
+  } catch(e) {
+    console.error('startFortune error:', e);
+    document.getElementById('panel-result').innerHTML = errorHtml(e.message || e, 'startFortune');
+  }  saveToStorage({year,month,day,hour,gender:genderState.fortune});
+  document.getElementById('shareBar').style.display='flex';
+}
+
+// ── 오늘의 한마디 ──
+async function startWord() {
+  let year=parseInt(document.getElementById('w_year').value);
+  let month=parseInt(document.getElementById('w_month').value);
+  let day=parseInt(document.getElementById('w_day').value);
+  const hour=parseInt(document.getElementById('w_hour').value)||12;
+  const gender=genderState.word;
+  if(!year||!month||!day){alert('생년월일을 입력해주세요.');return;}
+
+  const saju=getSaju(year,month,day,hour);
+  showScreen('resultScreen');
+  document.getElementById('resultTitle').textContent=`오늘의 한마디 · ${gender}성`;
+  const panel=document.getElementById('panel-result');
+  panel.innerHTML=loadingHtml('오늘 당신에게 맞는 한마디를 찾고 있습니다...<br>💬 사주와 오늘 기운을 연결 중...');
+
+  const todaySaju=getTodayGanji();
+  const todayTG=todaySaju.일주.천간, todayEB=todaySaju.일주.지지;
+  const todayOh=오행Map[todayTG];
+  const now=new Date();
+  const sajuStr=buildSajuStr(saju,year,month,day,hour,gender);
+
+  try {
+const text = await callClaude(
+    `내 사주: ${sajuStr}\n오늘 일진: ${todayTG}${todayEB}(${todayOh})\n오늘 날짜: ${now.getMonth()+1}월 ${now.getDate()}일\n\n아래 형식으로 오늘의 한마디를 전해주세요:\n\n[오늘의 한마디]\n— 여기에 따뜻하고 깊이 있는 한 문장을 적어주세요. 시적이고 구체적으로. —\n\n[이 말의 의미]\n이 한마디가 오늘 이 사람에게 왜 필요한지, 어떤 상황에서 힘이 될지 설명해주세요.\n\n[오늘 이 말을 실천하는 방법]\n오늘 하루 구체적으로 어떻게 이 말을 삶에 적용할 수 있는지 3가지로 설명해주세요.\n\n[오늘의 행운 에너지]\n오늘 ${todayOh} 기운이 이 사람에게 어떻게 작용하는지, 어떻게 활용하면 좋은지.`,
+    SYSTEM_WORD, 2000
+  );
+
+  // 한마디 추출
+  const wordMatch = text.match(/\[오늘의 한마디\]\s*—?\s*([^—\n\[]+)—?/);
+  const wordText = wordMatch ? wordMatch[1].trim() : '';
+
+  const titleHtml = `<div class="card-title">💬 오늘의 한마디</div>
+    ${wordText ? `<div class="word-of-day"><div class="word-text">"${wordText}"</div></div>` : ''}`;
+
+  const cleanText = text.replace(/\[오늘의 한마디\].*?(?=\[|$)/s,'').trim();
+  await typeToPanel('panel-result', titleHtml, cleanText);
+
+  } catch(e) {
+    console.error('startWord error:', e);
+    document.getElementById('panel-word').innerHTML = errorHtml(e.message || e, 'startWord');
+  }  saveToStorage({year,month,day,hour,gender:genderState.word});
+  document.getElementById('shareBar').style.display='flex';
+}
+
+// ── 타로 ──
+function startTarot() {
+  tarotQuestion = document.getElementById('t_question').value.trim();
+  selectedCards = [];
+  showScreen('tarotScreen');
+  document.getElementById('tarotTitle').textContent = tarotCount===1 ? '카드 1장 뽑기' : '카드 3장 뽑기 (과거·현재·미래)';
+  document.getElementById('cardCountInfo').textContent = tarotCount===1
+    ? `✨ 카드 ${TAROT_CARDS.length}장 중에서 직관에 따라 1장을 선택하세요`
+    : `✨ 카드 ${TAROT_CARDS.length}장 중에서 직관에 따라 3장을 순서대로 선택하세요`;
+
+  // 섞인 덱 생성
+  const shuffled = [...TAROT_CARDS].sort(()=>Math.random()-0.5).slice(0,18);
+  const deck = document.getElementById('tarotDeck');
+  deck.innerHTML = shuffled.map((c,i) => `
+    <div class="tarot-card" id="tcard-${c.id}" onclick="selectCard(${c.id})" style="animation-delay:${i*0.04}s">
+      <div class="tarot-card-border"></div>
+      <div class="tarot-card-pattern">
+        <div class="tarot-back">✦</div>
+        <div style="font-size:9px;color:rgba(140,100,200,0.4);margin-top:4px;">TAROT</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('selectedCardsDisplay').style.display='none';
+  document.getElementById('tarotRevealBtn').style.display='none';
+  document.getElementById('panel-tarot').classList.add('hidden');
+  document.getElementById('shareBarTarot').style.display='none';
+}
+
+function selectCard(cardId) {
+  if(selectedCards.includes(cardId)) return;
+  if(selectedCards.length>=tarotCount) return;
+
+  selectedCards.push(cardId);
+  const cardEl=document.getElementById('tcard-'+cardId);
+  cardEl.classList.add('selected');
+  const card=TAROT_CARDS.find(c=>c.id===cardId);
+  cardEl.innerHTML=`<div class="tarot-card-border"></div><div style="text-align:center;padding:8px 4px;"><div style="font-size:24px">${card.emoji}</div><div style="font-size:9px;color:var(--gold);margin-top:4px;line-height:1.3;">${card.name}</div></div>`;
+  cardEl.classList.add('revealed');
+
+  // 선택된 카드 표시
+  const display=document.getElementById('selectedCardsDisplay');
+  const labels=tarotCount===3?['🌅 과거','🌟 현재','🌈 미래']:['✨ 선택'];
+  display.style.display='flex';
+  display.innerHTML=selectedCards.map((id,i)=>{
+    const c=TAROT_CARDS.find(x=>x.id===id);
+    return `<div class="selected-card-chip">${labels[i]||'✨'} ${c.emoji} ${c.name}</div>`;
+  }).join('');
+
+  if(selectedCards.length>=tarotCount) {
+    document.getElementById('tarotRevealBtn').style.display='';
+  }
+}
+
+async function revealTarot() {
+  const btn=document.getElementById('tarotRevealBtn');
+  btn.style.display='none';
+  const tarotPanel=document.getElementById('panel-tarot');
+  tarotPanel.classList.remove('hidden');
+  tarotPanel.innerHTML=loadingHtml('선택하신 카드를 해석하고 있습니다...<br>🔮 타로의 메시지를 읽는 중...');
+
+  
+  await nextPaint();
+  const cards=selectedCards.map(id=>TAROT_CARDS.find(c=>c.id===id));
+  const isReversed=cards.map(()=>Math.random()<0.3);
+
+  let prompt;
+  if(tarotCount===1){
+    const c=cards[0];
+    const rev=isReversed[0];
+    prompt=`오늘 뽑은 타로 카드:\n카드: ${c.name} (${rev?'역방향':'정방향'})\n카드 의미: ${rev?c.rev:c.desc}\n${tarotQuestion?`질문: ${tarotQuestion}\n`:''}\n이 카드를 아래 항목으로 상세히 해석해주세요:\n\n1. 🃏 카드 핵심 메시지 (이 카드가 오늘 이 사람에게 전하는 핵심)\n2. 💫 카드의 상징과 에너지 (${c.name}이 가진 상징의 구체적 의미)\n3. ${tarotQuestion?'❓ 질문에 대한 답변':'☀️ 오늘 하루에 대한 카드의 메시지'}\n4. 💡 이 카드를 통해 오늘 해야 할 일, 피해야 할 것\n5. 🌟 카드가 전하는 삶의 지혜 한 마디`;
+  } else {
+    const cardStr=cards.map((c,i)=>{
+      const labels=['과거','현재','미래'];
+      return `${labels[i]}: ${c.name}(${isReversed[i]?'역방향':'정방향'}) — ${isReversed[i]?c.rev:c.desc}`;
+    }).join('\n');
+    prompt=`오늘 뽑은 3장 타로 카드:\n${cardStr}\n${tarotQuestion?`질문: ${tarotQuestion}\n`:''}\n3장 카드를 아래 항목으로 상세히 해석해주세요:\n\n1. 🌅 과거 카드(${cards[0].name}) 해석 — 지나온 것, 현재 상황의 배경\n2. 🌟 현재 카드(${cards[1].name}) 해석 — 지금 이 순간의 에너지\n3. 🌈 미래 카드(${cards[2].name}) 해석 — 앞으로 펼쳐질 가능성\n4. 🔗 세 카드의 흐름과 연결 (전체 스토리, 에너지의 흐름)\n5. ${tarotQuestion?'❓ 질문에 대한 종합 답변':'💫 오늘을 어떻게 보내면 좋을지 종합 조언'}\n6. 🌟 타로가 전하는 가장 중요한 메시지`;
+  }
+
+  try {
+const text = await callClaude(prompt, SYSTEM_TAROT, 2000);
+  const cardEmojiStr = cards.map(c=>c.emoji).join(' ');
+  const titleHtml = `<div class="card-title">🔮 타로 해석 ${cardEmojiStr}</div>`;
+  await typeToPanel('panel-tarot', titleHtml, text);
+
+  } catch(e) {
+    console.error('revealTarot error:', e);
+    document.getElementById('panel-tarot').innerHTML = errorHtml(e.message || e, 'revealTarot');
+  }  document.getElementById('shareBarTarot').style.display='flex';
+}
+
+// ── 꿈해몽 ──
+async function startDream() {
+  const dream=document.getElementById('d_dream').value.trim();
+  const emotion=document.getElementById('d_emotion').value;
+  const dreamDate=document.getElementById('d_date').value;
+  if(!dream||dream.length<10){alert('꿈의 내용을 좀 더 자세히 입력해주세요.');return;}
+
+  showScreen('resultScreen');
+  document.getElementById('resultTitle').textContent='꿈해몽';
+  const panel=document.getElementById('panel-result');
+  panel.innerHTML=loadingHtml('꿈을 분석하고 있습니다...<br>🌙 잠재의식의 언어를 해석하는 중...');
+
+  const todaySaju=getTodayGanji();
+  const todayOh=오행Map[todaySaju.일주.천간];
+  const now=new Date();
+
+  try {
+const text = await callClaude(
+    `꿈 내용: ${dream}\n${emotion?`꿈속 감정: ${emotion}\n`:''} ${dreamDate?`꿈 꾼 날짜: ${dreamDate}\n`:''} 오늘 기운: ${todaySaju.일주.천간}${todaySaju.일주.지지}(${todayOh})\n\n꿈해몽을 아래 항목으로 깊이 있게 분석해주세요:\n\n1. 🌙 꿈의 주요 상징 분석\n   - 꿈에 등장하는 주요 이미지/인물/장소의 상징적 의미를 각각 분석\n\n2. 💭 잠재의식이 보내는 메시지\n   - 이 꿈이 지금 이 사람에게 말하려는 것\n   - 현재 삶에서 주목해야 할 부분\n\n3. 🔗 현실과의 연결\n   - 꿈의 내용이 실제 삶의 어떤 상황과 연결될 수 있는지\n   - 해결해야 할 감정이나 상황\n\n4. 🌈 꿈이 암시하는 앞으로의 기운\n   - 길몽/흉몽 여부와 이유\n   - 앞으로 일어날 수 있는 일들\n   - 오늘 ${todayOh} 기운과의 연관\n\n5. 💡 이 꿈을 통한 성장과 행동 조언\n   - 꿈이 가르쳐주는 것\n   - 오늘 하루 어떻게 행동하면 좋을지\n\n6. 🌟 꿈해몽 전문가로서 한마디`,
+    SYSTEM_DREAM, 2000
+  );
+
+  // 꿈 미리보기 카드
+  const dreamPreview = dream.length > 80 ? dream.slice(0,80)+'...' : dream;
+  const titleHtml = `<div class="card-title">🌙 꿈해몽</div>
+    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(140,100,200,0.2);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:var(--text-muted);line-height:1.7;font-style:italic;">
+      "${dreamPreview}"
+      ${emotion?`<div style="margin-top:6px;font-size:11px;">${emotion}</div>`:''}
+    </div>`;
+  await typeToPanel('panel-result', titleHtml, text);
+
+  } catch(e) {
+    console.error('startDream error:', e);
+    document.getElementById('panel-result').innerHTML = errorHtml(e.message || e, 'startDream');
+  }  document.getElementById('shareBar').style.display='flex';
+}
+
+// ── 사주 기둥 미니 ──
+function buildPillarsCompact(saju) {
+  const pillars=[{label:'연주',...saju.연주},{label:'월주',...saju.월주},{label:'일주',...saju.일주},{label:'시주',...saju.시주}];
+  return `<div class="pillars-compact">${pillars.map(p=>{
+    const oh=오행Map[p.천간]||'나무';
+    const c=오행색[oh];
+    return `<div class="pillar-mini" style="border-color:${c}33;">
+      <div class="pillar-mini-label">${p.label}</div>
+      <div class="pillar-mini-char" style="color:${c}">${p.천간}</div>
+      <div class="pillar-mini-char" style="color:${오행색[지지오행[p.지지]]||c}">${p.지지}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── localStorage ──
+function saveToStorage(data){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){}}
+function loadFromStorage(){
+  try{
+    const d=JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(!d) return;
+    [['f_year','year'],['f_month','month'],['f_day','day'],['f_hour','hour'],['w_year','year'],['w_month','month'],['w_day','day'],['w_hour','hour']].forEach(([id,key])=>{const el=document.getElementById(id);if(el&&d[key])el.value=d[key];});
+    if(d.gender){setGender(d.gender,'fortune');setGender(d.gender,'word');}
+  }catch(e){}
+}
+
+// ── 이미지 저장 / 공유 ──
+async function saveAsImage(){
+  const overlay=document.getElementById('saveOverlay');overlay.classList.add('show');
+  try{
+    const target=document.getElementById('resultScreen').classList.contains('hidden')?document.getElementById('tarotScreen'):document.getElementById('resultScreen');
+    const canvas=await html2canvas(target,{backgroundColor:'#08080e',scale:2,useCORS:true,logging:false});
+    const a=document.createElement('a');
+    a.download=`오늘운세_${new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','')}.png`;
+    a.href=canvas.toDataURL('image/png');a.click();
+  }catch(e){alert('이미지 저장에 실패했습니다.');}
+  overlay.classList.remove('show');
+}
+async function copyLink(){try{await navigator.clipboard.writeText(window.location.href);showToast('링크가 복사되었습니다! 🔗');}catch(e){showToast('링크: '+window.location.href);}}
+function showToast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:'rgba(201,168,76,0.9)',color:'#000',padding:'10px 20px',borderRadius:'20px',fontSize:'13px',zIndex:'9999',whiteSpace:'nowrap'});document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+const KAKAO_APP_KEY='YOUR_KAKAO_APP_KEY';
+function shareKakao(){if(!window.Kakao){showToast('카카오 SDK 로딩 중입니다.');return;}if(KAKAO_APP_KEY==='YOUR_KAKAO_APP_KEY'){showToast('카카오 앱키를 설정해야 공유가 가능합니다.');return;}if(!Kakao.isInitialized())Kakao.init(KAKAO_APP_KEY);Kakao.Share.sendDefault({objectType:'feed',content:{title:'사주명리 AI — 오늘의 운세',description:'AI가 분석한 오늘 운세·타로·꿈해몽을 확인해보세요!',imageUrl:'https://your-domain.com/og-image.png',link:{mobileWebUrl:window.location.href,webUrl:window.location.href}},buttons:[{title:'나도 보기',link:{mobileWebUrl:window.location.href,webUrl:window.location.href}}]});}
+
+// ── Init ──
+initTodayBadge();
+loadFromStorage();
+</script>
+</body>
+</html>
