@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#050810">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ORACLE — 데이터 허브</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#050810;--bg2:#070b14;--surf:#0a1120;--surf2:#0d1628;--surf3:#111e32;--bdr:#162030;--bdr2:#1c2d42;--green:#00e5a0;--red:#ff3355;--yellow:#ffcc00;--blue:#3d8eff;--cyan:#00d4ff;--orange:#ff8c3a;--purple:#9966ff;--gold:#ffc844;--text:#b4c8e0;--text2:#6a8faa;--muted:#304858;--mono:'JetBrains Mono',monospace;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;-webkit-font-smoothing:antialiased;}
+body{padding-top:var(--safe-top);padding-bottom:var(--safe-bot);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:9999;}
+
+.hdr{background:var(--surf);border-bottom:1px solid var(--bdr);padding:14px 16px;position:relative;display:flex;align-items:center;gap:10px;}
+.hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--blue),transparent);opacity:.35;}
+.back{width:32px;height:32px;border-radius:8px;background:var(--surf2);border:1px solid var(--bdr);color:var(--cyan);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;touch-action:manipulation;}
+.back:active{background:var(--surf3);}
+.logo{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:3px;color:var(--cyan);display:flex;align-items:center;gap:7px;}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+.logo-sub{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;}
+
+.hero{text-align:center;padding:28px 20px 20px;}
+.hero-icon{font-size:36px;margin-bottom:10px;}
+.hero h1{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--cyan);letter-spacing:2px;margin-bottom:6px;}
+.hero p{font-size:12px;color:var(--text2);line-height:1.6;}
+
+.cards{padding:0 16px 24px;display:flex;flex-direction:column;gap:12px;}
+
+.card{background:var(--surf);border:1.5px solid var(--bdr);border-radius:14px;padding:20px 18px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;touch-action:manipulation;}
+.card:active{transform:scale(.98);background:var(--surf2);}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;opacity:0;transition:opacity .2s;}
+.card:nth-child(1)::before{background:linear-gradient(90deg,var(--orange),var(--gold));opacity:1;}
+.card:nth-child(2)::before{background:linear-gradient(90deg,var(--yellow),var(--gold));opacity:1;}
+.card:nth-child(3)::before{background:linear-gradient(90deg,var(--green),var(--cyan));opacity:1;}
+.card:nth-child(4)::before{background:linear-gradient(90deg,var(--cyan),var(--blue));opacity:1;}
+
+.card-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.card:nth-child(1) .card-icon{background:rgba(255,140,58,.1);border:1px solid rgba(255,140,58,.25);}
+.card:nth-child(2) .card-icon{background:rgba(255,204,0,.1);border:1px solid rgba(255,204,0,.25);}
+.card:nth-child(3) .card-icon{background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.25);}
+.card:nth-child(4) .card-icon{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);}
+
+.card-title{font-family:var(--mono);font-size:14px;font-weight:700;}
+.card:nth-child(1) .card-title{color:var(--orange);}
+.card:nth-child(2) .card-title{color:var(--yellow);}
+.card:nth-child(3) .card-title{color:var(--green);}
+.card:nth-child(4) .card-title{color:var(--cyan);}
+
+.card-sub{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:2px;}
+
+.card-desc{font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:12px;}
+
+.card-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.tag{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:100px;border:1px solid var(--bdr2);color:var(--muted);}
+.card:nth-child(1) .tag{border-color:rgba(255,140,58,.2);color:var(--orange);}
+.card:nth-child(2) .tag{border-color:rgba(255,204,0,.2);color:var(--yellow);}
+.card:nth-child(3) .tag{border-color:rgba(0,229,160,.2);color:var(--green);}
+.card:nth-child(4) .tag{border-color:rgba(0,212,255,.2);color:var(--cyan);}
+
+.card-arrow{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-family:var(--mono);font-size:18px;color:var(--muted);opacity:.4;}
+
+.foot{text-align:center;padding:16px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <button class="back" onclick="history.back()">←</button>
+  <div>
+    <div class="logo"><div class="logo-dot"></div>ORACLE DATA HUB</div>
+    <div class="logo-sub">데이터 수집 · 관리 · 가이드</div>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="hero-icon">📋</div>
+  <h1>데이터 허브</h1>
+  <p>종목 리스트 관리, 해외주식·코인 수집,<br>TOTO 엑셀 가이드를 한곳에서</p>
+</div>
+
+<div class="cards">
+
+  <!-- 1. 주식/ETF/코인 엑셀 업로드 (주황) -->
+  <div class="card" onclick="sessionStorage.setItem('ORACLE_ENTRY',Date.now());location.href='stock_explorer.html'">
+    <div class="card-top">
+      <div class="card-icon">📂</div>
+      <div>
+        <div class="card-title">주식/ETF/코인 엑셀 업로드</div>
+        <div class="card-sub">ORACLE EXPLORER v3</div>
+      </div>
+    </div>
+    <div class="card-desc">KRX·해외주식·코인 엑셀을 업로드하면 자동 분류·저장.<br>모든 ORACLE 분석기에서 종목 유니버스를 공유합니다.</div>
+    <div class="card-tags">
+      <span class="tag">코스피</span>
+      <span class="tag">코스닥</span>
+      <span class="tag">ETF</span>
+      <span class="tag">해외주식</span>
+      <span class="tag">코인</span>
+      <span class="tag">매크로 49종</span>
+    </div>
+    <span class="card-arrow">›</span>
+  </div>
+
+  <!-- 2. 국내/ETF 엑셀 수집기 (노랑, 외부 링크) -->
+  <div class="card" onclick="window.open('https://data.krx.co.kr/contents/MDC/MDI/mdiLoader/index.cmd?menuId=MDC0201020102','_blank')">
+    <div class="card-top">
+      <div class="card-icon">🇰🇷</div>
+      <div>
+        <div class="card-title">국내/ETF 엑셀 수집기</div>
+        <div class="card-sub">KRX 데이터센터 바로가기</div>
+      </div>
+    </div>
+    <div class="card-desc">KRX 정보데이터시스템에서 코스피·코스닥·ETF 엑셀을 다운로드.<br>다운받은 파일을 위 '엑셀 업로드'에서 업로드하면 자동 분류됩니다.</div>
+    <div class="card-tags">
+      <span class="tag">KRX 공식</span>
+      <span class="tag">코스피</span>
+      <span class="tag">코스닥</span>
+      <span class="tag">ETF</span>
+      <span class="tag">외부 사이트</span>
+    </div>
+    <span class="card-arrow">↗</span>
+  </div>
+
+  <!-- 3. 해외/ETF/코인 엑셀 수집기 (녹색) -->
+  <div class="card" onclick="sessionStorage.setItem('ORACLE_ENTRY',Date.now());location.href='global_excel.html'">
+    <div class="card-top">
+      <div class="card-icon">🌐</div>
+      <div>
+        <div class="card-title">해외/ETF/코인 엑셀 수집기</div>
+        <div class="card-sub">API 자동 수집 + 엑셀 저장</div>
+      </div>
+    </div>
+    <div class="card-desc">S&P500 · NASDAQ100 · DOW30 · 해외ETF를 API로 수집하고 엑셀로 저장.<br>업비트 KRW 코인 리스트 — 시가총액·거래대금 자동 매핑, 즐겨찾기 관리.</div>
+    <div class="card-tags">
+      <span class="tag">S&P500</span>
+      <span class="tag">NASDAQ100</span>
+      <span class="tag">DOW30</span>
+      <span class="tag">업비트 KRW</span>
+      <span class="tag">엑셀 다운로드</span>
+    </div>
+    <span class="card-arrow">›</span>
+  </div>
+
+  <!-- 4. TOTO 엑셀 수집기 (푸른색) -->
+  <div class="card" onclick="sessionStorage.setItem('ORACLE_ENTRY',Date.now());location.href='toto_excel.html'">
+    <div class="card-top">
+      <div class="card-icon">⚽</div>
+      <div>
+        <div class="card-title">TOTO 엑셀 수집기</div>
+        <div class="card-sub">스포츠 데이터 수집 가이드</div>
+      </div>
+    </div>
+    <div class="card-desc">TOTO SIGNAL PRO에 업로드할 엑셀 데이터 수집 방법.<br>K리그 · EPL · KBO · KBL · V리그 — 각 리그 공식 사이트 바로가기 + 수집 가이드.</div>
+    <div class="card-tags">
+      <span class="tag">K리그</span>
+      <span class="tag">EPL</span>
+      <span class="tag">KBO</span>
+      <span class="tag">KBL</span>
+      <span class="tag">V리그</span>
+    </div>
+    <span class="card-arrow">›</span>
+  </div>
+
+</div>
+
+<div class="foot">ORACLE PLATFORM · DATA HUB</div>
+
+</body>
+</html>
