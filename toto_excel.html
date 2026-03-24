@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  if(sessionStorage.getItem('ORACLE_ENTRY')) return;
+  document.documentElement.innerHTML = '';
+  document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f1724;color:#e8eaf0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:20px}
+.wrap{max-width:360px}
+.icon{width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;
+display:flex;align-items:center;justify-content:center}
+.icon-inner{width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;
+display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;font-weight:700;color:#d32f2f}
+.icon-inner::before{content:'';position:absolute;top:-8px;right:6px;width:8px;height:8px;
+background:#d32f2f;border-radius:50%}
+.icon-inner::after{content:'';position:absolute;top:4px;left:6px;right:6px;height:2px;background:#ccc}
+h1{font-size:20px;font-weight:700;margin-bottom:12px}
+p{font-size:14px;color:#8a91a0;line-height:1.6;margin-bottom:32px}
+.btn{display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;font-size:16px;
+font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none}
+.btn:active{opacity:.85}
+</style></head><body>
+<div class="wrap">
+<div class="icon"><div class="icon-inner">404</div></div>
+<h1>페이지를 찾을 수 없습니다.</h1>
+<p>존재하지 않는 주소를 입력하셨거나,<br>요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>
+<a class="btn" href="index.html">홈으로 이동</a>
+</div></body></html>`);
+  document.close();
+})();
+</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TOTO SIGNAL PRO — 엑셀 데이터 수집 가이드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06121c;--card:#0a1b2a;--card2:#0d2236;--border:#163244;
+  --txt:#d9f3ff;--muted:#7aa6bf;
+  --cyan:#23c6ff;--green:#2bf5a4;--red:#ff3b7a;
+  --yellow:#ffd93d;--orange:#ff8c42;--purple:#a78bfa;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:'Noto Sans KR',system-ui,sans-serif;line-height:1.75}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px 60px}
+
+/* HEADER */
+.header{text-align:center;padding:24px 0 20px;position:relative}
+.header::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,rgba(35,198,255,.4),transparent)}
+.header h1{font-size:1.35rem;font-weight:900;color:var(--cyan);letter-spacing:.04em}
+.header .sub{font-size:.78rem;color:var(--muted);margin-top:4px}
+
+/* NAV */
+.nav{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin:20px 0 16px}
+.nav-btn{padding:7px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(4,16,26,.6);color:rgba(255,255,255,.45);font-size:.75rem;font-weight:700;cursor:pointer;transition:.2s}
+.nav-btn.active{border-color:rgba(35,198,255,.5);color:var(--cyan);background:rgba(35,198,255,.08)}
+.nav-btn:hover{border-color:rgba(35,198,255,.3)}
+
+/* SECTION */
+.guide-section{display:none;animation:fadeIn .3s ease}
+.guide-section.show{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--green));opacity:.4}
+.card h2{font-size:1rem;font-weight:900;color:var(--cyan);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.card h3{font-size:.88rem;font-weight:900;color:var(--orange);margin:14px 0 8px}
+
+/* STEP */
+.step{display:flex;gap:12px;margin-bottom:14px;padding:12px;border-radius:11px;background:rgba(3,14,22,.5);border:1px solid rgba(22,50,68,.6)}
+.step-num{width:28px;height:28px;border-radius:50%;background:rgba(35,198,255,.15);border:1px solid rgba(35,198,255,.4);display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:900;color:var(--cyan);flex-shrink:0;margin-top:2px}
+.step-body{flex:1}
+.step-title{font-size:.85rem;font-weight:900;color:rgba(255,255,255,.9);margin-bottom:3px}
+.step-desc{font-size:.78rem;color:var(--muted);line-height:1.6}
+.step-desc code{background:#1a2a3a;padding:2px 6px;border-radius:4px;font-size:.75rem;color:var(--yellow)}
+
+/* URL BOX */
+.url-box{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:10px;background:rgba(35,198,255,.06);border:1px solid rgba(35,198,255,.2);margin:8px 0}
+.url-icon{font-size:1rem;flex-shrink:0}
+.url-text{font-size:.78rem;font-weight:700;color:var(--cyan);word-break:break-all;flex:1}
+.url-actions{display:flex;gap:4px;flex-shrink:0}
+.url-btn{font-size:.68rem;color:var(--muted);white-space:nowrap;padding:4px 10px;border-radius:7px;border:1px solid var(--border);background:rgba(4,16,26,.6);cursor:pointer;transition:.15s;text-decoration:none;font-weight:700;display:inline-flex;align-items:center;gap:3px}
+.url-btn:hover{border-color:rgba(35,198,255,.4);color:var(--cyan);background:rgba(35,198,255,.08)}
+.url-btn:active{transform:scale(.97)}
+.url-btn.go{border-color:rgba(43,245,164,.3);color:var(--green)}
+.url-btn.go:hover{border-color:rgba(43,245,164,.5);background:rgba(43,245,164,.08)}
+
+/* TIP */
+.tip-box{padding:10px 14px;border-radius:10px;margin:8px 0;font-size:.78rem;line-height:1.6}
+.tip-box.info{background:rgba(35,198,255,.06);border:1px solid rgba(35,198,255,.2);color:rgba(210,243,255,.85)}
+.tip-box.warn{background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.25);color:rgba(255,230,150,.85)}
+.tip-box.success{background:rgba(43,245,164,.06);border:1px solid rgba(43,245,164,.2);color:rgba(200,255,230,.85)}
+.tip-box .tip-icon{margin-right:4px}
+
+/* COLUMN TABLE */
+.col-table{width:100%;border-collapse:collapse;font-size:.78rem;margin:8px 0}
+.col-table th{text-align:left;padding:6px 8px;background:rgba(22,50,68,.4);color:var(--muted);font-weight:700;border-bottom:1px solid var(--border)}
+.col-table td{padding:5px 8px;border-bottom:1px solid rgba(22,50,68,.3)}
+.col-table .required{color:var(--green);font-weight:700}
+.col-table .optional{color:var(--yellow);font-weight:700}
+
+/* FOOTER */
+.footer{text-align:center;padding:20px 0;font-size:.7rem;color:rgba(255,255,255,.2)}
+
+/* SCREENSHOT PLACEHOLDER */
+.screenshot{padding:30px 16px;border-radius:10px;border:2px dashed rgba(22,50,68,.8);background:rgba(3,14,22,.4);text-align:center;margin:8px 0}
+.screenshot .ss-icon{font-size:2rem;margin-bottom:6px;opacity:.4}
+.screenshot .ss-txt{font-size:.75rem;color:var(--muted)}
+
+/* TOAST */
+.toast{position:fixed;top:50px;left:50%;transform:translateX(-50%) translateY(-100px);background:rgba(10,27,42,.96);border:1px solid rgba(43,245,164,.5);border-radius:12px;padding:8px 16px;font-size:.8rem;font-weight:700;color:var(--green);z-index:9999;transition:transform .3s ease}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="toast" id="toast">✅ URL 복사됨</div>
+
+<div class="wrap">
+
+<div class="header">
+  <h1>📊 엑셀 데이터 수집 가이드</h1>
+  <div class="sub">TOTO SIGNAL PRO에 업로드할 엑셀 파일 다운로드 방법</div>
+</div>
+
+<!-- NAV -->
+<div class="nav" id="nav">
+  <button class="nav-btn active" data-tab="overview">📋 개요</button>
+  <button class="nav-btn" data-tab="kleague">⚽ K리그</button>
+  <button class="nav-btn" data-tab="epl">⚽ EPL</button>
+  <button class="nav-btn" data-tab="kbo">⚾ KBO</button>
+  <button class="nav-btn" data-tab="kbl">🏀 KBL</button>
+  <button class="nav-btn" data-tab="vleague">🏐 V리그</button>
+  <button class="nav-btn" data-tab="upload">📤 업로드</button>
+</div>
+
+<!-- ==================== 개요 ==================== -->
+<div class="guide-section show" id="sec-overview">
+  <div class="card">
+    <h2>📋 왜 엑셀이 필요한가?</h2>
+    <p style="font-size:.83rem;color:var(--muted);margin-bottom:12px">
+      TOTO SIGNAL PRO는 두 가지 데이터 모드를 지원합니다.
+    </p>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">🌐 실시간 API 모드</div>
+        <div class="step-desc">축구 7개 리그(K리그1/2, EPL, 분데스리가, 라리가, 세리에A, 리그앙)는 API로 자동 수신됩니다. <strong style="color:var(--green)">별도 작업 불필요.</strong></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">📊 엑셀 업로드 모드</div>
+        <div class="step-desc">야구(KBO), 농구(KBL), 배구(V리그) 및 API 콜 절약이 필요할 때, 공식 사이트에서 엑셀을 다운받아 업로드합니다.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🎯 엑셀에 필요한 컬럼</h2>
+    <p style="font-size:.8rem;color:var(--muted);margin-bottom:8px">아래 컬럼이 포함된 엑셀이면 자동 인식됩니다. 정확한 컬럼명이 아니어도 유사하면 자동 매칭됩니다.</p>
+    <table class="col-table">
+      <tr><th>컬럼</th><th>인식 키워드</th><th>필수</th></tr>
+      <tr><td>팀명</td><td><code>팀</code> <code>팀명</code> <code>team</code> <code>구단</code> <code>클럽</code></td><td class="required">필수</td></tr>
+      <tr><td>순위</td><td><code>순위</code> <code>rank</code> <code>#</code></td><td class="optional">선택</td></tr>
+      <tr><td>승</td><td><code>승</code> <code>win</code> <code>w</code></td><td class="optional">선택</td></tr>
+      <tr><td>무</td><td><code>무</code> <code>draw</code> <code>d</code></td><td class="optional">선택</td></tr>
+      <tr><td>패</td><td><code>패</code> <code>lose</code> <code>loss</code> <code>l</code></td><td class="optional">선택</td></tr>
+      <tr><td>득점</td><td><code>득점</code> <code>득</code> <code>goals_for</code> <code>gf</code> <code>score</code></td><td class="optional">선택</td></tr>
+      <tr><td>실점</td><td><code>실점</code> <code>실</code> <code>goals_against</code> <code>ga</code> <code>concede</code></td><td class="optional">선택</td></tr>
+    </table>
+    <div class="tip-box info"><span class="tip-icon">💡</span> <strong>팀명</strong>만 있으면 기본 분석이 가능합니다. 승/무/패/득점/실점이 있을수록 정확도가 올라갑니다.</div>
+  </div>
+</div>
+
+<!-- ==================== K리그 ==================== -->
+<div class="guide-section" id="sec-kleague">
+  <div class="card">
+    <h2>⚽ K리그 (K리그1 / K리그2)</h2>
+    <div class="tip-box success"><span class="tip-icon">✅</span> K리그는 API 모드로도 지원되지만, API 콜 절약을 위해 엑셀 업로드도 가능합니다.</div>
+    
+    <h3>📥 방법 1: K리그 데이터 포털 (추천)</h3>
+    <div class="tip-box info"><span class="tip-icon">💡</span> K리그 공식 사이트(kleague.com)의 기록실 직접 URL은 404가 뜹니다. 대신 <strong>데이터 포털</strong>을 이용하세요. 로그인 없이 이용 가능합니다.</div>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">K리그 데이터 포털 접속</div>
+        <div class="step-desc">로그인 없이 팀 순위, 기록 등 모든 데이터를 열람할 수 있는 공식 포털입니다.</div>
+      </div>
+    </div>
+    <div class="url-box" data-url="https://data.kleague.com">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">data.kleague.com</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://data.kleague.com" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">팀 순위 확인</div>
+        <div class="step-desc">포털에서 <code>K리그1</code> 또는 <code>K리그2</code> 선택 → 순위 테이블 확인</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">표 복사 → 엑셀 저장</div>
+        <div class="step-desc"><strong>PC:</strong> 순위 테이블 전체 드래그 → <code>Ctrl+C</code> → 엑셀에 <code>Ctrl+V</code> → <code>.xlsx</code> 저장<br>
+        <strong>모바일:</strong> 표 길게 눌러 선택 → 복사 → 스프레드시트 앱에 붙여넣기 → 엑셀로 저장</div>
+      </div>
+    </div>
+
+    <h3>📥 방법 2: kleague.com 홈에서 진입</h3>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">K리그 공식 홈페이지 접속</div>
+        <div class="step-desc">홈에서 시작합니다. (기록실 직접 URL은 404 에러)</div>
+      </div>
+    </div>
+    <div class="url-box" data-url="https://www.kleague.com">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">kleague.com</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://www.kleague.com" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">메뉴에서 기록실 찾기</div>
+        <div class="step-desc">상단 햄버거 메뉴(☰) → <code>기록/순위</code> 또는 <code>기록실</code> 메뉴 탐색 → <code>팀 기록</code> 페이지로 이동</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">표 복사 → 엑셀 저장</div>
+        <div class="step-desc">순위 테이블이 보이면 전체 선택 → 복사 → 엑셀 붙여넣기 → <code>.xlsx</code> 저장</div>
+      </div>
+    </div>
+    
+    <div class="tip-box warn"><span class="tip-icon">⚠️</span> K리그 사이트는 시즌 중에만 최신 기록이 업데이트됩니다. 2026 시즌은 3월 개막이니 개막 후 데이터를 확인하세요.</div>
+    
+    <h3>📊 K리그 엑셀 예시 컬럼</h3>
+    <table class="col-table">
+      <tr><th>순위</th><th>팀명</th><th>경기</th><th>승</th><th>무</th><th>패</th><th>득점</th><th>실점</th><th>승점</th></tr>
+      <tr><td>1</td><td>전북현대</td><td>10</td><td>7</td><td>2</td><td>1</td><td>18</td><td>8</td><td>23</td></tr>
+      <tr><td>2</td><td>울산HD</td><td>10</td><td>6</td><td>3</td><td>1</td><td>15</td><td>7</td><td>21</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ==================== EPL ==================== -->
+<div class="guide-section" id="sec-epl">
+  <div class="card">
+    <h2>⚽ EPL (프리미어리그)</h2>
+    <div class="tip-box success"><span class="tip-icon">✅</span> EPL은 API 모드 테스트 완료. 엑셀은 API 콜 절약용 백업입니다.</div>
+    
+    <h3>📥 다운로드 방법 (FBref 이용)</h3>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">FBref 사이트 접속</div>
+        <div class="step-desc">무료 축구 통계 사이트. 로그인 불필요.</div>
+      </div>
+    </div>
+    <div class="url-box" data-url="https://fbref.com/en/comps/9/Premier-League-Stats">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">fbref.com/en/comps/9/Premier-League-Stats</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://fbref.com/en/comps/9/Premier-League-Stats" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">순위 테이블 찾기</div>
+        <div class="step-desc">페이지 상단의 <code>Regular season</code> 테이블이 순위표입니다.</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">CSV 또는 엑셀 내보내기</div>
+        <div class="step-desc">테이블 위에 <code>Share & Export</code> 드롭다운 → <code>Get table as CSV (for Excel)</code> 클릭 → 텍스트가 나오면 전체선택 → 복사 → 엑셀에 붙여넣기 → <code>.xlsx</code> 저장</div>
+      </div>
+    </div>
+    
+    <div class="tip-box info"><span class="tip-icon">💡</span> FBref은 분데스리가, 라리가, 세리에A, 리그앙도 지원합니다. URL의 <code>/9/</code> 부분만 바꾸면 됩니다:
+      분데스리가 <code>/20/</code> · 라리가 <code>/12/</code> · 세리에A <code>/11/</code> · 리그앙 <code>/13/</code></div>
+    
+    <h3>📊 FBref 엑셀 예시 컬럼</h3>
+    <table class="col-table">
+      <tr><th>Rk</th><th>Squad</th><th>MP</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>Pts</th></tr>
+      <tr><td>1</td><td>Liverpool</td><td>29</td><td>22</td><td>5</td><td>2</td><td>63</td><td>22</td><td>71</td></tr>
+      <tr><td>2</td><td>Arsenal</td><td>29</td><td>19</td><td>7</td><td>3</td><td>55</td><td>21</td><td>64</td></tr>
+    </table>
+    <div class="tip-box info"><span class="tip-icon">💡</span> 영어 컬럼명(<code>Squad</code>, <code>W</code>, <code>D</code>, <code>L</code>, <code>GF</code>, <code>GA</code>)도 TOTO에서 자동 인식됩니다.</div>
+  </div>
+</div>
+
+<!-- ==================== KBO ==================== -->
+<div class="guide-section" id="sec-kbo">
+  <div class="card">
+    <h2>⚾ KBO (한국 프로야구)</h2>
+    
+    <h3>📥 다운로드 방법</h3>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">KBO 공식 사이트 접속</div>
+        <div class="step-desc">기록 페이지로 이동합니다.</div>
+      </div>
+    </div>
+    <div class="url-box" data-url="https://www.koreabaseball.com/Record/TeamRank/TeamRankDaily.aspx">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">koreabaseball.com/Record/TeamRank/TeamRankDaily.aspx</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://www.koreabaseball.com/Record/TeamRank/TeamRankDaily.aspx" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">팀 순위 페이지 확인</div>
+        <div class="step-desc">상단 메뉴 <code>기록</code> → <code>팀 순위</code>. 현재 시즌 순위표가 표시됩니다.</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">표 복사 → 엑셀 저장</div>
+        <div class="step-desc">KBO 사이트에는 직접 엑셀 다운로드 버튼이 없는 경우가 많습니다.<br>
+          <strong>방법 A (PC):</strong> 표 전체 드래그 선택 → <code>Ctrl+C</code> → 엑셀 열기 → <code>Ctrl+V</code> → <code>.xlsx</code> 저장<br>
+          <strong>방법 B (모바일):</strong> 표를 길게 눌러 선택 → 복사 → 메모장이나 스프레드시트 앱에 붙여넣기 → 엑셀로 저장</div>
+      </div>
+    </div>
+    
+    <div class="tip-box warn"><span class="tip-icon">⚠️</span> KBO 사이트는 시즌(3월~10월) 중에만 실시간 순위가 업데이트됩니다.</div>
+    
+    <h3>📊 KBO 엑셀 예시 컬럼</h3>
+    <table class="col-table">
+      <tr><th>순위</th><th>팀</th><th>경기</th><th>승</th><th>패</th><th>무</th><th>득점</th><th>실점</th><th>승률</th></tr>
+      <tr><td>1</td><td>KIA</td><td>30</td><td>20</td><td>8</td><td>2</td><td>145</td><td>98</td><td>.714</td></tr>
+      <tr><td>2</td><td>삼성</td><td>30</td><td>18</td><td>10</td><td>2</td><td>130</td><td>105</td><td>.643</td></tr>
+    </table>
+    <div class="tip-box info"><span class="tip-icon">💡</span> 야구는 "무"가 적지만, 컬럼이 있으면 자동 인식됩니다. 없어도 0으로 처리됩니다.</div>
+    
+    <h3>🔄 대안: StatCast / Naver 스포츠</h3>
+    <div class="url-box" data-url="https://sports.news.naver.com/kbaseball/record/index">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">sports.news.naver.com/kbaseball/record/index</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://sports.news.naver.com/kbaseball/record/index" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">💡</div>
+      <div class="step-body">
+        <div class="step-title">네이버 스포츠 기록실</div>
+        <div class="step-desc">네이버 스포츠 → KBO → 순위 페이지에서 표를 복사하는 것도 동일하게 작동합니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== KBL ==================== -->
+<div class="guide-section" id="sec-kbl">
+  <div class="card">
+    <h2>🏀 KBL (한국 프로농구)</h2>
+    <div class="tip-box info"><span class="tip-icon">💡</span> KBL 사이트는 기록실 직접 URL이 404입니다. <strong>홈에서 진입</strong>하면 바로 팀 순위가 보입니다.</div>
+    
+    <h3>📥 다운로드 방법</h3>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">KBL 공식 홈페이지 접속</div>
+        <div class="step-desc">홈페이지에 접속하면 바로 <strong>경기 일정</strong>과 <strong>팀 순위</strong> 테이블이 보입니다.</div>
+      </div>
+    </div>
+    <div class="url-box" data-url="https://www.kbl.or.kr">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">kbl.or.kr</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://www.kbl.or.kr" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">홈 화면 아래로 스크롤</div>
+        <div class="step-desc">홈 화면을 아래로 스크롤하면 <code>팀 순위</code> 테이블이 나옵니다. 컬럼: 순위 / 팀명 / 승 / 패 / 승률 / 승차</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">표 복사 → 엑셀 저장</div>
+        <div class="step-desc"><strong>PC:</strong> 순위 테이블 전체 드래그 → <code>Ctrl+C</code> → 엑셀에 <code>Ctrl+V</code> → <code>.xlsx</code> 저장<br>
+        <strong>모바일:</strong> 표 영역 길게 눌러 선택 → 복사 → 스프레드시트 앱에 붙여넣기 → 엑셀로 저장</div>
+      </div>
+    </div>
+
+    <h3>🔄 대안: 네이버 스포츠</h3>
+    <div class="url-box" data-url="https://sports.news.naver.com/basketball/record/index">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">sports.news.naver.com/basketball/record/index</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://sports.news.naver.com/basketball/record/index" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">💡</div>
+      <div class="step-body">
+        <div class="step-title">네이버 스포츠 농구 기록실</div>
+        <div class="step-desc">네이버 스포츠 → KBL → 순위 페이지에서도 동일한 순위표를 복사할 수 있습니다.</div>
+      </div>
+    </div>
+    
+    <div class="tip-box warn"><span class="tip-icon">⚠️</span> KBL 시즌은 10월~4월입니다. 비시즌에는 이전 시즌 데이터만 제공됩니다.</div>
+    
+    <h3>📊 KBL 엑셀 예시 컬럼</h3>
+    <table class="col-table">
+      <tr><th>순위</th><th>팀명</th><th>승</th><th>패</th><th>승률</th><th>승차</th></tr>
+      <tr><td>1</td><td>창원 LG</td><td>33</td><td>15</td><td>.688</td><td>0</td></tr>
+      <tr><td>2</td><td>안양 정관장</td><td>31</td><td>17</td><td>.646</td><td>2</td></tr>
+      <tr><td>3</td><td>서울 SK</td><td>30</td><td>17</td><td>.638</td><td>2.5</td></tr>
+    </table>
+    <div class="tip-box info"><span class="tip-icon">💡</span> 농구는 "무"가 없습니다. 무승부 컬럼이 없어도 자동으로 0 처리됩니다. 득점/실점이 없어도 승/패만으로 전력 산출 가능합니다.</div>
+  </div>
+</div>
+
+<!-- ==================== V리그 ==================== -->
+<div class="guide-section" id="sec-vleague">
+  <div class="card">
+    <h2>🏐 V리그 (한국 프로배구)</h2>
+    <div class="tip-box info"><span class="tip-icon">💡</span> KOVO 사이트는 기록실 직접 URL이 404입니다. <strong>홈에서 하단 "기록" 탭</strong>을 이용하세요.</div>
+    
+    <h3>📥 방법 1: KOVO 홈에서 진입</h3>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">KOVO 공식 홈페이지 접속</div>
+        <div class="step-desc">홈페이지에 접속합니다.</div>
+      </div>
+    </div>
+    <div class="url-box" data-url="https://kovo.co.kr">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">kovo.co.kr</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://kovo.co.kr" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">하단 "기록" 탭 선택</div>
+        <div class="step-desc">홈 화면 하단 네비게이션에서 <code>🏆 기록</code> 탭을 선택합니다. (경기 / <strong>기록</strong> / 시트 / 매장 / 내 페이지)</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">팀 기록 페이지에서 순위 확인</div>
+        <div class="step-desc">기록 탭 내에서 <code>팀 기록</code> 또는 <code>팀 순위</code>를 찾아 순위 테이블을 확인합니다.</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">표 복사 → 엑셀 저장</div>
+        <div class="step-desc"><strong>PC:</strong> 순위 테이블 전체 드래그 → <code>Ctrl+C</code> → 엑셀에 <code>Ctrl+V</code> → <code>.xlsx</code> 저장<br>
+        <strong>모바일:</strong> 표 영역 길게 눌러 선택 → 복사 → 스프레드시트 앱에 붙여넣기 → 엑셀로 저장</div>
+      </div>
+    </div>
+
+    <h3>📥 방법 2: KOVO 팀 기록 직접 URL 시도</h3>
+    <div class="url-box" data-url="https://kovo.co.kr/KOVO/stats/team-record">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">kovo.co.kr/KOVO/stats/team-record</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://kovo.co.kr/KOVO/stats/team-record" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+    <div class="tip-box warn"><span class="tip-icon">⚠️</span> 위 URL이 안 될 경우 홈(kovo.co.kr)에서 하단 "기록" 탭으로 진입하세요.</div>
+    
+    <h3>🔄 대안: 네이버 / 다음 스포츠</h3>
+    <div class="url-box" data-url="https://sports.daum.net/record/vl">
+      <span class="url-icon">🔗</span>
+      <span class="url-text">sports.daum.net/record/vl (다음 스포츠 배구 순위)</span>
+      <div class="url-actions">
+        <span class="url-btn" onclick="copyUrl(this.closest('.url-box'))">📋 복사</span>
+        <a class="url-btn go" href="https://sports.daum.net/record/vl" target="_blank" rel="noopener">↗ 바로가기</a>
+      </div>
+    </div>
+
+    <div class="tip-box warn"><span class="tip-icon">⚠️</span> V리그 시즌은 10월~4월입니다. 시즌 종료 후에는 최종 순위만 남아있습니다.</div>
+    
+    <h3>📊 V리그 엑셀 예시 컬럼</h3>
+    <table class="col-table">
+      <tr><th>순위</th><th>팀명</th><th>경기</th><th>승</th><th>패</th><th>세트득</th><th>세트실</th><th>득점</th><th>실점</th></tr>
+      <tr><td>1</td><td>대한항공</td><td>36</td><td>28</td><td>8</td><td>90</td><td>42</td><td>2580</td><td>2310</td></tr>
+      <tr><td>2</td><td>삼성화재</td><td>36</td><td>25</td><td>11</td><td>83</td><td>50</td><td>2490</td><td>2350</td></tr>
+    </table>
+    <div class="tip-box info"><span class="tip-icon">💡</span> 배구의 "득점/실점"은 세트 점수 합계입니다. TOTO 엔진이 자동으로 상대적 전력으로 환산합니다.</div>
+  </div>
+</div>
+
+<!-- ==================== 업로드 방법 ==================== -->
+<div class="guide-section" id="sec-upload">
+  <div class="card">
+    <h2>📤 TOTO에 업로드하기</h2>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">TOTO SIGNAL PRO 열기</div>
+        <div class="step-desc">ORACLE 플랫폼에서 TOTO SIGNAL PRO에 진입합니다.</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">📊 엑셀 업로드 버튼 선택</div>
+        <div class="step-desc">상단의 <code>[📊 엑셀 업로드]</code> 버튼을 누르면 파일 업로드 영역이 나타납니다.</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">파일 선택</div>
+        <div class="step-desc">업로드 영역을 클릭 → 다운받은 <code>.xlsx</code> 또는 <code>.csv</code> 파일 선택. 파싱이 완료되면 <code>"✅ N팀 데이터 로드 완료"</code> 토스트가 표시됩니다.</div>
+      </div>
+    </div>
+    
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <div class="step-title">팀 선택 → 분석</div>
+        <div class="step-desc">홈/원정팀 드롭다운에 엑셀의 팀 목록이 반영됩니다. 검색창에 팀명을 타이핑하여 빠르게 찾을 수 있습니다.</div>
+      </div>
+    </div>
+    
+    <div class="tip-box success"><span class="tip-icon">✅</span> 업로드한 데이터는 브라우저 메모리에만 존재합니다. 페이지를 새로고침하면 초기화되므로, 필요할 때마다 다시 업로드하세요.</div>
+    
+    <h3>🚨 파싱 실패 시 체크리스트</h3>
+    <div class="step">
+      <div class="step-num">❌</div>
+      <div class="step-body">
+        <div class="step-title">컬럼 인식 실패</div>
+        <div class="step-desc"><code>"팀명 컬럼을 찾을 수 없습니다"</code> → 첫 번째 행이 헤더인지 확인. 헤더에 "팀", "팀명", "team", "구단" 등의 키워드가 포함되어야 합니다.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">❌</div>
+      <div class="step-body">
+        <div class="step-title">파일 형식 오류</div>
+        <div class="step-desc"><code>.xlsx</code>, <code>.xls</code>, <code>.csv</code> 형식만 지원됩니다. 구글 시트의 경우 <code>파일 → 다운로드 → .xlsx</code>로 내보내세요.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">❌</div>
+      <div class="step-body">
+        <div class="step-title">빈 데이터</div>
+        <div class="step-desc">엑셀의 첫 번째 시트에 데이터가 있어야 합니다. 여러 시트가 있으면 첫 번째 시트만 읽힙니다.</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>📋 빠른 참조 — 사이트 URL 모음</h2>
+    <table class="col-table">
+      <tr><th>리그</th><th>사이트</th><th>경로</th></tr>
+      <tr><td>K리그</td><td>data.kleague.com</td><td>홈 → 팀 순위</td></tr>
+      <tr><td>K리그(대안)</td><td>kleague.com</td><td>홈 → 메뉴(☰) → 기록/순위</td></tr>
+      <tr><td>EPL 등</td><td>fbref.com</td><td>Standings → Export CSV</td></tr>
+      <tr><td>KBO</td><td>koreabaseball.com</td><td>기록 → 팀 순위</td></tr>
+      <tr><td>KBL</td><td>kbl.or.kr</td><td>홈 → 스크롤 → 팀 순위</td></tr>
+      <tr><td>V리그</td><td>kovo.co.kr</td><td>홈 → 하단 "기록" 탭</td></tr>
+      <tr><td>(대안)</td><td>네이버/다음 스포츠</td><td>각 종목 → 순위</td></tr>
+    </table>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div class="footer">TOTO SIGNAL PRO — 엑셀 데이터 수집 가이드 | 최종 업데이트: 2026-03-24</div>
+
+<script>
+// TAB NAVIGATION
+document.getElementById('nav').addEventListener('click', e=>{
+  const btn = e.target.closest('.nav-btn');
+  if(!btn) return;
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.guide-section').forEach(s=>s.classList.remove('show'));
+  const sec = document.getElementById('sec-'+btn.dataset.tab);
+  if(sec) sec.classList.add('show');
+});
+
+// URL COPY
+function copyUrl(el){
+  const url = el.dataset.url;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>showToast());
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = url; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast();
+  }
+}
+
+function showToast(){
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.classList.remove('show'), 1500);
+}
+</script>
+</body>
+</html>
