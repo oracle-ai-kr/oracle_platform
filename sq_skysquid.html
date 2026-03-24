@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🌃 하늘 오징어 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#e8002a;--red2:#ff1a42;--green:#00c853;--green2:#00e676;
+  --gold:#ffd600;--gold2:#ffe033;--teal:#1a8899;--teal2:#22b8cc;
+  --orange:#ff7020;--orange2:#ff9040;--purple:#7c3aed;--purple2:#a855f7;
+  --bg:#020210;--panel:#0a0a1e;--panel2:#111128;
+  --text:#f0ece8;--text2:#9a9490;--text3:#4a4642;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;font-family:'Noto Sans KR',sans-serif;}
+
+/* ══ 밤하늘 배경 ══ */
+#bg{position:fixed;inset:0;z-index:0;
+  background:linear-gradient(180deg,#010108 0%,#040418 20%,#080828 40%,#0c0c28 55%,#121230 62%,#181838 68%,#1c1c38 100%);}
+#bg::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 8% 4%,rgba(255,255,255,.95),transparent),
+    radial-gradient(1.5px 1.5px at 19% 7%,rgba(255,240,200,1),transparent),
+    radial-gradient(1px 1px at 33% 3%,rgba(255,255,255,.8),transparent),
+    radial-gradient(2px 2px at 47% 6%,rgba(220,230,255,1),transparent),
+    radial-gradient(1px 1px at 61% 2%,rgba(255,255,255,.9),transparent),
+    radial-gradient(1px 1px at 75% 5%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1.5px 1.5px at 88% 8%,rgba(255,240,180,1),transparent),
+    radial-gradient(1px 1px at 4% 12%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 15% 16%,rgba(255,255,255,.8),transparent),
+    radial-gradient(1px 1px at 27% 11%,rgba(200,220,255,.9),transparent),
+    radial-gradient(1px 1px at 41% 14%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 55% 10%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 69% 13%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1.5px 1.5px at 82% 15%,rgba(255,250,200,.9),transparent),
+    radial-gradient(1px 1px at 11% 22%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1px 1px at 36% 19%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 58% 21%,rgba(200,220,255,.7),transparent),
+    radial-gradient(1px 1px at 79% 18%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 24% 26%,rgba(255,255,255,.4),transparent),
+    radial-gradient(1px 1px at 50% 25%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 72% 28%,rgba(255,255,255,.3),transparent);}
+#moon{position:fixed;top:3%;right:9%;z-index:1;font-size:2.4rem;pointer-events:none;
+  filter:drop-shadow(0 0 18px rgba(255,230,100,.55));
+  animation:moonGlow 4s ease infinite alternate;}
+@keyframes moonGlow{0%{filter:drop-shadow(0 0 18px rgba(255,230,100,.55))}100%{filter:drop-shadow(0 0 30px rgba(255,230,100,.8));}}
+.city-glow{position:fixed;bottom:0;left:0;right:0;height:25%;z-index:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0%,rgba(40,20,100,.12) 50%,rgba(60,30,140,.22) 100%);}
+.rooftop{position:fixed;bottom:0;left:0;right:0;height:13%;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,#1a1a38 0%,#141430 50%,#0e0e26 100%);
+  border-top:1px solid rgba(100,80,200,.35);}
+.rooftop::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(120,80,255,.5),rgba(200,150,255,.8),rgba(120,80,255,.5),transparent);}
+.wtank{position:fixed;z-index:2;pointer-events:none;border-radius:3px 3px 0 0;
+  background:linear-gradient(180deg,#252545,#151530);border:1px solid rgba(100,80,200,.3);}
+.wt1{width:22px;height:36px;bottom:12%;left:4%;}
+.wt2{width:18px;height:28px;bottom:12%;left:7%;}
+.wt3{width:24px;height:38px;bottom:12%;right:5%;}
+.wt4{width:16px;height:24px;bottom:12%;right:9%;}
+.neon-dots{position:fixed;bottom:0;left:0;right:0;height:16%;z-index:1;pointer-events:none;}
+.nd{position:absolute;border-radius:50%;animation:ndBlink 2s ease infinite;}
+@keyframes ndBlink{0%,100%{opacity:.9}50%{opacity:.2}}
+.nd:nth-child(1){width:3px;height:3px;background:#ff3388;bottom:45%;left:10%;animation-delay:.2s;}
+.nd:nth-child(2){width:2px;height:2px;background:#33ffaa;bottom:60%;left:22%;animation-delay:.7s;}
+.nd:nth-child(3){width:3px;height:3px;background:#3388ff;bottom:38%;left:36%;animation-delay:1.1s;}
+.nd:nth-child(4){width:4px;height:4px;background:#ffcc00;bottom:52%;left:50%;animation-delay:.4s;}
+.nd:nth-child(5){width:2px;height:2px;background:#ff44bb;bottom:42%;left:63%;animation-delay:1.4s;}
+.nd:nth-child(6){width:3px;height:3px;background:#11ffdd;bottom:55%;left:76%;animation-delay:.9s;}
+.nd:nth-child(7){width:2px;height:2px;background:#ff7722;bottom:40%;left:88%;animation-delay:.3s;}
+.nd:nth-child(8){width:3px;height:3px;background:#aa44ff;bottom:48%;left:96%;animation-delay:1.6s;}
+
+/* ══ 헤더 ══ */
+#header{position:fixed;top:0;left:0;right:0;z-index:200;height:50px;
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:rgba(0,0,15,.78);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(232,0,42,.3);}
+#backBtn{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.9rem;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#backBtn:active{opacity:.7;}
+.hd-title{font-family:'Black Han Sans',sans-serif;font-size:.92rem;letter-spacing:.05em;color:var(--red2);flex:1;}
+#phaseBadge{font-family:'Black Han Sans',sans-serif;font-size:.7rem;padding:3px 9px;border-radius:8px;
+  background:rgba(255,214,0,.12);border:1px solid rgba(255,214,0,.3);color:var(--gold);}
+
+/* ══ 팝업 공통 ══ */
+.overlay-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,8,.92);backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;padding:20px;}
+.overlay-bg.hidden{display:none;}
+.popup-box{background:#0a0a1e;border:1px solid rgba(255,255,255,.1);border-radius:22px;
+  padding:26px 20px 20px;width:100%;max-width:360px;text-align:center;
+  position:relative;overflow:hidden;box-shadow:0 12px 50px rgba(0,0,0,.95);}
+.popup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.popup-box.red-top::before{background:linear-gradient(90deg,var(--red),var(--red2),var(--gold));}
+.popup-box.green-top::before{background:linear-gradient(90deg,var(--green),var(--green2),var(--teal2));}
+.popup-box.lose-top::before{background:linear-gradient(90deg,#400,var(--red),var(--red2));}
+.popup-box::after{content:'○  △  □';position:absolute;bottom:8px;right:12px;
+  font-size:.5rem;color:rgba(255,255,255,.04);letter-spacing:.2em;pointer-events:none;}
+.p-icon{font-size:2.8rem;margin-bottom:8px;display:block;}
+.p-title{font-family:'Black Han Sans',sans-serif;font-size:1.35rem;letter-spacing:.06em;margin-bottom:12px;}
+.p-title.red{color:var(--red2);}.p-title.win{color:var(--green2);}.p-title.lose{color:var(--red2);}
+.p-rules{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;
+  padding:11px 13px;margin-bottom:14px;text-align:left;}
+.rule-row{display:flex;gap:8px;font-size:.72rem;color:var(--text2);line-height:1.6;margin-bottom:4px;}
+.rule-row:last-child{margin-bottom:0;}
+.rule-row b{color:#fff;}.hl{color:var(--red2);font-weight:900;}.hlg{color:var(--green2);font-weight:900;}
+.hlp{color:var(--purple2);font-weight:900;}
+.p-btn{width:100%;padding:13px;border:none;border-radius:13px;
+  font-family:'Black Han Sans',sans-serif;font-size:.9rem;letter-spacing:.04em;
+  cursor:pointer;margin-bottom:8px;transition:all .15s;}
+.p-btn:last-child{margin-bottom:0;}
+.p-btn.primary{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;
+  box-shadow:0 3px 16px rgba(232,0,42,.45);}
+.p-btn.secondary{background:rgba(255,255,255,.06);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.p-btn:active{opacity:.78;}
+.p-desc{font-size:.74rem;color:var(--text2);line-height:1.7;margin-bottom:12px;white-space:pre-line;}
+.p-reward{border-radius:10px;padding:10px;margin-bottom:14px;font-size:.88rem;font-weight:900;}
+.p-reward.earn{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.25);color:var(--green2);}
+.p-reward.loss{background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);color:#ff6680;}
+
+/* ══ 순서 공개 ══ */
+#orderScreen{position:fixed;inset:0;z-index:480;background:rgba(0,0,15,.95);backdrop-filter:blur(10px);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;}
+#orderScreen.show{display:flex;}
+.order-title{font-family:'Black Han Sans',sans-serif;font-size:1.15rem;color:#fff;letter-spacing:.06em;}
+.order-subtitle{font-size:.7rem;color:var(--text2);margin-bottom:4px;}
+.order-list{width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px;}
+.order-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 12px;animation:slideIn .3s ease both;}
+.order-item.is-player{background:rgba(255,112,32,.1);border-color:rgba(255,112,32,.3);}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.oi-num{font-family:'Black Han Sans',sans-serif;font-size:.78rem;color:var(--gold);min-width:22px;}
+.oi-char{font-size:1.2rem;}
+.oi-char.ai-c{filter:hue-rotate(175deg) saturate(3) brightness(.9);}
+.oi-char.pl-c{filter:hue-rotate(20deg) saturate(3.5);}
+.oi-name{flex:1;font-family:'Black Han Sans',sans-serif;font-size:.78rem;}
+.oi-badge{font-size:.56rem;font-weight:700;padding:2px 7px;border-radius:8px;}
+.badge-pl{background:rgba(255,112,32,.2);color:var(--orange2);border:1px solid rgba(255,112,32,.3);}
+.badge-ai{background:rgba(26,136,153,.2);color:var(--teal2);border:1px solid rgba(26,136,153,.3);}
+.badge-def{background:rgba(232,0,42,.15);color:var(--red2);border:1px solid rgba(232,0,42,.25);}
+.order-start-btn{width:100%;max-width:320px;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;
+  font-family:'Black Han Sans',sans-serif;font-size:1rem;letter-spacing:.06em;
+  box-shadow:0 4px 22px rgba(232,0,42,.45);cursor:pointer;}
+.order-start-btn:active{transform:scale(.97);}
+
+/* ══ 카운트다운 ══ */
+#countdown{position:fixed;inset:0;z-index:450;background:rgba(0,0,15,.92);backdrop-filter:blur(6px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;}
+#countdown.hidden{display:none;}
+#cdNum{font-family:'Black Han Sans',sans-serif;font-size:7rem;color:var(--red2);
+  text-shadow:0 0 50px rgba(232,0,42,.9),0 0 100px rgba(232,0,42,.4);
+  animation:cdPop .9s ease infinite;}
+@keyframes cdPop{0%{transform:scale(1.3)}80%{transform:scale(.92)}100%{transform:scale(1.3)}}
+#cdSub{font-size:.85rem;color:rgba(255,255,255,.55);letter-spacing:.14em;}
+
+/* ══ 수비 배치 페이즈 ══ */
+#defDeployOverlay{position:fixed;inset:0;z-index:400;background:rgba(0,0,15,.9);backdrop-filter:blur(10px);
+  display:none;flex-direction:column;align-items:center;justify-content:flex-start;
+  padding:58px 16px 16px;gap:8px;overflow-y:auto;}
+#defDeployOverlay.show{display:flex;}
+.dd-title{font-family:'Black Han Sans',sans-serif;font-size:1.1rem;color:var(--red2);letter-spacing:.06em;}
+.dd-round{font-family:'Black Han Sans',sans-serif;font-size:.78rem;color:var(--gold);
+  background:rgba(255,214,0,.1);border:1px solid rgba(255,214,0,.2);border-radius:8px;padding:3px 10px;}
+.dd-thinking{font-size:.72rem;color:var(--teal2);animation:thinkBlink .7s ease infinite alternate;}
+@keyframes thinkBlink{0%{opacity:.3}100%{opacity:1}}
+#deployMap{width:100%;max-width:340px;background:rgba(8,8,24,.85);
+  border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:10px;}
+.deploy-zone{display:flex;align-items:center;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);
+  border-radius:10px;padding:8px 10px;margin-bottom:6px;}
+.deploy-zone:last-child{margin-bottom:0;}
+.dz-icon{font-size:.95rem;margin-right:6px;}
+.dz-label{font-family:'Black Han Sans',sans-serif;font-size:.76rem;color:#fff;flex:1;}
+.dz-gauge{font-size:.58rem;color:var(--text2);margin-right:6px;}
+.dz-guards{display:flex;gap:2px;align-items:center;margin-right:6px;}
+.guard-icon{font-size:.9rem;filter:hue-rotate(175deg) saturate(3) brightness(.85);}
+.no-guard{font-size:.6rem;color:var(--green2);}
+.dz-diff{font-family:'Black Han Sans',sans-serif;font-size:.58rem;padding:2px 6px;border-radius:6px;}
+.diff-easy{background:rgba(0,200,83,.15);color:var(--green2);border:1px solid rgba(0,200,83,.3);}
+.diff-mid{background:rgba(255,214,0,.12);color:var(--gold);border:1px solid rgba(255,214,0,.28);}
+.diff-hard{background:rgba(232,0,42,.12);color:var(--red2);border:1px solid rgba(232,0,42,.28);}
+.diff-hell{background:rgba(150,0,255,.15);color:var(--purple2);border:1px solid rgba(150,0,255,.35);}
+#ddContinueBtn{width:100%;max-width:340px;padding:14px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;
+  font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.06em;
+  box-shadow:0 4px 20px rgba(232,0,42,.4);cursor:pointer;}
+#ddContinueBtn:active{transform:scale(.97);}
+
+/* ══ 라운드 알림 ══ */
+#roundAnnounce{position:fixed;inset:0;z-index:390;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  opacity:0;transition:opacity .3s;}
+#roundAnnounce.show{opacity:1;}
+.ra-round{font-family:'Black Han Sans',sans-serif;font-size:1.8rem;color:#fff;
+  letter-spacing:.08em;text-shadow:0 0 30px rgba(255,255,255,.5);}
+.ra-phase{font-family:'Black Han Sans',sans-serif;font-size:.88rem;color:var(--red2);letter-spacing:.1em;}
+
+/* ══ 인게임 ══ */
+#gameArea{position:fixed;top:50px;left:0;right:0;bottom:0;z-index:10;display:flex;flex-direction:column;}
+#gameArea.hidden{display:none;}
+#fieldWrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding-top:2px;}
+#squidSvg{width:min(255px,74vw);height:auto;filter:drop-shadow(0 4px 20px rgba(100,80,255,.3));}
+
+/* SVG 구역 */
+.field-tail{fill:rgba(26,136,153,.16);stroke:rgba(26,136,153,.5);stroke-width:2;}
+.field-body{fill:rgba(80,60,180,.07);stroke:rgba(110,90,220,.22);stroke-width:2;}
+.field-body2{fill:rgba(100,80,200,.05);stroke:rgba(140,120,255,.16);stroke-width:1.5;}
+.field-neck{fill:rgba(255,214,0,.13);stroke:rgba(255,214,0,.48);stroke-width:2.5;}
+.field-head{fill:rgba(232,0,42,.18);stroke:rgba(232,0,42,.58);stroke-width:2.5;}
+.zone-danger-1{stroke:rgba(255,214,0,.7)!important;fill:rgba(255,214,0,.06)!important;}
+.zone-danger-2{stroke:rgba(232,150,0,.8)!important;fill:rgba(232,100,0,.08)!important;}
+.zone-danger-3{stroke:rgba(232,0,42,.9)!important;fill:rgba(232,0,42,.14)!important;}
+
+/* ══ 캐릭터 ══ */
+#charOverlay{position:absolute;inset:0;pointer-events:none;}
+.field-char{position:absolute;display:flex;flex-direction:column;align-items:center;gap:1px;
+  transition:all .55s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.field-char .fc-emoji{font-size:1.2rem;line-height:1;}
+.field-char .fc-plate{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.34rem;
+  padding:1px 3px;border-radius:3px;background:rgba(5,5,20,.95);color:#ddd;
+  border:1px solid rgba(255,255,255,.16);}
+.field-char .fc-plate.p456{background:#c84800;color:#fff;border-color:rgba(255,180,80,.6);}
+.field-char.atk-char .fc-emoji{filter:hue-rotate(20deg) saturate(3.5);}
+.field-char.def-char .fc-emoji{filter:hue-rotate(175deg) saturate(3) brightness(.88);}
+.field-char.dead-char .fc-emoji{filter:grayscale(1) brightness(.25);opacity:.28;}
+@keyframes fallChar{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(55px) rotate(28deg);opacity:0}}
+.field-char.falling{animation:fallChar .75s ease forwards;}
+@keyframes advChar{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+.field-char.advancing{animation:advChar .45s ease;}
+@keyframes defMarch{0%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-50%) scale(1.35) translateY(9px)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes defShake{0%,100%{transform:translate(-50%,-50%)}25%{transform:translate(-50%,-50%) rotate(-13deg)}75%{transform:translate(-50%,-50%) rotate(13deg)}}
+@keyframes defFlash{0%,100%{opacity:1}40%{opacity:.15;filter:hue-rotate(175deg) saturate(3) brightness(3);}}
+@keyframes defAlert{0%{transform:translate(-50%,-50%) scale(1)}30%{transform:translate(-50%,-50%) scale(1.55)}60%{transform:translate(-50%,-50%) scale(.88)}100%{transform:translate(-50%,-50%) scale(1)}}
+.def-char.marching{animation:defMarch .5s ease;}
+.def-char.shaking{animation:defShake .22s ease 3;}
+.def-char.flashing{animation:defFlash .28s ease 3;}
+.def-char.alerting{animation:defAlert .45s ease;}
+
+/* 수비 배지 */
+#guardBadges{position:absolute;inset:0;pointer-events:none;}
+.zone-guard-badge{position:absolute;font-family:'Black Han Sans',sans-serif;font-size:.52rem;
+  padding:1px 5px;border-radius:6px;pointer-events:none;
+  transform:translate(-50%,-50%);transition:all .5s ease;white-space:nowrap;}
+.zone-guard-badge.safe{background:rgba(0,160,50,.85);color:#fff;border:1px solid rgba(0,255,100,.4);}
+.zone-guard-badge.warn{background:rgba(200,130,0,.88);color:#fff;border:1px solid rgba(255,180,0,.4);}
+.zone-guard-badge.danger{background:rgba(200,0,30,.9);color:#fff;border:1px solid rgba(255,60,60,.5);}
+.zone-guard-badge.hell{background:rgba(110,0,210,.92);color:#fff;border:1px solid rgba(180,80,255,.5);}
+
+/* ══ 공격대기줄 ══ */
+#atkQueue{display:flex;align-items:center;justify-content:center;gap:5px;padding:4px 0;
+  border-top:1px solid rgba(255,255,255,.07);background:rgba(0,0,15,.65);backdrop-filter:blur(8px);}
+.aq-char{display:flex;flex-direction:column;align-items:center;gap:1px;transition:opacity .3s;}
+.aq-char .aq-emoji{font-size:1.15rem;}
+.aq-char .aq-plate{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.34rem;
+  padding:1px 3px;border-radius:3px;background:rgba(5,5,20,.95);color:#ddd;
+  border:1px solid rgba(255,255,255,.16);}
+.aq-char .aq-plate.p456{background:#c84800;color:#fff;}
+.aq-char.atk-alive .aq-emoji{filter:hue-rotate(20deg) saturate(3.5);}
+.aq-char.atk-dead .aq-emoji{filter:grayscale(1) brightness(.28);opacity:.28;}
+.aq-char.atk-current .aq-emoji{filter:hue-rotate(20deg) saturate(3.5) brightness(1.2);
+  animation:curGlow .75s ease infinite alternate;}
+@keyframes curGlow{0%{transform:scale(1)}100%{transform:scale(1.22)}}
+
+/* ══ 턴 패널 ══ */
+#turnPanel{background:rgba(0,0,15,.78);border-top:1px solid rgba(255,255,255,.07);
+  padding:6px 12px 5px;backdrop-filter:blur(8px);}
+#turnDesc{font-family:'Black Han Sans',sans-serif;font-size:.78rem;letter-spacing:.04em;
+  text-align:center;min-height:17px;margin-bottom:4px;}
+#turnDesc.my{color:var(--orange2);}#turnDesc.ai{color:var(--teal2);}#turnDesc.sys{color:var(--gold);}
+#defHpRow{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+#defHpLabel{font-size:.56rem;color:var(--text3);white-space:nowrap;}
+#defHpBar{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;}
+#defHpFill{height:100%;border-radius:3px;transition:width .35s;}
+#defHpVal{font-family:'Black Han Sans',sans-serif;font-size:.6rem;color:var(--red2);min-width:18px;text-align:right;}
+
+/* ══ 분기 선택 ══ */
+#branchSection{padding:0 12px 8px;background:rgba(0,0,15,.72);backdrop-filter:blur(8px);display:none;}
+#branchSection.show{display:block;}
+#branchLabel{font-family:'Black Han Sans',sans-serif;font-size:.72rem;color:var(--gold);
+  text-align:center;margin-bottom:6px;letter-spacing:.04em;}
+#branchBtns{display:flex;gap:7px;}
+.branch-btn{flex:1;padding:10px 5px;border:2px solid;border-radius:12px;
+  font-family:'Black Han Sans',sans-serif;letter-spacing:.03em;cursor:pointer;
+  transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:2px;background:transparent;}
+.branch-btn .bb-icon{font-size:1.1rem;}
+.branch-btn .bb-name{font-size:.76rem;}
+.branch-btn .bb-info{font-size:.54rem;opacity:.75;font-family:'Noto Sans KR',sans-serif;font-weight:700;}
+.branch-btn .bb-guards{font-size:.62rem;font-weight:900;margin-top:2px;}
+.branch-btn:active{transform:scale(.94);}
+/* 수비 인원별 색상 */
+.branch-btn.g0{border-color:rgba(0,220,80,.6);color:var(--green2);}
+.branch-btn.g1{border-color:rgba(255,214,0,.5);color:var(--gold);}
+.branch-btn.g2{border-color:rgba(232,120,0,.6);color:#ff9944;}
+.branch-btn.g3{border-color:rgba(232,0,42,.75);color:var(--red2);}
+
+/* ══ 게이지 ══ */
+#gaugeSection{padding:0 12px 9px;background:rgba(0,0,15,.72);backdrop-filter:blur(8px);}
+#gaugeWrap{position:relative;height:38px;background:rgba(255,255,255,.04);
+  border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.07);margin-bottom:6px;}
+#successZone{position:absolute;top:0;bottom:0;background:rgba(0,200,83,.2);
+  border-left:2px solid rgba(0,200,83,.65);border-right:2px solid rgba(0,200,83,.65);}
+#gaugeBall{position:absolute;top:50%;transform:translate(-50%,-50%);width:15px;height:15px;
+  border-radius:50%;background:radial-gradient(circle,#fff 30%,#ffd600);
+  box-shadow:0 0 12px rgba(255,214,0,.9),0 0 24px rgba(255,214,0,.4);}
+#gaugeHit{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Black Han Sans',sans-serif;font-size:.78rem;opacity:0;transition:opacity .2s;pointer-events:none;}
+#gaugeHit.show-good{color:var(--green2);opacity:1;}
+#gaugeHit.show-bad{color:var(--red2);opacity:1;}
+#gaugeWrap.guarded{border-color:rgba(232,0,42,.7)!important;
+  animation:gaugeWarn .28s ease 3;}
+@keyframes gaugeWarn{0%,100%{box-shadow:none}50%{box-shadow:0 0 16px rgba(232,0,42,.6);}}
+#tapBtn{width:100%;padding:14px;border:none;border-radius:13px;
+  background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;
+  font-family:'Black Han Sans',sans-serif;font-size:.98rem;letter-spacing:.06em;
+  box-shadow:0 4px 20px rgba(232,0,42,.45);cursor:pointer;transition:all .1s;}
+#tapBtn:active{transform:scale(.96);}
+#tapBtn:disabled{background:rgba(255,255,255,.05);color:var(--text3);box-shadow:none;pointer-events:none;}
+
+/* ══ 배너 ══ */
+#defBanner{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-12px);
+  background:rgba(80,0,15,.96);border:1px solid rgba(232,0,42,.65);border-radius:10px;
+  padding:5px 15px;font-family:'Black Han Sans',sans-serif;font-size:.72rem;color:var(--red2);
+  opacity:0;transition:all .22s;pointer-events:none;z-index:401;white-space:nowrap;}
+#defBanner.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ 라운드 알림 ══ */
+#roundAnnounce{position:fixed;inset:0;z-index:390;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  opacity:0;transition:opacity .3s;}
+#roundAnnounce.show{opacity:1;}
+.ra-round{font-family:'Black Han Sans',sans-serif;font-size:1.8rem;color:#fff;
+  letter-spacing:.08em;text-shadow:0 0 30px rgba(255,255,255,.5);}
+.ra-phase{font-family:'Black Han Sans',sans-serif;font-size:.88rem;color:var(--red2);letter-spacing:.1em;}
+
+/* ══ 이펙트 ══ */
+/* ══ 이펙트 → squid_fx.js 대체 ══ */
+
+/* ══ 토스트 ══ */
+#toast{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-10px);
+  background:rgba(5,5,20,.97);border:1px solid rgba(232,0,42,.22);border-radius:10px;
+  padding:7px 16px;font-size:.74rem;color:var(--text);opacity:0;transition:all .26s;
+  pointer-events:none;z-index:400;white-space:nowrap;max-width:90vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ 파티클 / 폭죽 ══ */
+.particle{position:fixed;pointer-events:none;z-index:700;font-size:1rem;animation:pfly 1.6s ease forwards;}
+@keyframes pfly{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-150px) rotate(400deg)}}
+.shooting-star{position:fixed;width:2px;height:2px;border-radius:50%;background:#fff;
+  pointer-events:none;z-index:3;
+  box-shadow:0 0 5px 2px rgba(255,255,255,.9);
+  animation:shootStar 1s linear forwards;}
+@keyframes shootStar{0%{transform:translate(0,0);opacity:1;}100%{transform:translate(-220px,130px);opacity:0;}}
+.firework{position:fixed;pointer-events:none;z-index:700;animation:fwPop 1.8s ease forwards;}
+@keyframes fwPop{
+  0%{opacity:1;transform:translate(0,0) scale(.3);}
+  25%{transform:translate(var(--dx1),var(--dy1)) scale(1.4);}
+  100%{opacity:0;transform:translate(var(--dx2),var(--dy2)) scale(.1);}}
+</style>
+</head>
+<body>
+<script>if(!sessionStorage.getItem("ORACLE_ENTRY")<body><body>window.self===window.top){window.location.replace("index.html");}</script>
+
+<div id="bg"></div>
+<div id="moon">🌕</div>
+<div class="city-glow"></div>
+<div class="rooftop"></div>
+<div class="wtank wt1"></div><div class="wtank wt2"></div>
+<div class="wtank wt3"></div><div class="wtank wt4"></div>
+<div class="neon-dots">
+  <div class="nd"></div><div class="nd"></div><div class="nd"></div><div class="nd"></div>
+  <div class="nd"></div><div class="nd"></div><div class="nd"></div><div class="nd"></div>
+</div>
+
+<div id="header">
+  <button id="backBtn" onclick="doBack()">←</button>
+  <div class="hd-title">🌃 하늘 오징어 게임</div>
+  <div id="phaseBadge">대기 중</div>
+</div>
+
+<!-- 시작 팝업 -->
+<div class="overlay-bg" id="startOverlay">
+  <div class="popup-box red-top">
+    <span class="p-icon">🌃</span>
+    <div class="p-title red">하 늘  오 징 어  게 임</div>
+    <div class="p-rules">
+      <div class="rule-row">🏙️ <span><b>시즌 3 최종 결전!</b> 옥상 전략 대결</span></div>
+      <div class="rule-row">🛡️ <span>매 라운드 <span class="hlp">수비 AI 먼저 배치</span> — 전략을 읽어라!</span></div>
+      <div class="rule-row">👁️ <span><span class="hlg">수비 인원 수</span>가 필드에 실시간 표시됨</span></div>
+      <div class="rule-row">🔀 <span>분기점에서 <span class="hlg">수비 적은 경로</span> 선택이 핵심!</span></div>
+      <div class="rule-row">🎯 <span>수비 많을수록 게이지 <span class="hl">존 축소 + 방해</span></span></div>
+      <div class="rule-row">💀 <span>456번 탈락 시 <span class="hl">즉시 패배</span></span></div>
+    </div>
+    <button class="p-btn primary" onclick="showOrderScreen()">🌃 최후의 결전!</button>
+    <button class="p-btn secondary" onclick="doBack()">돌아가기</button>
+  </div>
+</div>
+
+<!-- 순서 공개 -->
+<div id="orderScreen">
+  <div class="order-title">⚔️ 최후의 전투 배치</div>
+  <div class="order-subtitle">옥상 위 마지막 결전</div>
+  <div class="order-list" id="orderList"></div>
+  <button class="order-start-btn" onclick="startCountdown()">옥상으로 올라가라!</button>
+</div>
+
+<!-- 카운트다운 -->
+<div id="countdown" class="hidden">
+  <div id="cdNum">3</div>
+  <div id="cdSub">최후의 결전!</div>
+</div>
+
+<!-- 수비 배치 페이즈 -->
+<div id="defDeployOverlay">
+  <div class="dd-title">🛡️ 수비팀 전략 배치</div>
+  <div id="ddRoundBadge" class="dd-round">라운드 1</div>
+  <div id="ddThinking" class="dd-thinking">수비 AI가 전략을 분석하고 있다...</div>
+  <div id="deployMap"></div>
+  <button id="ddContinueBtn" onclick="startAttackPhase()" style="display:none;" class="p-btn primary">⚔️ 공격 개시!</button>
+</div>
+
+<!-- 라운드 알림 -->
+<div id="roundAnnounce">
+  <div class="ra-round" id="raRound">ROUND 1</div>
+  <div class="ra-phase" id="raPhase">수비 배치 페이즈</div>
+</div>
+
+<!-- 인게임 -->
+<div id="gameArea" class="hidden">
+  <div id="fieldWrap">
+    <svg id="squidSvg" viewBox="0 0 240 360" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="rgba(232,0,42,.7)"/>
+        </marker>
+        <marker id="arrs" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="rgba(0,200,83,.6)"/>
+        </marker>
+        <filter id="glow"><feGaussianBlur stdDeviation="2.5" result="b"/><feComposite in="SourceGraphic" in2="b" operator="over"/></filter>
+      </defs>
+      <circle id="zoneStartCircle" class="field-tail" cx="120" cy="302" r="28"/>
+      <text x="120" y="298" text-anchor="middle" font-family="'Black Han Sans'" font-size="7.5" fill="rgba(26,136,153,.9)">④출발</text>
+      <text x="120" y="311" text-anchor="middle" font-size="8">🌃</text>
+      <rect id="zoneOuter" class="field-body" x="186" y="190" width="42" height="108" rx="4"/>
+      <text x="207" y="240" text-anchor="middle" font-family="'Black Han Sans'" font-size="7" fill="rgba(0,200,83,.75)">③</text>
+      <text x="207" y="252" text-anchor="middle" font-family="'Black Han Sans'" font-size="6.5" fill="rgba(0,200,83,.65)">우회</text>
+      <rect id="zoneDefHome" class="field-body" x="28" y="190" width="180" height="108" rx="4"/>
+      <text x="118" y="246" text-anchor="middle" font-family="'Black Han Sans'" font-size="8.5" fill="rgba(100,80,220,.65)">⑤ 수비집</text>
+      <rect id="zoneBridge" class="field-neck" x="104" y="157" width="32" height="34" rx="3"/>
+      <text x="120" y="173" text-anchor="middle" font-family="'Black Han Sans'" font-size="7.5" fill="rgba(255,214,0,.9)">②다리</text>
+      <polygon id="zoneTriangle" class="field-body2" points="120,40 28,152 212,152"/>
+      <text x="120" y="118" text-anchor="middle" font-family="'Black Han Sans'" font-size="7.5" fill="rgba(150,130,255,.22)">공격 진입로</text>
+      <circle id="zoneGoal" class="field-head" cx="120" cy="50" r="26"/>
+      <text x="120" y="45" text-anchor="middle" font-family="'Black Han Sans'" font-size="7.5" fill="rgba(232,0,42,.95)">공격집</text>
+      <text x="120" y="60" text-anchor="middle" font-size="14" filter="url(#glow)">★</text>
+      <path d="M 110,274 L 110,194" stroke="rgba(232,0,42,.32)" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arr)"/>
+      <path d="M 146,292 Q 210,292 210,298" stroke="rgba(0,200,83,.32)" stroke-width="1.5" stroke-dasharray="4,3" fill="none" marker-end="url(#arrs)"/>
+      <path d="M 120,190 L 120,76" stroke="rgba(232,0,42,.42)" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
+      <line x1="120" y1="22" x2="120" y2="330" stroke="rgba(130,110,255,.06)" stroke-width="1" stroke-dasharray="4,5"/>
+      <text x="14" y="130" font-family="'Black Han Sans'" font-size="8" fill="rgba(140,120,255,.2)">①바깥</text>
+      <text x="20" y="50" font-size="8" opacity=".4">✦</text>
+      <text x="210" y="54" font-size="7" opacity=".3">✦</text>
+    </svg>
+    <div id="charOverlay"></div>
+    <div id="guardBadges"></div>
+  </div>
+
+  <div id="atkQueue"></div>
+
+  <div id="turnPanel">
+    <div id="turnDesc" class="sys">준비 중...</div>
+    <div id="defHpRow">
+      <span id="defHpLabel">수비 체력</span>
+      <div id="defHpBar"><div id="defHpFill" style="width:100%"></div></div>
+      <span id="defHpVal">22</span>
+    </div>
+  </div>
+
+  <div id="branchSection">
+    <div id="branchLabel">⚡ 전략적으로 경로를 선택하라!</div>
+    <div id="branchBtns">
+      <button class="branch-btn g1" id="branchFront" onclick="chooseBranch('front')">
+        <span class="bb-icon">⚔️</span>
+        <span class="bb-name">정면</span>
+        <span class="bb-info">--</span>
+        <span class="bb-guards">🛡️ 0명</span>
+      </button>
+      <button class="branch-btn g0" id="branchSide" onclick="chooseBranch('side')">
+        <span class="bb-icon">🌿</span>
+        <span class="bb-name">우회</span>
+        <span class="bb-info">--</span>
+        <span class="bb-guards">🛡️ 0명</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="gaugeSection">
+    <div id="gaugeWrap">
+      <div id="successZone"></div>
+      <div id="gaugeBall"></div>
+      <div id="gaugeHit"></div>
+    </div>
+    <button id="tapBtn" onclick="onTap()" disabled>대기 중...</button>
+  </div>
+</div>
+
+<div id="defBanner">⚠️ 수비 돌진!</div>
+
+<!-- 결과 -->
+<div class="overlay-bg hidden" id="resultOverlay">
+  <div class="popup-box" id="resultBox">
+    <span class="p-icon" id="rIcon">🏆</span>
+    <div class="p-title" id="rTitle">클리어!</div>
+    <div class="p-desc" id="rDesc"></div>
+    <div class="p-reward" id="rReward"></div>
+    <button class="p-btn primary" onclick="goHub()">결과 확인</button>
+    <button class="p-btn secondary" onclick="goHub()">허브로 돌아가기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="squid_fx.js"></script>
+<script>
+// ════════════════════════════════
+// 상수
+// ════════════════════════════════
+const GAME_ID    = 'sq_skysquid';
+const DEF_HP_MAX = 22;
+const DEF_TOTAL  = 5;
+
+const ROUTE_GRAPH = {
+  start_circle:{front:'bridge',  side:'outer'},
+  bridge:      {next:'def_home'},
+  outer:       {next:'def_home'},
+  def_home:    {front:'goal',    side:'goal_side'},
+  goal_side:   {next:'goal'},
+  goal:        null,
+};
+
+const ZONE_NAMES = {
+  start_circle:'④ 출발원', bridge:'② 다리', outer:'③ 우회로',
+  def_home:'⑤ 수비집', goal_side:'측면경로', goal:'★ 공격집!',
+};
+
+const BRANCH_ZONES = new Set(['start_circle','def_home']);
+const DEFEND_ZONES = ['bridge','outer','def_home','goal','goal_side'];
+
+// 기본 게이지
+const BASE_GAUGE = {
+  start_circle:{zoneW:26,speed:1.2,pattern:'normal'},
+  bridge:      {zoneW:20,speed:1.6,pattern:'normal'},
+  outer:       {zoneW:22,speed:1.4,pattern:'normal'},
+  def_home:    {zoneW:18,speed:1.7,pattern:'normal'},
+  goal_side:   {zoneW:20,speed:1.5,pattern:'normal'},
+  goal:        {zoneW:16,speed:2.0,pattern:'normal'},
+};
+
+function getGaugeCfg(zone, g){
+  const b={...BASE_GAUGE[zone]||BASE_GAUGE.def_home};
+  if(!g) return b;
+  if(g===1){b.zoneW=Math.max(b.zoneW-5,8);b.speed+=0.35;return b;}
+  if(g===2){b.zoneW=Math.max(b.zoneW-10,7);b.speed+=0.8;b.pattern='fake';return b;}
+  b.zoneW=Math.max(b.zoneW-14,5);b.speed+=1.3;b.pattern='fake';return b;
+}
+
+function getInterruptProb(g){
+  return [0,0.2,0.58,0.88][Math.min(g,3)];
+}
+
+const DEF_DMG={start_circle:1,bridge:5,outer:2,def_home:4,goal_side:3,goal:7};
+const AI_FAIL_BASE={start_circle:.12,bridge:.40,outer:.22,def_home:.35,goal_side:.28,goal:.32};
+
+function getAIFail(zone,g){
+  return Math.min((AI_FAIL_BASE[zone]||.3)+g*.13,.85);
+}
+
+// 위치 (%)
+const ZONE_POS={
+  start_circle:{x:50,y:85},bridge:{x:50,y:46},outer:{x:91,y:63},
+  def_home:{x:50,y:67},goal_side:{x:77,y:47},goal:{x:50,y:15},
+};
+const BADGE_POS={
+  bridge:{x:63,y:42},outer:{x:88,y:55},
+  def_home:{x:73,y:60},goal_side:{x:85,y:42},goal:{x:63,y:10},
+};
+const DEF_HOME_POS=[{x:34,y:60},{x:66,y:60},{x:44,y:73},{x:56,y:73},{x:50,y:45}];
+
+// ════════════════════════════════
+// 상태
+// ════════════════════════════════
+let gameInfo=null,phase='start',roundNum=1;
+let attackers=[],turnOrder=[],playerAtkIdx=-1;
+let defHP=DEF_HP_MAX,currentTurn=0;
+let defDeployment={},defPositions=[];
+let ballPos=0,ballDir=1,ballSpeed=1.4;
+let successLeft=0,successW=20;
+let gaugRafId=null,gaugeActive=false,lastGaugeTs=0;
+let fakeTimer=0,currentPattern='normal';
+let interruptTimers=[];
+let waitingBranch=false,branchAIdx=-1;
+
+function vib(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+
+// ════════════════════════════════
+// 초기화
+// ════════════════════════════════
+function init(){
+  const raw=sessionStorage.getItem('SQ_CURRENT_GAME');
+  if(raw) gameInfo=JSON.parse(raw);
+  const used=new Set([456]);
+  function rn(){let n;do{n=Math.floor(Math.random()*455)+1;}while(used.has(n));used.add(n);return n;}
+  attackers=[
+    {num:456,isPlayer:true,zone:'start_circle',alive:true},
+    {num:rn(),isPlayer:false,zone:'start_circle',alive:true},
+    {num:rn(),isPlayer:false,zone:'start_circle',alive:true},
+    {num:rn(),isPlayer:false,zone:'start_circle',alive:true},
+    {num:rn(),isPlayer:false,zone:'start_circle',alive:true},
+  ];
+  playerAtkIdx=0;
+  turnOrder=[0,1,2,3,4].sort(()=>Math.random()-.5);
+  DEFEND_ZONES.forEach(z=>defDeployment[z]=0);
+  defPositions=Array(5).fill('def_home');
+  setInterval(()=>{if(Math.random()<.22)spawnShootingStar();},3500);
+}
+
+// ════════════════════════════════
+// 순서 공개
+// ════════════════════════════════
+function showOrderScreen(){
+  document.getElementById('startOverlay').classList.add('hidden');
+  document.getElementById('orderScreen').classList.add('show');
+  const list=document.getElementById('orderList');
+  list.innerHTML='';
+  turnOrder.forEach((aIdx,i)=>{
+    const a=attackers[aIdx];
+    const el=document.createElement('div');
+    el.className='order-item'+(a.isPlayer?' is-player':'');
+    el.style.animationDelay=i*.1+'s';
+    el.innerHTML=`<span class="oi-num">${i+1}번</span>
+      <span class="oi-char ${a.isPlayer?'pl-c':'ai-c'}">🧍</span>
+      <span class="oi-name" style="color:${a.isPlayer?'var(--orange2)':'var(--teal2)'}">
+        ${a.isPlayer?'나 (456번)':String(a.num).padStart(3,'0')+'번'}</span>
+      <span class="oi-badge ${a.isPlayer?'badge-pl':'badge-ai'}">${a.isPlayer?'나':'AI'}</span>`;
+    list.appendChild(el);
+  });
+  const d=document.createElement('div');
+  d.style.cssText='background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:8px;margin-top:4px;';
+  d.innerHTML=`<span style="font-family:'Black Han Sans';font-size:.72rem;color:var(--red2)">수비팀</span><span style="flex:1;font-size:.72rem;color:var(--text2)">AI 수비 5명 — 전략 배치</span><span class="oi-badge badge-def">수비</span>`;
+  list.appendChild(d);
+}
+
+// ════════════════════════════════
+// 카운트다운
+// ════════════════════════════════
+function startCountdown(){
+  document.getElementById('orderScreen').classList.remove('show');
+  document.getElementById('countdown').classList.remove('hidden');
+  let n=3;document.getElementById('cdNum').textContent=n;SQ.vignette(true, true);
+  SQ.vibrate([100,50,100]);
+  const tick=setInterval(()=>{
+    n--;
+    if(n>0){document.getElementById('cdNum').textContent=n;vib([140,50,140]);}
+    else{
+      clearInterval(tick);
+      SQ.vignette(false);
+      SQ.flash('white', 120);
+      document.getElementById('cdNum').textContent='GO!';
+      document.getElementById('cdSub').textContent='올라가라!';
+      vib([80,40,80,40,80,40,200]);
+      setTimeout(()=>{
+        document.getElementById('countdown').classList.add('hidden');
+        buildField();buildAtkQueue();updateDefHP();
+        document.getElementById('gameArea').classList.remove('hidden');
+        startDeployPhase();
+      },700);
+    }
+  },900);
+}
+
+// ════════════════════════════════
+// 수비 배치 페이즈
+// ════════════════════════════════
+function startDeployPhase(){
+  phase='deploy';
+  showRoundAnnounce(roundNum,'🛡️ 수비 배치 페이즈',()=>{
+    document.getElementById('defDeployOverlay').classList.add('show');
+    document.getElementById('ddRoundBadge').textContent='라운드 '+roundNum;
+    document.getElementById('ddThinking').style.display='block';
+    document.getElementById('ddContinueBtn').style.display='none';
+    setPhaseBadge('🛡️ 배치 중');
+    setTimeout(()=>{
+      calcDefDeployment();
+      renderDeployMap();
+      document.getElementById('ddThinking').style.display='none';
+      document.getElementById('ddContinueBtn').style.display='block';
+    },400+Math.random()*300);
+  });
+}
+
+function calcDefDeployment(){
+  DEFEND_ZONES.forEach(z=>defDeployment[z]=0);
+  // 공격팀 위치 분석
+  const zc={};
+  attackers.filter(a=>a.alive).forEach(a=>{zc[a.zone]=(zc[a.zone]||0)+1;});
+  let rem=DEF_TOTAL;
+
+  // goal 기본 1명, 수비집 도달자 있으면 3명
+  const goalGuards=(zc['def_home']||0)>0?3:1;
+  defDeployment['goal']=Math.min(goalGuards,rem);rem-=defDeployment['goal'];
+
+  // 다리 vs 우회 판단
+  const bAtt=(zc['bridge']||0),oAtt=(zc['outer']||0);
+  if(rem>0){
+    if(bAtt>=oAtt){
+      defDeployment['bridge']=Math.min(2,rem);rem-=defDeployment['bridge'];
+      if(rem>0){defDeployment['outer']=Math.min(1,rem);rem-=defDeployment['outer'];}
+    } else {
+      defDeployment['outer']=Math.min(2,rem);rem-=defDeployment['outer'];
+      if(rem>0){defDeployment['bridge']=Math.min(1,rem);rem-=defDeployment['bridge'];}
+    }
+  }
+  // 수비집
+  if(rem>0){defDeployment['def_home']=Math.min(1,rem);rem-=defDeployment['def_home'];}
+  // 잔여
+  while(rem>0){
+    const z=DEFEND_ZONES[Math.floor(Math.random()*DEFEND_ZONES.length)];
+    defDeployment[z]++;rem--;
+  }
+  // 페이크 배치 (25%)
+  if(Math.random()<.25){
+    const from=DEFEND_ZONES.filter(z=>defDeployment[z]>0);
+    const to=DEFEND_ZONES.filter(z=>defDeployment[z]<3);
+    if(from.length&&to.length){
+      const f=from[Math.floor(Math.random()*from.length)];
+      const cand=to.filter(x=>x!==f);
+      if(cand.length){const t=cand[Math.floor(Math.random()*cand.length)];defDeployment[f]--;defDeployment[t]++;}
+    }
+  }
+  updateDefCharPositions();
+}
+
+function updateDefCharPositions(){
+  const newPos=[];
+  DEFEND_ZONES.forEach(zone=>{
+    for(let i=0;i<(defDeployment[zone]||0);i++) newPos.push(zone);
+  });
+  while(newPos.length<DEF_TOTAL) newPos.push('def_home');
+  defPositions=newPos;
+
+  defPositions.forEach((zone,i)=>{
+    const el=document.getElementById('def-'+i);
+    if(!el)return;
+    const pos=ZONE_POS[zone]||ZONE_POS.def_home;
+    const same=defPositions.filter((z,j)=>z===zone&&j<i).length;
+    const ox=same===0?0:same===1?-9:same===2?9:same===3?-14:14;
+    const oy=same>=2?-5:0;
+    el.style.left=(pos.x+ox)+'%';el.style.top=(pos.y+oy)+'%';
+    setTimeout(()=>{
+      el.classList.remove('marching');void el.offsetWidth;el.classList.add('marching');
+      setTimeout(()=>el.classList.remove('marching'),400);
+    },i*60);
+  });
+  updateZoneDangerColors();
+  updateGuardBadges();
+}
+
+function updateZoneDangerColors(){
+  const map={bridge:'zoneBridge',outer:'zoneOuter',def_home:'zoneDefHome',goal:'zoneGoal'};
+  Object.entries(map).forEach(([zone,elId])=>{
+    const el=document.getElementById(elId);if(!el)return;
+    el.className=el.className.replace(/zone-danger-\d/g,'').trim();
+    const c=defDeployment[zone]||0;
+    if(c===1)el.classList.add('zone-danger-1');
+    else if(c===2)el.classList.add('zone-danger-2');
+    else if(c>=3)el.classList.add('zone-danger-3');
+  });
+}
+
+function updateGuardBadges(){
+  const container=document.getElementById('guardBadges');
+  if(!container)return;
+  container.innerHTML='';
+  DEFEND_ZONES.forEach(zone=>{
+    const c=defDeployment[zone]||0;
+    const bp=BADGE_POS[zone];if(!bp)return;
+    const el=document.createElement('div');
+    el.className='zone-guard-badge '+(c===0?'safe':c===1?'warn':c===2?'danger':'hell');
+    el.textContent=c===0?'✓ 안전':'🛡️'+c+'명';
+    el.style.left=bp.x+'%';el.style.top=bp.y+'%';
+    container.appendChild(el);
+  });
+}
+
+function renderDeployMap(){
+  const map=document.getElementById('deployMap');
+  map.innerHTML='';
+  const info=[
+    {zone:'bridge',   label:'② 다리',   icon:'🌉'},
+    {zone:'outer',    label:'③ 우회로',  icon:'🌿'},
+    {zone:'def_home', label:'⑤ 수비집',  icon:'🏠'},
+    {zone:'goal_side',label:'측면경로',   icon:'↗️'},
+    {zone:'goal',     label:'★ 공격집',  icon:'⭐'},
+  ];
+  info.forEach(({zone,label,icon})=>{
+    const c=defDeployment[zone]||0;
+    const cfg=getGaugeCfg(zone,c);
+    const [dc,dt]=[['diff-easy','쉬움'],['diff-mid','보통'],['diff-hard','어려움'],['diff-hell','지옥']][Math.min(c,3)];
+    const row=document.createElement('div');
+    row.className='deploy-zone';
+    let guards=c===0?'<span class="no-guard">없음</span>':Array(c).fill('<span class="guard-icon">🧍</span>').join('');
+    row.innerHTML=`<span class="dz-icon">${icon}</span>
+      <span class="dz-label">${label}</span>
+      <span class="dz-gauge">게이지 ${cfg.zoneW}%</span>
+      <div class="dz-guards">${guards}</div>
+      <span class="dz-diff ${dc}">${dt}</span>`;
+    map.appendChild(row);
+    // 아이콘 팝인
+    row.querySelectorAll('.guard-icon').forEach((el,i)=>{
+      el.style.cssText='opacity:0;transform:scale(0);transition:all .3s ease;';
+      setTimeout(()=>{el.style.opacity='1';el.style.transform='scale(1)';},100+i*50);
+    });
+  });
+}
+
+// ════════════════════════════════
+// 공격 페이즈
+// ════════════════════════════════
+function startAttackPhase(){
+  document.getElementById('defDeployOverlay').classList.remove('show');
+  phase='playing';
+  SQ.announce('시즌3 세 번째 게임', {type:'system', duration:1800});
+  setTimeout(()=>{ SQ.announce('🦑 하늘 오징어게임 — 최종 결전!', {type:'guard', duration:2500, typing:true}); }, 2000);
+  setPhaseBadge('⚔️ 공격 페이즈');
+  showRoundAnnounce(roundNum,'⚔️ 공격 페이즈',()=>setTimeout(()=>processTurn(),400));
+}
+
+function showRoundAnnounce(round,phaseText,cb){
+  const el=document.getElementById('roundAnnounce');
+  document.getElementById('raRound').textContent='ROUND '+round;
+  document.getElementById('raPhase').textContent=phaseText;
+  el.classList.add('show');
+  setTimeout(()=>{el.classList.remove('show');setTimeout(cb||function(){},200);},800);
+}
+
+// ════════════════════════════════
+// 턴 처리
+// ════════════════════════════════
+function processTurn(){
+  if(phase!=='playing')return;
+  if(defHP<=0&&attackers[playerAtkIdx].alive){
+    showToast('🔥 수비팀 전멸! 공격집 진입!');
+    setTimeout(()=>endGame('win'),800);return;
+  }
+  while(currentTurn<turnOrder.length){
+    const a=attackers[turnOrder[currentTurn]];
+    if(a.alive&&a.zone!=='goal')break;
+    currentTurn++;
+  }
+  if(currentTurn>=turnOrder.length){
+    if(!attackers.some(a=>a.alive&&a.zone!=='goal')){
+      endGame(attackers[playerAtkIdx].alive?'win':'lose');return;
+    }
+    currentTurn=0;roundNum++;phase='deploy';
+    setTimeout(()=>startDeployPhase(),600);return;
+  }
+  const aIdx=turnOrder[currentTurn];
+  const atk=attackers[aIdx];
+  updateQueueHighlight(aIdx);
+  document.getElementById('phaseBadge').textContent=atk.isPlayer?'내 차례!':String(atk.num).padStart(3,'0')+'번';
+  if(BRANCH_ZONES.has(atk.zone)){atk.isPlayer?startPlayerBranch(aIdx):startAiBranch(aIdx);}
+  else{atk.isPlayer?startPlayerTurn(aIdx):startAiTurn(aIdx);}
+}
+
+// ════════════════════════════════
+// 분기 — 플레이어
+// ════════════════════════════════
+function startPlayerBranch(aIdx){
+  branchAIdx=aIdx;waitingBranch=true;
+  const routes=ROUTE_GRAPH[attackers[aIdx].zone];
+  const fz=routes.front,sz=routes.side;
+  const fg=defDeployment[fz]||0,sg=defDeployment[sz]||0;
+  const fcfg=getGaugeCfg(fz,fg),scfg=getGaugeCfg(sz,sg);
+  const desc=document.getElementById('turnDesc');
+  desc.textContent='🟠 경로 선택! — '+ZONE_NAMES[attackers[aIdx].zone];desc.className='my';
+  vib([80,40,80]);
+  const fb=document.getElementById('branchFront'),sb=document.getElementById('branchSide');
+  fb.querySelector('.bb-name').textContent=ZONE_NAMES[fz];
+  fb.querySelector('.bb-info').textContent='게이지 '+fcfg.zoneW+'% · 데미지 '+(DEF_DMG[fz]||3);
+  fb.querySelector('.bb-guards').textContent='🛡️ 수비 '+fg+'명';
+  fb.className='branch-btn g'+Math.min(fg,3);
+  sb.querySelector('.bb-name').textContent=ZONE_NAMES[sz];
+  sb.querySelector('.bb-info').textContent='게이지 '+scfg.zoneW+'% · 데미지 '+(DEF_DMG[sz]||3);
+  sb.querySelector('.bb-guards').textContent='🛡️ 수비 '+sg+'명';
+  sb.className='branch-btn g'+Math.min(sg,3);
+  stopGauge();clearInterrupts();
+  document.getElementById('branchSection').classList.add('show');
+  document.getElementById('gaugeSection').style.display='none';
+  document.getElementById('tapBtn').disabled=true;
+}
+
+function chooseBranch(dir){
+  if(!waitingBranch)return;
+  waitingBranch=false;vib(30);
+  document.getElementById('branchSection').classList.remove('show');
+  document.getElementById('gaugeSection').style.display='';
+  const atk=attackers[branchAIdx];
+  const routes=ROUTE_GRAPH[atk.zone];
+  atk.zone=dir==='front'?routes.front:routes.side;
+  showToast('⚡ '+ZONE_NAMES[atk.zone]+' 선택!');
+  setTimeout(()=>startPlayerTurn(branchAIdx),350);
+}
+
+// ════════════════════════════════
+// 분기 — AI
+// ════════════════════════════════
+function startAiBranch(aIdx){
+  const atk=attackers[aIdx];
+  const routes=ROUTE_GRAPH[atk.zone];
+  const fz=routes.front,sz=routes.side;
+  const fg=defDeployment[fz]||0,sg=defDeployment[sz]||0;
+  const desc=document.getElementById('turnDesc');
+  desc.textContent='🔵 '+String(atk.num).padStart(3,'0')+'번 경로 분석 중...';desc.className='ai';
+  document.getElementById('branchSection').classList.remove('show');
+  document.getElementById('gaugeSection').style.display='';
+  // 수비 적은 쪽 70%
+  const goFront=fg<sg?Math.random()<.75:sg<fg?Math.random()<.25:Math.random()<.5;
+  setTimeout(()=>{
+    atk.zone=goFront?fz:sz;
+    showToast('🔵 '+String(atk.num).padStart(3,'0')+'번 → '+ZONE_NAMES[atk.zone]+' (수비 '+(goFront?fg:sg)+'명)');
+    setTimeout(()=>startAiTurn(aIdx),250);
+  },450);
+}
+
+// ════════════════════════════════
+// 플레이어 턴
+// ════════════════════════════════
+function startPlayerTurn(aIdx){
+  const atk=attackers[aIdx];
+  const g=defDeployment[atk.zone]||0;
+  const desc=document.getElementById('turnDesc');
+  desc.textContent='🟠 내 차례! — '+ZONE_NAMES[atk.zone]+' (수비 '+g+'명)';desc.className='my';
+  vib([80,40,80]);
+  triggerDefResponse(atk.zone,g);
+  setupGauge(atk.zone,g);
+  document.getElementById('tapBtn').disabled=false;
+  document.getElementById('tapBtn').textContent='⚡ 탭!';
+  startGaugeAnim();
+  scheduleDefInterrupts(atk.zone,g);
+}
+
+// ════════════════════════════════
+// AI 턴
+// ════════════════════════════════
+function startAiTurn(aIdx){
+  const atk=attackers[aIdx];
+  const g=defDeployment[atk.zone]||0;
+  const desc=document.getElementById('turnDesc');
+  desc.textContent='🔵 '+String(atk.num).padStart(3,'0')+'번 돌진... (수비 '+g+'명)';desc.className='ai';
+  document.getElementById('tapBtn').disabled=true;
+  document.getElementById('tapBtn').textContent='대기 중...';
+  triggerDefResponse(atk.zone,g);
+  const ok=Math.random()>getAIFail(atk.zone,g);
+  setupGauge(atk.zone,g);startGaugeAnim();
+  setTimeout(()=>{stopGauge();clearInterrupts();resolveAtk(aIdx,ok);},800+Math.random()*400);
+}
+
+// ════════════════════════════════
+// 수비 반응
+// ════════════════════════════════
+function triggerDefResponse(zone,g){
+  const idxs=[];
+  defPositions.forEach((z,i)=>{if(z===zone)idxs.push(i);});
+  const anim=g>=3?'alerting':g===2?'marching':'shaking';
+  (idxs.length?idxs:[0,1]).forEach((idx,i)=>{
+    const el=document.getElementById('def-'+idx);if(!el)return;
+    setTimeout(()=>{
+      el.classList.remove('marching','shaking','flashing','alerting');
+      void el.offsetWidth;el.classList.add(anim);
+      setTimeout(()=>el.classList.remove(anim),600);
+    },i*90);
+  });
+}
+
+// ════════════════════════════════
+// 방해 시스템
+// ════════════════════════════════
+function scheduleDefInterrupts(zone,g){
+  clearInterrupts();
+  if(Math.random()>getInterruptProb(g))return;
+  const t=700+Math.random()*900;
+  interruptTimers.push(setTimeout(()=>{
+    if(!gaugeActive)return;
+    doDefInterrupt(zone,g);
+    if(g>=2&&Math.random()<.5)
+      interruptTimers.push(setTimeout(()=>{if(gaugeActive)doDefInterrupt(zone,g);},700+Math.random()*500));
+  },t));
+}
+
+function doDefInterrupt(zone,g){
+  const cfg=getGaugeCfg(zone,g);
+  const newLeft=8+Math.random()*(82-cfg.zoneW);
+  const sz=document.getElementById('successZone');
+  sz.style.transition='left .22s ease';sz.style.left=newLeft+'%';successLeft=newLeft;
+  const gw=document.getElementById('gaugeWrap');
+  gw.classList.remove('guarded');void gw.offsetWidth;gw.classList.add('guarded');
+  setTimeout(()=>gw.classList.remove('guarded'),900);
+  defPositions.forEach((z,i)=>{
+    if(z!==zone)return;
+    const el=document.getElementById('def-'+i);if(!el)return;
+    el.classList.remove('flashing');void el.offsetWidth;el.classList.add('flashing');
+    setTimeout(()=>el.classList.remove('flashing'),600);
+  });
+  flashEffect(g>=3?'red':'blue');
+  vib(g>=3?[80,30,80,30,80]:[50,20,50]);
+  const banner=document.getElementById('defBanner');
+  banner.textContent=g>=3?'💥 수비 총공세! 존 이동!':'⚠️ 수비 돌진! 게이지 이동!';
+  banner.classList.add('show');
+  setTimeout(()=>banner.classList.remove('show'),1200);
+  showToast(g>=3?'💥 수비 총공세!':'⚠️ 수비 방해! 존 이동!',900);
+}
+
+function clearInterrupts(){
+  interruptTimers.forEach(t=>clearTimeout(t));interruptTimers=[];
+  document.getElementById('defBanner').classList.remove('show');
+}
+
+// ════════════════════════════════
+// 게이지
+// ════════════════════════════════
+function setupGauge(zone,g){
+  const cfg=getGaugeCfg(zone,g);
+  successW=cfg.zoneW;ballSpeed=cfg.speed;currentPattern=cfg.pattern;fakeTimer=0;
+  successLeft=8+Math.random()*(82-successW);
+  const sz=document.getElementById('successZone');
+  sz.style.transition='none';sz.style.left=successLeft+'%';sz.style.width=successW+'%';
+  ballPos=0;ballDir=1;updateBallUI();
+  const gh=document.getElementById('gaugeHit');gh.className='';gh.textContent='';
+  document.getElementById('gaugeWrap').classList.remove('guarded');
+}
+
+function startGaugeAnim(){
+  gaugeActive=true;lastGaugeTs=performance.now();
+  if(gaugRafId)cancelAnimationFrame(gaugRafId);
+  gaugRafId=requestAnimationFrame(gaugeLoop);
+}
+
+function stopGauge(){gaugeActive=false;if(gaugRafId)cancelAnimationFrame(gaugRafId);}
+
+function gaugeLoop(ts){
+  if(!gaugeActive)return;
+  const dt=Math.min((ts-lastGaugeTs)/1000,.05);lastGaugeTs=ts;
+  if(currentPattern==='fake'){
+    fakeTimer+=dt;
+    if(fakeTimer>.45+Math.random()*.35){fakeTimer=0;if(Math.random()<.42)ballDir*=-1;}
+    ballPos+=ballDir*ballSpeed*60*dt*(Math.random()<.08?1.9:1);
+  } else if(currentPattern==='rush'){
+    ballPos+=ballDir*ballSpeed*58*dt;
+    if(ballPos>=88||ballPos<=12)ballDir*=-1;
+  } else {
+    ballPos+=ballDir*ballSpeed*56*dt;
+  }
+  if(ballPos>=100){ballPos=100;ballDir=-1;}
+  if(ballPos<=0){ballPos=0;ballDir=1;}
+  updateBallUI();gaugRafId=requestAnimationFrame(gaugeLoop);
+}
+
+function updateBallUI(){document.getElementById('gaugeBall').style.left=ballPos+'%';}
+
+// ════════════════════════════════
+// 탭
+// ════════════════════════════════
+function onTap(){
+  if(!gaugeActive)return;
+  stopGauge();clearInterrupts();
+  document.getElementById('tapBtn').disabled=true;vib(22);
+  const aIdx=turnOrder[currentTurn];
+  const ok=ballPos>=successLeft&&ballPos<=successLeft+successW;
+  const gh=document.getElementById('gaugeHit');
+  gh.textContent=ok?'✅ 성공!':'❌ 실패!';gh.className=ok?'show-good':'show-bad';
+  setTimeout(()=>{gh.className='';gh.textContent='';},600);
+  setTimeout(()=>resolveAtk(aIdx,ok),680);
+}
+
+// ════════════════════════════════
+// 결과
+// ════════════════════════════════
+function resolveAtk(aIdx,success){
+  stopGauge();clearInterrupts();
+  const atk=attackers[aIdx];
+  if(success){
+    flashEffect('green');vib([40,20,60]);
+    const dmg=DEF_DMG[atk.zone]||3;
+    defHP=Math.max(0,defHP-dmg);updateDefHP();
+    if(dmg>=4)showToast('💥 강타! 수비 체력 -'+dmg,1400);
+    const routes=ROUTE_GRAPH[atk.zone];
+    if(!routes){
+      moveCharToZone(aIdx,'goal');
+      if(atk.isPlayer){setTimeout(()=>endGame('win'),800);}
+      else{showToast('✅ '+String(atk.num).padStart(3,'0')+'번 공격집 도달!');atk.zone='goal';currentTurn++;setTimeout(processTurn,700);}
+      return;
+    }
+    const nz=routes.next;
+    if(!nz){currentTurn++;setTimeout(processTurn,500);return;}
+    atk.zone=nz;moveCharToZone(aIdx,nz);
+    showToast((atk.isPlayer?'✅ 전진! → ':'✅ '+String(atk.num).padStart(3,'0')+'번 → ')+ZONE_NAMES[nz]);
+    currentTurn++;setTimeout(processTurn,680);
+  } else {
+    flashEffect('red');vib(atk.isPlayer?[200,80,200,80,400]:[100,50,100]);
+    atk.alive=false;fallCharField(aIdx);updateQueueDead(aIdx);
+    if(atk.isPlayer){showToast('💀 456번 탈락!');setTimeout(()=>endGame('lose'),1200);return;}
+    showToast('💀 '+String(atk.num).padStart(3,'0')+'번 탈락!');
+    if(attackers.filter(a=>a.alive).length===1&&attackers[playerAtkIdx].alive)
+      showToast('⚠️ 마지막 생존자! 456번만 남았다!',2500);
+    if(attackers.every(a=>!a.alive)){setTimeout(()=>endGame('lose'),1200);return;}
+    currentTurn++;setTimeout(processTurn,900);
+  }
+}
+
+// ════════════════════════════════
+// 캐릭터
+// ════════════════════════════════
+function moveCharToZone(aIdx,zone){
+  const el=document.getElementById('atk-field-'+aIdx);if(!el)return;
+  const pos=ZONE_POS[zone];if(!pos)return;
+  const same=attackers.filter((x,i)=>i!==aIdx&&x.alive&&x.zone===zone).length;
+  const ox=same===0?0:same===1?-10:same===2?10:same%2===0?-14:14;
+  el.style.left=(pos.x+ox)+'%';el.style.top=pos.y+'%';
+  el.classList.add('advancing');setTimeout(()=>el.classList.remove('advancing'),500);
+}
+
+function fallCharField(aIdx){
+  const el=document.getElementById('atk-field-'+aIdx);if(!el)return;
+  el.classList.add('falling');setTimeout(()=>el.classList.add('dead-char'),800);
+}
+
+// ════════════════════════════════
+// UI
+// ════════════════════════════════
+function updateQueueHighlight(cur){
+  turnOrder.forEach(aIdx=>{
+    const el=document.getElementById('aq-'+aIdx);if(!el)return;
+    el.className='aq-char '+(attackers[aIdx].alive?aIdx===cur?'atk-current':'atk-alive':'atk-dead');
+  });
+}
+function updateQueueDead(aIdx){const el=document.getElementById('aq-'+aIdx);if(el)el.className='aq-char atk-dead';}
+function updateDefHP(){
+  const pct=(defHP/DEF_HP_MAX)*100;
+  document.getElementById('defHpFill').style.width=pct+'%';
+  document.getElementById('defHpVal').textContent=defHP;
+  document.getElementById('defHpFill').style.background=
+    pct>60?'linear-gradient(90deg,var(--red),var(--red2))':pct>30?'var(--gold)':'var(--green2)';
+}
+function setPhaseBadge(txt){document.getElementById('phaseBadge').textContent=txt;}
+
+function buildField(){
+  const overlay=document.getElementById('charOverlay');overlay.innerHTML='';
+  const used=new Set([456,...attackers.map(a=>a.num)]);
+  const dn=[];for(let i=0;i<5;i++){let n;do{n=Math.floor(Math.random()*455)+1;}while(used.has(n));used.add(n);dn.push(n);}
+  DEF_HOME_POS.forEach((pos,i)=>{
+    const el=document.createElement('div');
+    el.className='field-char def-char';el.id='def-'+i;
+    el.style.left=pos.x+'%';el.style.top=pos.y+'%';el.style.transform='translate(-50%,-50%)';
+    el.innerHTML='<span class="fc-emoji">🧍</span><span class="fc-plate">'+String(dn[i]).padStart(3,'0')+'</span>';
+    overlay.appendChild(el);
+  });
+  defPositions=Array(5).fill('def_home');
+  turnOrder.forEach((aIdx,i)=>{
+    const a=attackers[aIdx];
+    const el=document.createElement('div');
+    el.className='field-char atk-char';el.id='atk-field-'+aIdx;
+    el.style.left=(50+(i-2)*10)+'%';el.style.top='87%';el.style.transform='translate(-50%,-50%)';
+    el.innerHTML='<span class="fc-emoji">🧍</span><span class="fc-plate'+(a.num===456?' p456':'')+'">'+String(a.num).padStart(3,'0')+'</span>';
+    overlay.appendChild(el);
+  });
+  updateGuardBadges();
+}
+
+function buildAtkQueue(){
+  const q=document.getElementById('atkQueue');q.innerHTML='';
+  turnOrder.forEach(aIdx=>{
+    const a=attackers[aIdx];
+    const el=document.createElement('div');
+    el.className='aq-char atk-alive';el.id='aq-'+aIdx;
+    el.innerHTML='<span class="aq-emoji">🧍</span><span class="aq-plate'+(a.num===456?' p456':'')+'">'+String(a.num).padStart(3,'0')+'</span>';
+    q.appendChild(el);
+  });
+}
+
+// ════════════════════════════════
+// 게임 종료
+// ════════════════════════════════
+function endGame(outcome){
+  phase='result';stopGauge();clearInterrupts();
+  const isWin=outcome==='win';
+  const isNew=gameInfo?gameInfo.isNew:true;
+  sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:isWin?'clear':'fail'}));
+  const survived=attackers.filter(a=>a.alive).length;
+  const box=document.getElementById('resultBox');
+  box.className='popup-box '+(isWin?'green-top':'lose-top');
+  document.getElementById('rIcon').textContent=isWin?'🏆':'💀';
+  const rt=document.getElementById('rTitle');
+  rt.textContent=isWin?(isNew?'최종 클리어!':'클리어!'):'탈락!';
+  rt.className='p-title '+(isWin?'win':'lose');
+  document.getElementById('rDesc').textContent=isWin
+    ?'🌃 옥상 오징어 게임 최종 클리어!\n총 '+roundNum+'라운드 · 생존 '+survived+'명\n수비 잔여 체력: '+defHP+'/'+DEF_HP_MAX
+    :'456번이 옥상에서 탈락했습니다...\n'+roundNum+'라운드 · 수비팀의 승리\n수비 잔여 체력: '+defHP+'/'+DEF_HP_MAX;
+  const reward=isWin?(isNew?600000:180000):0;
+  const fee=gameInfo?gameInfo.fee:(isNew?300000:100000);
+  const rr=document.getElementById('rReward');
+  rr.className='p-reward '+(isWin?'earn':'loss');
+  rr.textContent=isWin?'+'+reward.toLocaleString('ko-KR')+'원 획득!':'-'+fee.toLocaleString('ko-KR')+'원';
+  if(isWin){ SQ.clearEffect(); SQ.bigText('통과!', 1500); launchFireworks(); SQ.vibrate([60,40,60,40,60,40,80,40,200]);}
+  else { SQ.eliminateEffect({x: window.innerWidth/2, y: window.innerHeight/2}); SQ.bigText('탈락!', 1500); SQ.vibrate([200,60,200,60,300]); }
+  setTimeout(()=>{ SQ.cleanup(); sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html'; },2000);
+}
+
+// ════════════════════════════════
+// 이펙트
+// ════════════════════════════════
+function flashEffect(c){
+  SQ.flash(c === 'green' ? 'green' : c === 'blue' ? 'blue' : c === 'gold' ? 'gold' : 'red', 180);
+}
+
+function showToast(msg,dur=2000){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),dur);
+}
+
+function launchFireworks(){
+  const emojis=['🎆','🎇','✨','⭐','🌟','💫','🎊','🎉','🌃','🏆'];
+  emojis.forEach((em,i)=>setTimeout(()=>spawnParticles(em,7),i*150));
+  for(let i=0;i<28;i++){
+    setTimeout(()=>{
+      const fw=document.createElement('div');fw.className='firework';
+      fw.textContent=emojis[Math.floor(Math.random()*emojis.length)];
+      const sx=10+Math.random()*80,sy=10+Math.random()*70;
+      const dx1=(Math.random()-.5)*100,dy1=(Math.random()-.5)*100;
+      const dx2=(Math.random()-.5)*180,dy2=50+Math.random()*120;
+      fw.style.cssText=`left:${sx}vw;top:${sy}vh;font-size:.9rem;--dx1:${dx1}px;--dy1:${dy1}px;--dx2:${dx2}px;--dy2:${dy2}px;`;
+      document.body.appendChild(fw);setTimeout(()=>fw.remove(),2000);
+    },i*65);
+  }
+  ['gold','green','gold','green','gold'].forEach((c,i)=>setTimeout(()=>flashEffect(c),i*260));
+}
+
+function spawnParticles(emoji,count=10){
+  for(let i=0;i<count;i++) setTimeout(()=>{
+    const p=document.createElement('div');p.className='particle';p.textContent=emoji;
+    p.style.left=Math.random()*80+10+'vw';p.style.top=Math.random()*60+10+'vh';
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1700);
+  },i*70);
+}
+
+function spawnShootingStar(){
+  const s=document.createElement('div');s.className='shooting-star';
+  s.style.top=Math.random()*30+'%';s.style.left=(40+Math.random()*50)+'%';
+  document.body.appendChild(s);setTimeout(()=>s.remove(),1100);
+}
+
+function goHub(){ SQ.cleanup(); sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html'; }
+
+function doBack(){
+  SQ.cleanup();
+  stopGauge();clearInterrupts();
+  if(phase!=='start'&&phase!=='result')
+    sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:'fail'}));
+  sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html';
+}
+
+init();
+</script>
+</body>
+</html>
