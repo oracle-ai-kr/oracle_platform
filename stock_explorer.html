@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#050810">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>ORACLE — 종목 탐색기</title><!-- internal version: v3 -->
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#050810;--bg2:#070b14;--surf:#0a1120;--surf2:#0d1628;--surf3:#111e32;--bdr:#162030;--bdr2:#1c2d42;--green:#00e5a0;--red:#ff3355;--yellow:#ffcc00;--blue:#3d8eff;--cyan:#00d4ff;--orange:#ff8c3a;--purple:#9966ff;--gold:#ffc844;--text:#b4c8e0;--text2:#6a8faa;--muted:#304858;--mono:'JetBrains Mono',monospace;--safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{height:100%;-webkit-text-size-adjust:100%;}
+body{height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;font-size:13px;display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased;padding-top:var(--safe-top);}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.025) 2px,rgba(0,0,0,.025) 4px);pointer-events:none;z-index:9999;}
+.hdr{background:var(--surf);border-bottom:1px solid var(--bdr);padding:10px 14px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;position:relative;}
+.hdr::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--cyan),var(--blue),transparent);opacity:.35;}
+.logo{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:3px;color:var(--cyan);display:flex;align-items:center;gap:7px;}
+.logo-dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan);animation:pulse 2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+.logo-sub{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;}
+.tabs{display:flex;border-bottom:1px solid var(--bdr);flex-shrink:0;background:var(--surf);}
+.tab{flex:1;text-align:center;padding:9px 0;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;min-height:38px;touch-action:manipulation;}
+.tab:active{opacity:.7;}.tab.on{color:var(--cyan);border-bottom-color:var(--cyan);}
+.bar{background:var(--surf2);border-bottom:1px solid var(--bdr);padding:6px 10px;flex-shrink:0;display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+.fb{font-family:var(--mono);font-size:10px;padding:5px 10px;border-radius:100px;cursor:pointer;background:transparent;border:1.5px solid var(--bdr2);color:var(--muted);transition:all .15s;min-height:28px;touch-action:manipulation;white-space:nowrap;}
+.fb:active{opacity:.7;}.fb.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.08);}
+.pb{font-family:var(--mono);font-size:9px;padding:4px 8px;border-radius:4px;cursor:pointer;background:var(--surf2);border:1px solid var(--bdr);color:var(--muted);min-height:24px;touch-action:manipulation;}
+.pb.on{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.1);}
+.upl{background:var(--surf);border-bottom:1px solid var(--bdr);padding:8px 12px;flex-shrink:0;display:none;flex-direction:column;gap:6px;}
+.upl.show{display:flex;}
+.upl-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.upl-btn{font-family:var(--mono);font-size:10px;font-weight:700;padding:8px 12px;border-radius:8px;cursor:pointer;background:var(--surf3);border:1px solid var(--orange);color:var(--orange);min-height:34px;touch-action:manipulation;white-space:nowrap;}
+.upl-btn:active{background:rgba(255,140,58,.1);}
+.upl-info{font-family:var(--mono);font-size:9px;color:var(--muted);line-height:1.6;}
+.upl-st{font-family:var(--mono);font-size:9px;color:var(--green);}
+.act{background:var(--surf);border-bottom:1px solid var(--bdr);padding:6px 12px;flex-shrink:0;display:flex;gap:8px;align-items:center;}
+.cnt{font-family:var(--mono);font-size:10px;color:var(--text2);white-space:nowrap;}
+.list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
+.it{display:flex;align-items:center;gap:8px;padding:11px 12px;border-bottom:1px solid var(--bdr);cursor:pointer;transition:background .1s;min-height:42px;}
+.it:active{background:var(--surf3);}
+.it-r{font-family:var(--mono);font-size:10px;color:var(--muted);min-width:30px;text-align:right;}
+.it-c{font-family:var(--mono);font-size:11px;font-weight:700;min-width:55px;}
+.it-n{flex:1;font-size:12px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.it-m{font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap;}
+.empty{padding:40px 16px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:2;}
+.toast{position:fixed;bottom:max(80px,calc(60px + var(--safe-bot)));left:50%;transform:translateX(-50%) translateY(16px);background:var(--surf2);border:1px solid var(--bdr2);color:var(--text);padding:10px 20px;border-radius:100px;font-size:12px;font-family:var(--mono);opacity:0;transition:all .25s;pointer-events:none;z-index:10000;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.summary{background:var(--surf2);border-bottom:1px solid var(--bdr);padding:8px 12px;flex-shrink:0;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.s-chip{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:4px;border:1px solid var(--bdr);color:var(--text2);}
+.s-chip.ok{border-color:var(--green);color:var(--green);}
+input[type=file]{display:none;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div><div class="logo"><div class="logo-dot"></div>ORACLE EXPLORER</div><div class="logo-sub">종목 탐색기 v3</div></div>
+  <span class="cnt" id="totalLabel" style="font-size:9px;color:var(--muted)"></span>
+</header>
+
+<div class="summary" id="summary"></div>
+
+<div class="tabs">
+  <div class="tab on" data-t="kr" onclick="setTab('kr')">🇰🇷 국내</div>
+  <div class="tab" data-t="us" onclick="setTab('us')">🇺🇸 해외</div>
+  <div class="tab" data-t="coin" onclick="setTab('coin')">₿ 코인</div>
+  <div class="tab" data-t="macro" onclick="setTab('macro')">🌐 매크로</div>
+</div>
+
+<div class="bar" id="filterBar"></div>
+<div class="bar" id="pageBar" style="display:none"></div>
+
+<div class="upl" id="uplArea">
+  <div class="upl-row">
+    <button class="upl-btn" id="uplBtn1" onclick="document.getElementById('f1').click()">📂 파일 업로드</button>
+    <span class="upl-st" id="uplSt"></span>
+    <input type="file" id="f1" accept=".xlsx,.xls,.csv" onchange="handleFile(this)">
+  </div>
+  <div class="upl-info" id="uplInfo"></div>
+</div>
+
+<div class="act">
+  <span class="cnt" id="cntLabel">—</span>
+</div>
+
+<div class="list" id="listArea">
+  <div class="empty">📡 엑셀 파일을 업로드하면<br>종목이 자동으로 분류·저장됩니다<br><br><span style="font-size:10px;color:var(--muted)">모든 ORACLE 분석기에서 공유</span></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+let _lsOk=false;
+try{localStorage.setItem('__t','1');localStorage.removeItem('__t');_lsOk=true;}catch(_){}
+const S={
+  get(k){if(_lsOk)try{return localStorage.getItem(k)}catch(_){}return null;},
+  set(k,v){if(_lsOk)try{localStorage.setItem(k,v)}catch(_){}},
+};
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+function vibrate(p=30){try{navigator.vibrate&&navigator.vibrate(p)}catch(_){}}
+
+const ST={tab:'kr',filter:'kospi',page:0};
+const PG=200;
+
+// ═══ 탭/필터 ═══
+function setTab(t){
+  vibrate(15);ST.tab=t;ST.page=0;
+  const defF={kr:'kospi',us:'sp500',coin:'all',macro:'all'};
+  ST.filter=defF[t]||'all';
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  renderFilters();updateUpload();showList();
+}
+function setFilter(f){vibrate(15);ST.filter=f;ST.page=0;renderFilters();showList();}
+
+function renderFilters(){
+  const bar=document.getElementById('filterBar');
+  const mk=arr=>arr.map(f=>`<button class="fb${ST.filter===f.v?' on':''}" onclick="setFilter('${f.v}')">${f.l}</button>`).join('');
+  const t=ST.tab;
+  if(t==='kr') bar.innerHTML=mk([{l:'코스피',v:'kospi'},{l:'코스닥',v:'kosdaq'},{l:'ETF',v:'etf'}]);
+  else if(t==='us') bar.innerHTML=mk([{l:'S&P 500',v:'sp500'},{l:'나스닥100',v:'ndx'},{l:'다우30',v:'dow'},{l:'ETF',v:'etf'}]);
+  else if(t==='coin') bar.innerHTML=mk([{l:'전체',v:'all'}]);
+  else bar.innerHTML=mk([{l:'전체',v:'all'},{l:'국내지수',v:'kr_idx'},{l:'해외지수',v:'us_idx'},{l:'금리',v:'rate'},{l:'환율',v:'fx'},{l:'원자재',v:'commodity'},{l:'코인매크로',v:'crypto'}]);
+}
+
+function updateUpload(){
+  const area=document.getElementById('uplArea');
+  const btn=document.getElementById('uplBtn1');
+  const info=document.getElementById('uplInfo');
+  const st=document.getElementById('uplSt');
+  st.textContent='';
+  const t=ST.tab;
+  if(t==='macro'){area.classList.remove('show');return;}
+  area.classList.add('show');
+  if(t==='kr'){btn.textContent='📂 국내주식 엑셀';info.innerHTML='KRX 데이터센터: 주식(코스피+코스닥) 또는 ETF 엑셀<br>컬럼: 종목코드, 종목명, 시장구분, ..., 시가총액';}
+  else if(t==='us'){btn.textContent='📂 해외주식 엑셀';info.innerHTML='시트별 자동 분류: SP500, NASDAQ100, DOW30, ETF_US<br>컬럼: 종목코드, 종목명, 시장구분';}
+  else if(t==='coin'){btn.textContent='📂 코인 엑셀';info.innerHTML='업비트 전종목 엑셀 (시총·거래대금 포함)<br>컬럼: 종목코드, 종목명, 시가총액, 거래대금';}
+}
+
+// ═══ 엑셀 파싱 (통합) ═══
+function handleFile(input){
+  const file=input.files[0];if(!file)return;
+  vibrate();
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array'});
+      const sheets=wb.SheetNames;
+      const st=document.getElementById('uplSt');
+
+      // 시트명으로 파일 유형 자동 감지
+      if(sheets.includes('SP500')||sheets.includes('NASDAQ100')||sheets.includes('DOW30')||sheets.includes('ETF_US')){
+        parseOverseas(wb);
+      } else if(sheets.includes('UPBIT_KRW')){
+        parseCoin(wb);
+      } else {
+        // 국내 — 첫 행 헤더로 판단
+        const ws=wb.Sheets[sheets[0]];
+        const rows=XLSX.utils.sheet_to_json(ws);
+        if(rows.length>0){
+          const keys=Object.keys(rows[0]);
+          if(keys.includes('순자산가치(NAV)')||keys.includes('기초지수_지수명')){
+            parseETF(rows);
+          } else if(keys.includes('시장구분')){
+            parseKrStock(rows);
+          } else {
+            toast('인식할 수 없는 엑셀 형식');
+          }
+        }
+      }
+    }catch(err){toast('파싱 실패: '+err.message);console.error(err);}
+  };
+  reader.readAsArrayBuffer(file);
+  input.value='';
+}
+
+function parseKrStock(rows){
+  const kospi=[],kosdaq=[];
+  rows.forEach(r=>{
+    const code=String(r['종목코드']||'').padStart(6,'0');
+    const name=r['종목명']||'';
+    const mkt=r['시장구분']||'';
+    const mcap=Number(r['시가총액']||0);
+    const vol=Number(r['거래대금']||0);
+    if(!code||code.length<4)return;
+    const item={code,name,market:mkt,mcap,vol};
+    if(mkt==='KOSPI') kospi.push(item);
+    else if(mkt.startsWith('KOSDAQ')) kosdaq.push(item);
+  });
+  kospi.sort((a,b)=>b.mcap-a.mcap);
+  kosdaq.sort((a,b)=>b.mcap-a.mcap);
+  kospi.forEach((s,i)=>s.rank=i+1);
+  kosdaq.forEach((s,i)=>s.rank=i+1);
+  S.set('ORACLE_KOSPI',JSON.stringify(kospi));
+  S.set('ORACLE_KOSDAQ',JSON.stringify(kosdaq));
+  S.set('ORACLE_KR_TS',String(Date.now()));
+  // stock_signal 호환
+  const compat=[...kospi,...kosdaq].map(s=>({code:s.code,name:s.name,market:s.market.startsWith('KOSDAQ')?'KOSDAQ':'KOSPI',vol24h:s.vol}));
+  S.set('STOCK_UNIVERSE_DOM',JSON.stringify(compat));
+  S.set('STOCK_UNIVERSE_DOM_TS',String(Date.now()));
+  document.getElementById('uplSt').textContent=`✓ 코스피 ${kospi.length} + 코스닥 ${kosdaq.length}`;
+  toast(`✓ 코스피 ${kospi.length} + 코스닥 ${kosdaq.length} 저장`);
+  updateSummary();showList();
+}
+
+function parseETF(rows){
+  const etfs=[];
+  rows.forEach(r=>{
+    const code=String(r['종목코드']||'');
+    const name=r['종목명']||'';
+    const mcap=Number(r['시가총액']||0);
+    const vol=Number(r['거래대금']||0);
+    if(!code)return;
+    etfs.push({code,name,market:'ETF',mcap,vol});
+  });
+  etfs.sort((a,b)=>b.mcap-a.mcap);
+  etfs.forEach((s,i)=>s.rank=i+1);
+  S.set('ORACLE_ETF',JSON.stringify(etfs));
+  S.set('ORACLE_ETF_TS',String(Date.now()));
+  document.getElementById('uplSt').textContent=`✓ ETF ${etfs.length}개`;
+  toast(`✓ ETF ${etfs.length}개 저장`);
+  updateSummary();showList();
+}
+
+function parseOverseas(wb){
+  const map={SP500:'ORACLE_US_SP500',NASDAQ100:'ORACLE_US_NDX',DOW30:'ORACLE_US_DOW',ETF_US:'ORACLE_US_ETF'};
+  let total=0;
+  const allOvs=[];
+  for(const[sheet,key] of Object.entries(map)){
+    if(!wb.Sheets[sheet])continue;
+    const rows=XLSX.utils.sheet_to_json(wb.Sheets[sheet]);
+    const items=rows.map((r,i)=>({
+      code:r['종목코드']||'',
+      name:r['종목명']||'',
+      market:r['시장구분']||sheet,
+      rank:i+1,
+    })).filter(s=>s.code);
+    S.set(key,JSON.stringify(items));
+    total+=items.length;
+    items.forEach(s=>allOvs.push({code:s.code,name:s.name,market:s.market,index:s.market,vol24h:0}));
+  }
+  // stock_signal 호환 (중복 제거)
+  const seen=new Set(),uniq=[];
+  allOvs.forEach(s=>{if(!seen.has(s.code)){seen.add(s.code);uniq.push(s);}});
+  S.set('STOCK_UNIVERSE_OVS',JSON.stringify(uniq));
+  S.set('STOCK_UNIVERSE_OVS_TS',String(Date.now()));
+  S.set('ORACLE_US_TS',String(Date.now()));
+  document.getElementById('uplSt').textContent=`✓ 해외 ${total}개 (${Object.keys(map).filter(s=>wb.Sheets[s]).join('+')})`;
+  toast(`✓ 해외 ${total}개 저장`);
+  updateSummary();showList();
+}
+
+function parseCoin(wb){
+  const ws=wb.Sheets['UPBIT_KRW'];
+  if(!ws){toast('UPBIT_KRW 시트를 찾을 수 없습니다');return;}
+  const rows=XLSX.utils.sheet_to_json(ws);
+  const toNum=v=>Number(String(v||'0').replace(/,/g,''))||0;
+  const items=rows.map(r=>{
+    const raw=r['종목코드']||'';
+    const sym=raw.replace('KRW-','');
+    return{code:sym,name:r['종목명']||sym,market:'KRW',mcap:toNum(r['시가총액']),vol:toNum(r['거래대금'])};
+  }).filter(s=>s.code);
+  // 시총순 정렬 (시총 없으면 원래 순서 유지)
+  items.sort((a,b)=>b.mcap-a.mcap);
+  items.forEach((s,i)=>s.rank=i+1);
+  S.set('ORACLE_COIN',JSON.stringify(items));
+  S.set('ORACLE_COIN_TS',String(Date.now()));
+  // coin_signal 호환
+  S.set('UNIVERSE',JSON.stringify(items.map(i=>({market:'KRW-'+i.code,symbol:i.code,name:i.name,vol24h:i.vol}))));
+  S.set('UNIVERSE_TS',String(Date.now()));
+  document.getElementById('uplSt').textContent=`✓ 코인 ${items.length}개 (시총순)`;
+  toast(`✓ 코인 ${items.length}개 저장 (시총순)`);
+  updateSummary();showList();
+}
+
+// ═══ 매크로 — 내장 ═══
+const MACRO=[
+  {code:'^KS11',name:'코스피',market:'국내지수',cat:'kr_idx'},
+  {code:'^KQ11',name:'코스닥',market:'국내지수',cat:'kr_idx'},
+  {code:'^GSPC',name:'S&P 500',market:'해외지수',cat:'us_idx'},
+  {code:'^IXIC',name:'나스닥 종합',market:'해외지수',cat:'us_idx'},
+  {code:'^DJI',name:'다우존스',market:'해외지수',cat:'us_idx'},
+  {code:'^RUT',name:'러셀 2000',market:'해외지수',cat:'us_idx'},
+  {code:'^VIX',name:'VIX 공포지수',market:'해외지수',cat:'us_idx'},
+  {code:'^SOX',name:'필라델피아 반도체',market:'해외지수',cat:'us_idx'},
+  {code:'^N225',name:'닛케이 225',market:'해외지수',cat:'us_idx'},
+  {code:'^HSI',name:'항셍지수',market:'해외지수',cat:'us_idx'},
+  {code:'000001.SS',name:'상해종합',market:'해외지수',cat:'us_idx'},
+  {code:'^FTSE',name:'FTSE 100',market:'해외지수',cat:'us_idx'},
+  {code:'^GDAXI',name:'DAX',market:'해외지수',cat:'us_idx'},
+  {code:'^FCHI',name:'CAC 40',market:'해외지수',cat:'us_idx'},
+  {code:'^STOXX50E',name:'유로스톡스50',market:'해외지수',cat:'us_idx'},
+  {code:'^TWII',name:'대만 가권지수',market:'해외지수',cat:'us_idx'},
+  {code:'^BSESN',name:'인도 SENSEX',market:'해외지수',cat:'us_idx'},
+  {code:'^TNX',name:'미국 10년 국채',market:'금리',cat:'rate'},
+  {code:'^IRX',name:'미국 3개월 금리',market:'금리',cat:'rate'},
+  {code:'^TYX',name:'미국 30년 국채',market:'금리',cat:'rate'},
+  {code:'^FVX',name:'미국 5년 국채',market:'금리',cat:'rate'},
+  {code:'DX-Y.NYB',name:'달러인덱스 DXY',market:'환율',cat:'fx'},
+  {code:'USDKRW=X',name:'원달러',market:'환율',cat:'fx'},
+  {code:'USDJPY=X',name:'달러엔',market:'환율',cat:'fx'},
+  {code:'EURUSD=X',name:'유로달러',market:'환율',cat:'fx'},
+  {code:'GBPUSD=X',name:'파운드달러',market:'환율',cat:'fx'},
+  {code:'USDCNH=X',name:'달러위안',market:'환율',cat:'fx'},
+  {code:'USDCHF=X',name:'달러스위스',market:'환율',cat:'fx'},
+  {code:'AUDUSD=X',name:'호주달러',market:'환율',cat:'fx'},
+  {code:'GC=F',name:'금 (Gold)',market:'귀금속',cat:'commodity'},
+  {code:'SI=F',name:'은 (Silver)',market:'귀금속',cat:'commodity'},
+  {code:'PL=F',name:'백금',market:'귀금속',cat:'commodity'},
+  {code:'PA=F',name:'팔라듐',market:'귀금속',cat:'commodity'},
+  {code:'CL=F',name:'WTI 원유',market:'에너지',cat:'commodity'},
+  {code:'BZ=F',name:'브렌트유',market:'에너지',cat:'commodity'},
+  {code:'NG=F',name:'천연가스',market:'에너지',cat:'commodity'},
+  {code:'HG=F',name:'구리',market:'금속',cat:'commodity'},
+  {code:'ZW=F',name:'밀',market:'농산물',cat:'commodity'},
+  {code:'ZC=F',name:'옥수수',market:'농산물',cat:'commodity'},
+  {code:'ZS=F',name:'대두',market:'농산물',cat:'commodity'},
+  {code:'KC=F',name:'커피',market:'농산물',cat:'commodity'},
+  {code:'SB=F',name:'설탕',market:'농산물',cat:'commodity'},
+  {code:'CC=F',name:'코코아',market:'농산물',cat:'commodity'},
+  {code:'CT=F',name:'면화',market:'농산물',cat:'commodity'},
+  {code:'BTC-USD',name:'비트코인',market:'코인매크로',cat:'crypto'},
+  {code:'ETH-USD',name:'이더리움',market:'코인매크로',cat:'crypto'},
+  {code:'BTC_DOM',name:'BTC 도미넌스',market:'코인매크로',cat:'crypto'},
+  {code:'TOTAL_MCAP',name:'전체 코인 시총',market:'코인매크로',cat:'crypto'},
+  {code:'FEAR_GREED',name:'공포&탐욕지수',market:'코인매크로',cat:'crypto'},
+];
+
+// ═══ 목록 표시 ═══
+function getItems(){
+  const t=ST.tab,f=ST.filter;
+  try{
+    if(t==='kr'){
+      const key=f==='kospi'?'ORACLE_KOSPI':f==='kosdaq'?'ORACLE_KOSDAQ':'ORACLE_ETF';
+      return JSON.parse(S.get(key)||'[]');
+    }
+    if(t==='us'){
+      const key=f==='sp500'?'ORACLE_US_SP500':f==='ndx'?'ORACLE_US_NDX':f==='dow'?'ORACLE_US_DOW':'ORACLE_US_ETF';
+      return JSON.parse(S.get(key)||'[]');
+    }
+    if(t==='coin') return JSON.parse(S.get('ORACLE_COIN')||'[]');
+    if(t==='macro') return f==='all'?MACRO:MACRO.filter(s=>s.cat===f);
+  }catch(_){}
+  return[];
+}
+
+function showList(){
+  const items=getItems();
+  const total=items.length;
+  document.getElementById('cntLabel').textContent=total>0?`${total}개`:'—';
+  const bar=document.getElementById('pageBar');
+  const maxP=Math.ceil(total/PG);
+  if(maxP>1){
+    bar.style.display='flex';
+    bar.innerHTML=Array.from({length:maxP},(_,i)=>{
+      const s=i*PG+1,e=Math.min((i+1)*PG,total);
+      return `<button class="pb${ST.page===i?' on':''}" onclick="ST.page=${i};showList()">${s}~${e}</button>`;
+    }).join('');
+  }else{bar.style.display='none';bar.innerHTML='';}
+  const slice=items.slice(ST.page*PG,(ST.page+1)*PG);
+  const list=document.getElementById('listArea');
+  if(!slice.length){
+    list.innerHTML=`<div class="empty">${ST.tab==='macro'?'필터를 선택하세요':'📂 엑셀을 업로드해주세요'}</div>`;
+    return;
+  }
+  const t=ST.tab;
+  const cc=t==='coin'?'color:var(--gold)':t==='us'?'color:var(--orange)':t==='kr'?'color:var(--orange)':'color:var(--green)';
+  list.innerHTML=slice.map((s,i)=>`<div class="it" onclick="copyIt('${s.code}','${(s.name||'').replace(/'/g,"\\'")}')">
+    <span class="it-r">${s.rank||ST.page*PG+i+1}</span>
+    <span class="it-c" style="${cc}">${s.code}</span>
+    <span class="it-n">${s.name||''}</span>
+    <span class="it-m">${s.market||''}</span>
+  </div>`).join('');
+}
+
+function copyIt(c,n){vibrate(20);if(navigator.clipboard?.writeText)navigator.clipboard.writeText(c).catch(()=>{});toast(`📋 ${c} ${n}`);}
+
+// ═══ 요약 바 ═══
+function updateSummary(){
+  const el=document.getElementById('summary');
+  const counts=[
+    {k:'ORACLE_KOSPI',l:'코스피'},
+    {k:'ORACLE_KOSDAQ',l:'코스닥'},
+    {k:'ORACLE_ETF',l:'ETF'},
+    {k:'ORACLE_US_SP500',l:'S&P500'},
+    {k:'ORACLE_US_NDX',l:'NDX100'},
+    {k:'ORACLE_US_DOW',l:'DOW30'},
+    {k:'ORACLE_US_ETF',l:'해외ETF'},
+    {k:'ORACLE_COIN',l:'코인'},
+  ];
+  let total=0;
+  el.innerHTML=counts.map(c=>{
+    const n=JSON.parse(S.get(c.k)||'[]').length;
+    total+=n;
+    return `<span class="s-chip${n>0?' ok':''}">${c.l} ${n}</span>`;
+  }).join('')+`<span class="s-chip" style="color:var(--cyan)">매크로 ${MACRO.length}</span>`;
+  total+=MACRO.length;
+  document.getElementById('totalLabel').textContent=`총 ${total.toLocaleString()}개`;
+}
+
+// ═══ 매크로 자동 저장 ═══
+S.set('ORACLE_MACRO',JSON.stringify(MACRO));
+
+// ═══ 초기화 ═══
+renderFilters();
+updateUpload();
+updateSummary();
+showList();
+</script>
+</body>
+</html>
