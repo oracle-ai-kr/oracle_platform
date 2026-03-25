@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🪢 줄넘기</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#e8002a;--red2:#ff1a42;--green:#00c853;--green2:#00e676;
+  --gold:#ffd600;--teal:#1a8899;--teal2:#22b8cc;--orange:#ff7020;
+  --text:#f0ece8;--text2:#9a9490;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;font-family:'Noto Sans KR',sans-serif;}
+
+/* 운동장 배경 */
+#bg{position:fixed;inset:0;z-index:0;
+  background:linear-gradient(180deg,#87CEEB 0%,#b8e4ff 16%,#c8f0a0 16%,#a8d868 22%,#c8a050 22%,#b89040 100%);}
+#bg::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 30% at 50% 10%,rgba(255,240,100,.18),transparent);}
+.cloud{position:fixed;background:rgba(255,255,255,.88);border-radius:50px;pointer-events:none;z-index:0;}
+.c1{width:80px;height:26px;top:2%;left:5%;animation:cloudMove 22s linear infinite;}
+.c2{width:60px;height:20px;top:5%;left:42%;animation:cloudMove 30s linear infinite;}
+.c3{width:100px;height:30px;top:1%;left:72%;animation:cloudMove 25s linear infinite;}
+@keyframes cloudMove{0%{transform:translateX(-140px)}100%{transform:translateX(110vw)}}
+.dirt{position:fixed;top:22%;left:0;right:0;bottom:0;z-index:0;pointer-events:none;}
+.fence{position:fixed;bottom:0;left:0;right:0;height:16px;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,#8B4513 0px,#8B4513 12px,transparent 12px,transparent 20px);opacity:.5;}
+
+/* 헤더 */
+#header{position:fixed;top:0;left:0;right:0;z-index:200;height:50px;
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:rgba(0,0,0,.58);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,214,0,.2);}
+#backBtn{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.hd-title{font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--gold);flex:1;}
+#countDisp{font-family:'Black Han Sans',sans-serif;font-size:1.1rem;color:var(--gold);}
+#countTarget{font-size:.65rem;color:var(--text2);}
+
+/* 게임 영역 */
+#gameArea{position:fixed;top:50px;left:0;right:0;bottom:110px;z-index:10;overflow:hidden;}
+
+/* 인형 */
+.doll{position:absolute;bottom:30%;font-size:5rem;line-height:1;z-index:20;pointer-events:none;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,.3));}
+#dollLeft{left:2%;}
+#dollRight{right:2%;transform:scaleX(-1);}
+
+/* 줄 SVG */
+#ropeSvg{position:absolute;inset:0;z-index:15;pointer-events:none;overflow:visible;}
+
+/* 바닥 */
+#groundLine{position:absolute;bottom:28%;left:0;right:0;height:4px;
+  background:rgba(0,0,0,.3);border-radius:2px;z-index:12;}
+
+/* 캐릭터 영역 */
+#charArea{position:absolute;bottom:28%;left:15%;right:15%;height:80px;
+  display:flex;align-items:flex-end;justify-content:space-around;z-index:25;}
+.jumper{display:flex;flex-direction:column;align-items:center;gap:1px;
+  transition:transform .1s ease;}
+.jumper-emoji{font-size:1.5rem;line-height:1;}
+.jumper-num{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.38rem;
+  padding:1px 4px;border-radius:3px;background:rgba(20,20,20,.85);color:#ddd;}
+#player .jumper-emoji{filter:hue-rotate(20deg) saturate(3.5) brightness(1.0);}
+#player .jumper-num{background:#d45000;color:#fff;}
+.ai-jumper .jumper-emoji{filter:hue-rotate(175deg) saturate(3) brightness(.9);}
+.jumper.jumping{transform:translateY(-45px);}
+.jumper.dead{opacity:.3;filter:grayscale(1);}
+@keyframes elimJumper{0%{opacity:1;transform:scale(1)}50%{transform:scale(1.3) rotate(-15deg)}100%{opacity:0;transform:scale(0)}}
+.jumper.eliminating{animation:elimJumper .5s ease forwards;}
+
+/* 점프 타이밍 이펙트 */
+#jumpCue{
+  position:absolute;top:35%;left:50%;transform:translateX(-50%);
+  font-family:'Black Han Sans',sans-serif;font-size:2.2rem;
+  color:var(--green2);text-shadow:0 0 20px rgba(0,200,83,.8);
+  pointer-events:none;z-index:35;
+  opacity:0;letter-spacing:.08em;
+}
+@keyframes jumpCueAnim{
+  0%  {opacity:0;transform:translateX(-50%) scale(.5) translateY(10px);}
+  30% {opacity:1;transform:translateX(-50%) scale(1.2) translateY(-4px);}
+  60% {opacity:1;transform:translateX(-50%) scale(1.0) translateY(0);}
+  100%{opacity:0;transform:translateX(-50%) scale(.8) translateY(-12px);}
+}
+#jumpCue.show{animation:jumpCueAnim .55s ease forwards;}
+#speedAlert{
+  position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  font-family:'Black Han Sans',sans-serif;font-size:.8rem;
+  background:rgba(232,0,42,.85);color:#fff;border-radius:10px;padding:4px 14px;
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:30;white-space:nowrap;
+}
+#speedAlert.show{opacity:1;}
+
+/* 줄 통과 판정 flash */
+#ropeFlash{position:absolute;inset:0;z-index:28;pointer-events:none;
+  background:rgba(232,0,42,.3);opacity:0;transition:opacity .08s;}
+#ropeFlash.on{opacity:1;}
+
+/* 컨트롤 */
+#controls{position:fixed;bottom:0;left:0;right:0;z-index:200;
+  padding:8px 12px 18px;background:rgba(0,0,0,.65);backdrop-filter:blur(10px);
+  border-top:1px solid rgba(255,255,255,.08);}
+#jumpBtn{
+  width:100%;height:70px;border:none;border-radius:16px;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  color:#fff;font-family:'Black Han Sans',sans-serif;font-size:1.1rem;
+  letter-spacing:.04em;box-shadow:0 4px 20px rgba(26,136,153,.5);
+  cursor:pointer;transition:all .1s;
+}
+#jumpBtn:active{transform:scale(.97);}
+#jumpBtn.danger{background:linear-gradient(135deg,var(--red),var(--red2));box-shadow:0 4px 20px rgba(232,0,42,.5);}
+
+/* 줄 위치 표시바 */
+#ropeIndicator{
+  width:100%;height:28px;background:rgba(255,255,255,.08);border-radius:14px;
+  margin-bottom:8px;position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.12);
+}
+/* 점프 성공 구간 (고정) */
+#jumpZone{
+  position:absolute;top:0;bottom:0;
+  left:40%;width:16%;
+  background:rgba(0,200,83,.35);
+  border-left:2px solid rgba(0,200,83,.8);
+  border-right:2px solid rgba(0,200,83,.8);
+}
+#jumpZoneLabel{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Black Han Sans',sans-serif;font-size:.55rem;
+  color:rgba(0,230,118,.9);white-space:nowrap;
+}
+#ropeIndicatorFill{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle,#fff,var(--gold));
+  box-shadow:0 0 10px rgba(255,214,0,.9);
+  transition:left .03s linear;
+}
+
+/* 팝업 공통 */
+#startOverlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;}
+#startOverlay.hidden{display:none;}
+.popup-box{background:#1a1a1a;border-radius:22px;padding:28px 22px 22px;width:100%;max-width:360px;text-align:center;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.8);}
+.popup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--teal),var(--gold),var(--orange));}
+.popup-box::after{content:'○  △  □';position:absolute;bottom:10px;right:14px;font-size:.55rem;color:rgba(255,255,255,.06);letter-spacing:.2em;pointer-events:none;}
+.p-icon{font-size:3rem;margin-bottom:10px;display:block;}
+.p-title{font-family:'Black Han Sans',sans-serif;font-size:1.4rem;letter-spacing:.06em;color:var(--gold);margin-bottom:14px;}
+.p-rules{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin-bottom:16px;text-align:left;}
+.rule-row{display:flex;gap:8px;font-size:.75rem;color:var(--text2);line-height:1.6;margin-bottom:5px;}
+.rule-row:last-child{margin-bottom:0;}
+.rule-row b{color:#fff;}.hl{color:var(--red2);font-weight:900;}.hlg{color:var(--green2);font-weight:900;}
+.p-btn{width:100%;padding:14px;border:none;border-radius:13px;font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.04em;cursor:pointer;margin-bottom:9px;transition:all .15s;}
+.p-btn:last-child{margin-bottom:0;}
+.p-btn.primary{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;box-shadow:0 3px 14px rgba(26,136,153,.4);}
+.p-btn.secondary{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.p-btn:active{opacity:.8;}
+#countdown{position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+#countdown.hidden{display:none;}
+#cdNum{font-family:'Black Han Sans',sans-serif;font-size:6rem;color:var(--gold);text-shadow:0 0 40px rgba(255,214,0,.8);animation:cdPop .9s ease infinite;}
+@keyframes cdPop{0%{transform:scale(1.25)}80%{transform:scale(.95)}100%{transform:scale(1.25)}}
+#cdSub{font-size:.85rem;color:rgba(255,255,255,.6);letter-spacing:.12em;}
+#resultOverlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
+#resultOverlay.show{display:flex;}
+.result-box{background:#1a1a1a;border-radius:22px;padding:28px 22px 22px;width:100%;max-width:360px;text-align:center;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.8);animation:popIn .28s ease;}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.result-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.result-box.win::before{background:linear-gradient(90deg,var(--green),var(--green2));}
+.result-box.lose::before{background:linear-gradient(90deg,var(--red),var(--red2));}
+.r-icon{font-size:3.4rem;margin-bottom:10px;display:block;}
+.r-title{font-family:'Black Han Sans',sans-serif;font-size:1.5rem;letter-spacing:.06em;margin-bottom:8px;}
+.r-title.win{color:var(--green2);}.r-title.lose{color:var(--red2);}
+.r-desc{font-size:.78rem;color:var(--text2);line-height:1.75;margin-bottom:14px;white-space:pre-line;}
+.r-reward{border-radius:10px;padding:10px;margin-bottom:18px;font-size:.9rem;font-weight:900;}
+.r-reward.earn{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.22);color:var(--green2);}
+.r-reward.loss{background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);color:#ff6680;}
+.r-btn{width:100%;padding:14px;border:none;border-radius:13px;font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.04em;cursor:pointer;margin-bottom:10px;}
+.r-btn:last-child{margin-bottom:0;}
+.r-btn.primary{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 3px 14px rgba(232,0,42,.4);}
+.r-btn.secondary{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.r-btn:active{opacity:.8;}
+/* ══ 이펙트 → squid_fx.js 대체 ══ */
+#toast{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(8,8,8,.97);border:1px solid rgba(255,214,0,.25);border-radius:10px;padding:8px 18px;font-size:.78rem;color:var(--text);opacity:0;transition:all .28s;pointer-events:none;z-index:400;white-space:nowrap;max-width:88vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.particle{position:fixed;pointer-events:none;z-index:700;font-size:1.1rem;animation:pfly 1.4s ease forwards;}
+@keyframes pfly{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-120px) rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+<div class="dirt"></div><div class="fence"></div>
+
+<div id="header">
+  <button id="backBtn" onclick="doBack()">←</button>
+  <div class="hd-title">🪢 줄넘기</div>
+  <div>
+    <span id="countDisp">0</span>
+    <span id="countTarget"> / 20</span>
+  </div>
+</div>
+
+<div id="gameArea">
+  <!-- 인형 -->
+  <div class="doll" id="dollLeft">🧸</div>
+  <div class="doll" id="dollRight">🧸</div>
+  <!-- 줄 SVG -->
+  <svg id="ropeSvg" width="100%" height="100%">
+    <path id="ropePath" stroke="#8B4513" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </svg>
+  <!-- 바닥 -->
+  <div id="groundLine"></div>
+  <!-- 캐릭터 -->
+  <div id="charArea">
+    <div class="jumper ai-jumper" id="ai0">
+      <span class="jumper-emoji">🧍</span>
+      <span class="jumper-num" id="ai0num">---</span>
+    </div>
+    <div class="jumper ai-jumper" id="ai1">
+      <span class="jumper-emoji">🧍‍♀️</span>
+      <span class="jumper-num" id="ai1num">---</span>
+    </div>
+    <div class="jumper" id="player">
+      <span class="jumper-emoji">🧍</span>
+      <span class="jumper-num">456</span>
+    </div>
+    <div class="jumper ai-jumper" id="ai2">
+      <span class="jumper-emoji">🧍‍♀️</span>
+      <span class="jumper-num" id="ai2num">---</span>
+    </div>
+    <div class="jumper ai-jumper" id="ai3">
+      <span class="jumper-emoji">🧍</span>
+      <span class="jumper-num" id="ai3num">---</span>
+    </div>
+  </div>
+  <div id="speedAlert">⚡ 빨라진다!</div>
+  <div id="jumpCue">점프!</div>
+  <div id="ropeFlash"></div>
+</div>
+
+<div id="controls">
+  <div id="ropeIndicator">
+    <div id="jumpZone"><div id="jumpZoneLabel">점프!</div></div>
+    <div id="ropeIndicatorFill"></div>
+  </div>
+  <button id="jumpBtn" onclick="doJump()">⬆️ 점프!</button>
+</div>
+
+<div id="startOverlay">
+  <div class="popup-box">
+    <span class="p-icon">🪢</span>
+    <div class="p-title">줄넘기</div>
+    <div class="p-rules">
+      <div class="rule-row">🪢 <span>줄이 내려올 때 <b>타이밍 맞춰</b> 점프!</span></div>
+      <div class="rule-row">⚡ <span>가끔 줄이 <b>갑자기 빨라집니다!</b></span></div>
+      <div class="rule-row">🤖 <span>AI 팀원들도 함께 점프 (가끔 실수)</span></div>
+      <div class="rule-row">💀 <span>줄에 걸리면 <span class="hl">즉시 탈락!</span></span></div>
+      <div class="rule-row">🏆 <span><b>20번</b> 성공하면 클리어!</span></div>
+    </div>
+    <button class="p-btn primary" onclick="startCountdown()">🪢 게임 시작!</button>
+    <button class="p-btn secondary" onclick="doBack()">돌아가기</button>
+  </div>
+</div>
+
+<div id="countdown" class="hidden">
+  <div id="cdNum">3</div>
+  <div id="cdSub">줄 준비!</div>
+</div>
+
+<div id="resultOverlay">
+  <div class="result-box" id="resultBox">
+    <span class="r-icon" id="rIcon">🏆</span>
+    <div class="r-title" id="rTitle">클리어!</div>
+    <div class="r-desc" id="rDesc"></div>
+    <div class="r-reward" id="rReward"></div>
+    <button class="r-btn primary" onclick="goHub()">결과 확인</button>
+    <button class="r-btn secondary" onclick="goHub()">허브로 돌아가기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="squid_fx.js"></script>
+<script>
+const GAME_ID = 'sq_jumprope';
+const TARGET  = 20;
+// 줄 각도 (0=위, 0.5=아래, 1=위 완료)
+// ropeAngle: 0~1 (한 사이클)
+const BASE_SPEED   = 0.55; // 초당 사이클
+const FAST_SPEED   = 1.2;  // 빠를 때
+const HIT_ZONE     = 0.08; // 바닥 통과 판정 구간 (0.45~0.55)
+const JUMP_WINDOW  = 0.18; // 점프 유효 구간 (0.32~0.50)
+
+let gameInfo=null, phase='start';
+let ropeAngle=0, ropeSpeed=BASE_SPEED;
+let lastTs=0, rafId=null;
+let jumpCount=0;
+let countedThisCycle=false; // 이번 사이클 카운트 완료 여부
+let isJumping=false, jumpTimer=null;
+let playerHit=false;
+let isFast=false, fastTimer=null, nextFastTimer=null;
+let aiAlive=[true,true,true,true];
+let aiJumping=[false,false,false,false];
+
+// 필드 크기
+let GW=0, GH=0, groundY=0;
+let ropeLeft=0, ropeRight=0;
+
+function vib(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+
+function init(){
+  const raw=sessionStorage.getItem('SQ_CURRENT_GAME');
+  if(raw) gameInfo=JSON.parse(raw);
+  // AI 번호
+  const nums=[];
+  while(nums.length<4){const n=Math.floor(Math.random()*454)+1;if(!nums.includes(n)&&n!==456)nums.push(n);}
+  for(let i=0;i<4;i++) document.getElementById(`ai${i}num`).textContent=String(nums[i]).padStart(3,'0');
+}
+
+function startCountdown(){
+  document.getElementById('startOverlay').classList.add('hidden');
+  document.getElementById('countdown').classList.remove('hidden');
+  let n=3; document.getElementById('cdNum').textContent=n; SQ.vignette(true, true);
+  SQ.vibrate([100,50,100]);
+  const tick=setInterval(()=>{
+    n--;
+    if(n>0){document.getElementById('cdNum').textContent=n;vib(n===2?[120,50,120]:[150,50,150]);}
+    else{
+      clearInterval(tick);
+      SQ.vignette(false);
+      SQ.flash('white', 120);
+      document.getElementById('cdNum').textContent='GO!';
+      document.getElementById('cdSub').textContent='점프!';
+      vib([80,40,80,40,80,40,200]);
+      setTimeout(()=>{document.getElementById('countdown').classList.add('hidden');startGame();},700);
+    }
+  },900);
+}
+
+function startGame(){
+  phase='playing';
+  SQ.announce('시즌3 두 번째 게임', {type:'system', duration:1800});
+  setTimeout(()=>{ SQ.announce('🪢 줄넘기 — 리듬을 타라!', {type:'guard', duration:2500, typing:true}); }, 2000);
+  const area=document.getElementById('gameArea');
+  GW=area.clientWidth; GH=area.clientHeight;
+  // 줄 좌우 끝점 (인형 위치)
+  ropeLeft  = GW*0.10;
+  ropeRight = GW*0.90;
+  groundY   = GH*0.72;
+
+  ropeAngle=0; ropeSpeed=BASE_SPEED; lastTs=0;
+  scheduleNextFast();
+  rafId=requestAnimationFrame(gameLoop);
+}
+
+// ══ 메인 루프 ══
+function gameLoop(ts){
+  if(phase!=='playing') return;
+  if(!lastTs) lastTs=ts;
+  const dt=Math.min((ts-lastTs)/1000, .05);
+  lastTs=ts;
+
+  ropeAngle=(ropeAngle+ropeSpeed*dt)%1;
+
+  drawRope();
+  updateIndicator();
+  resetCycleFlag();
+  checkHit();
+  updateAIJump();
+
+  rafId=requestAnimationFrame(gameLoop);
+}
+
+// ══ 줄 그리기 ══
+function drawRope(){
+  // ropeAngle 0→1 한 바퀴
+  // y: 위(0.0)→아래(0.5)→위(1.0)
+  const t = ropeAngle;
+  // 줄 중간 y 위치 (sin 곡선)
+  const midY = groundY - Math.abs(Math.sin(t*Math.PI*2)) * GH*0.38;
+  const midX = (ropeLeft+ropeRight)/2;
+
+  // 2차 베지어 곡선
+  const path=document.getElementById('ropePath');
+  path.setAttribute('d',`M${ropeLeft},${groundY} Q${midX},${midY*2-groundY} ${ropeRight},${groundY}`);
+
+  // 줄 색상 — 바닥 근처면 빨간
+  const nearGround = t>0.42 && t<0.58;
+  path.setAttribute('stroke', nearGround ? '#e8002a' : '#8B4513');
+  path.setAttribute('stroke-width', nearGround ? '4' : '3');
+}
+
+let cueShown=false;
+
+// ══ 인디케이터 ══
+function updateIndicator(){
+  // 공 위치 — 좌우 여백 10px 고려
+  const fill=document.getElementById('ropeIndicatorFill');
+  const bar=document.getElementById('ropeIndicator');
+  if(!fill||!bar) return;
+  const bw=bar.clientWidth;
+  const ballLeft=(ropeAngle*(bw-20));
+  fill.style.left=ballLeft+'px';
+
+  // 점프 구간 — 실제 줄 바닥 도달(0.44~0.56) 기준으로 맞춤
+  const inWindow = ropeAngle>=0.40 && ropeAngle<=0.56;
+  fill.style.background = inWindow
+    ? 'radial-gradient(circle,#fff,var(--green2))'
+    : 'radial-gradient(circle,#fff,var(--gold))';
+  fill.style.boxShadow = inWindow
+    ? '0 0 14px rgba(0,200,83,.9)'
+    : '0 0 10px rgba(255,214,0,.9)';
+
+  // 점프 버튼
+  const btn=document.getElementById('jumpBtn');
+  btn.className = inWindow ? 'danger' : '';
+  btn.textContent = inWindow ? '⬆️ 지금 점프!' : '⬆️ 점프!';
+
+  // 점프 큐 이펙트 — 0.37 진입 시 한 번만
+  if(ropeAngle>=0.37 && ropeAngle<0.43 && !cueShown){
+    cueShown=true;
+    showJumpCue();
+  }
+  if(ropeAngle<0.35 || ropeAngle>0.58) cueShown=false;
+}
+
+function showJumpCue(){
+  const el=document.getElementById('jumpCue');
+  if(!el) return;
+  el.classList.remove('show');
+  void el.offsetWidth; // reflow
+  el.classList.add('show');
+}
+
+// ══ 히트 체크 ══
+function checkHit(){
+  if(playerHit) return;
+  const nearGround = ropeAngle>0.44 && ropeAngle<0.56;
+  if(!nearGround) return;
+
+  // 플레이어가 점프 안 했으면 탈락
+  if(!isJumping){
+    playerHit=true;
+    cancelAnimationFrame(rafId);
+    flashDanger();
+    vib([200,80,200,80,300]);
+    setTimeout(()=>endGame('lose'),800);
+  } else {
+    // 성공 카운트 (바닥 통과 시 한 번만)
+    if(ropeAngle>0.48 && ropeAngle<0.52 && !countedThisCycle){
+      countedThisCycle=true;
+      jumpCount++;
+      document.getElementById('countDisp').textContent=jumpCount;
+      vib(20);
+      if(jumpCount===10) showToast('🔥 절반 통과! 10회!');
+      else if(jumpCount===15) showToast('💪 거의 다 왔다! 15회!');
+      else if(jumpCount===19) showToast('🏆 마지막 1회!');
+      if(jumpCount>=TARGET){
+        cancelAnimationFrame(rafId);
+        setTimeout(()=>endGame('win'),400);
+      }
+    }
+  }
+}
+
+// 사이클 리셋 — 줄이 위로 돌아갔을 때
+function resetCycleFlag(){
+  if(ropeAngle<0.2) countedThisCycle=false;
+}
+
+// ══ 점프 ══
+function doJump(){
+  if(phase!=='playing'||playerHit) return;
+  if(isJumping) return;
+  isJumping=true;
+  vib(15);
+  const pl=document.getElementById('player');
+  pl.classList.add('jumping');
+  clearTimeout(jumpTimer);
+  jumpTimer=setTimeout(()=>{
+    isJumping=false;
+    pl.classList.remove('jumping');
+  }, isFast ? 350 : 420);
+}
+
+// ══ AI 점프 ══
+function updateAIJump(){
+  for(let i=0;i<4;i++){
+    if(!aiAlive[i]) continue;
+    // 점프 구간 진입 시 자동 점프 (가끔 실패)
+    const inWindow = ropeAngle>=0.30 && ropeAngle<=0.36;
+    if(inWindow && !aiJumping[i]){
+      // 빠를 때 실수 확률 높음
+      const failChance = isFast ? 0.22 : 0.06;
+      if(Math.random() < failChance){
+        // AI 탈락
+        elimAI(i);
+        return;
+      }
+      // 정상 점프
+      aiJumping[i]=true;
+      const el=document.getElementById(`ai${i}`);
+      el.classList.add('jumping');
+      setTimeout(()=>{
+        aiJumping[i]=false;
+        if(el) el.classList.remove('jumping');
+      }, isFast ? 350 : 420);
+    }
+  }
+}
+
+function elimAI(i){
+  aiAlive[i]=false;
+  const el=document.getElementById(`ai${i}`);
+  if(!el) return;
+  el.classList.add('eliminating');
+  flashDanger();
+  vib([100,40,100]);
+  showToast(`💀 ${document.getElementById(`ai${i}num`).textContent}번 탈락!`);
+  setTimeout(()=>{el.style.visibility='hidden';},550);
+}
+
+// ══ 속도 변화 ══
+function scheduleNextFast(){
+  // 4~9초 랜덤 후 빠르게
+  const delay=(4+Math.random()*5)*1000;
+  nextFastTimer=setTimeout(()=>{
+    if(phase!=='playing') return;
+    goFast();
+  },delay);
+}
+
+function goFast(){
+  isFast=true;
+  ropeSpeed=FAST_SPEED;
+  // 경고 표시
+  const alert=document.getElementById('speedAlert');
+  alert.classList.add('show');
+  vib([80,30,80,30,80]);
+  // 2~3초 후 복귀
+  fastTimer=setTimeout(()=>{
+    isFast=false;
+    ropeSpeed=BASE_SPEED;
+    alert.classList.remove('show');
+    showToast('✅ 속도 복귀!', 1200);
+    if(phase==='playing') scheduleNextFast();
+  },(2+Math.random()*1.5)*1000);
+}
+
+function flashDanger(){
+  const f=document.getElementById('ropeFlash');
+  f.classList.add('on');
+  setTimeout(()=>f.classList.remove('on'),180);
+}
+
+// ══ 게임 종료 ══
+function endGame(outcome){
+  phase='result';
+  cancelAnimationFrame(rafId);
+  clearTimeout(fastTimer); clearTimeout(nextFastTimer); clearTimeout(jumpTimer);
+  const isWin=outcome==='win';
+  const isNew=gameInfo?gameInfo.isNew:true;
+
+  sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:isWin?'clear':'fail'}));
+
+  const box=document.getElementById('resultBox');
+  box.className=`result-box ${isWin?'win':'lose'}`;
+  document.getElementById('rIcon').textContent=isWin?'🏆':'💀';
+  const rt=document.getElementById('rTitle');
+  rt.textContent=isWin?(isNew?'첫 클리어!':'클리어!'):'탈락!';
+  rt.className=`r-title ${isWin?'win':'lose'}`;
+
+  const alive=aiAlive.filter(Boolean).length;
+  document.getElementById('rDesc').textContent=isWin
+    ?`${TARGET}번 줄넘기 성공!\n팀원 ${alive}명 생존`
+    :`${jumpCount}번 성공 후 탈락\n줄에 걸렸습니다!`;
+
+  const reward=isWin?(isNew?600000:180000):0;
+  const fee=gameInfo?gameInfo.fee:(isNew?300000:100000);
+  const rr=document.getElementById('rReward');
+  rr.className=`r-reward ${isWin?'earn':'loss'}`;
+  rr.textContent=isWin?`+${reward.toLocaleString('ko-KR')}원 획득!`:`-${fee.toLocaleString('ko-KR')}원`;
+
+  if(isWin){ SQ.clearEffect(); SQ.bigText('통과!', 1500); spawnParticles('🪢'); SQ.vibrate([60,40,60,40,60,40,150]); }
+  else{ SQ.eliminateEffect({x: window.innerWidth/2, y: window.innerHeight/2}); SQ.bigText('탈락!', 1500); SQ.vibrate([200,60,200,60,300]); }
+
+  setTimeout(()=>{ SQ.cleanup(); sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html'; },2000);
+}
+
+function spawnParticles(emoji){
+  for(let i=0;i<10;i++)setTimeout(()=>{
+    const p=document.createElement('div');p.className='particle';p.textContent=emoji;
+    p.style.left=`${Math.random()*80+10}vw`;p.style.top=`${Math.random()*60+10}vh`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1500);
+  },i*80);
+}
+function showToast(msg,dur=2000){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),dur);
+}
+function goHub(){ SQ.cleanup(); sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html'; }
+function doBack(){
+  SQ.cleanup();
+  cancelAnimationFrame(rafId);
+  clearTimeout(fastTimer);clearTimeout(nextFastTimer);clearTimeout(jumpTimer);
+  if(phase==='playing')sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:'fail'}));
+  sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html';
+}
+
+init();
+</script>
+</body>
+</html>
