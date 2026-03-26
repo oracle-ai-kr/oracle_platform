@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🍊 ORACLE · 텔레그램 알림 설정 가이드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e14;--surface:#111820;--surface2:#151d28;--border:#1a2535;
+  --text:#c8d0d8;--muted:#607080;--orange:#ff6b00;--green:#00d4a0;
+  --blue:#4488ff;--red:#ff4060;--yellow:#ffc040;--tg-blue:#229ED9;
+  --mono:'JetBrains Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.8;min-height:100vh;}
+
+/* 헤더 */
+.hero{text-align:center;padding:48px 20px 32px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60%;left:-30%;width:160%;height:160%;background:radial-gradient(ellipse at center,rgba(34,158,217,.08) 0%,transparent 60%);pointer-events:none;}
+.hero-icon{font-size:3.2rem;margin-bottom:12px;display:block;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-title{font-size:1.6rem;font-weight:900;letter-spacing:-.5px;color:#fff;}
+.hero-title span{color:var(--tg-blue);}
+.hero-sub{font-size:.82rem;color:var(--muted);margin-top:6px;letter-spacing:.02em;}
+
+/* 컨텐츠 */
+.content{max-width:640px;margin:0 auto;padding:0 18px 60px;}
+
+/* 섹션 */
+.section{margin-top:32px;}
+.section-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--tg-blue);color:#fff;font-family:var(--mono);font-size:.82rem;font-weight:700;margin-right:8px;flex-shrink:0;}
+.section-title{font-size:1.15rem;font-weight:900;color:#fff;display:flex;align-items:center;margin-bottom:14px;}
+
+/* 카드 */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;position:relative;}
+.card.highlight{border-color:rgba(34,158,217,.3);background:linear-gradient(135deg,var(--surface) 0%,rgba(34,158,217,.04) 100%);}
+.card-label{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+
+/* 단계 */
+.step{display:flex;gap:14px;margin-bottom:18px;}
+.step-dot{width:8px;height:8px;border-radius:50%;background:var(--tg-blue);margin-top:8px;flex-shrink:0;box-shadow:0 0 8px rgba(34,158,217,.4);}
+.step-body{flex:1;}
+.step-title{font-weight:700;font-size:.95rem;color:#fff;margin-bottom:4px;}
+.step-desc{font-size:.85rem;color:var(--text);line-height:1.7;}
+
+/* 코드 블록 */
+.code-block{background:#080c12;border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:.82rem;color:var(--green);line-height:1.6;margin:10px 0;position:relative;overflow-x:auto;word-break:break-all;}
+.code-block .cmd{color:var(--tg-blue);}
+.code-block .comment{color:var(--muted);}
+.copy-btn{position:absolute;top:8px;right:8px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-size:.7rem;padding:3px 8px;border-radius:6px;cursor:pointer;font-family:var(--mono);transition:all .15s;}
+.copy-btn:active{background:var(--tg-blue);color:#fff;}
+
+/* 링크 */
+a{color:var(--tg-blue);text-decoration:none;}
+a:hover{text-decoration:underline;}
+
+/* 이미지 대체 (스크린샷 없이 시각적 가이드) */
+.visual-guide{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;margin:12px 0;}
+.visual-guide .tg-msg{background:#1a2735;border-radius:12px 12px 12px 0;padding:10px 16px;display:inline-block;text-align:left;font-size:.85rem;margin:6px 0;max-width:90%;}
+.visual-guide .tg-msg.bot{background:rgba(34,158,217,.12);border-radius:12px 12px 0 12px;}
+.visual-guide .tg-user{font-size:.7rem;color:var(--muted);margin-bottom:2px;}
+
+/* 경고/팁 박스 */
+.tip{background:rgba(0,212,160,.06);border:1px solid rgba(0,212,160,.2);border-radius:10px;padding:12px 16px;font-size:.82rem;margin:12px 0;line-height:1.7;}
+.tip::before{content:'💡 ';font-size:1rem;}
+.warn{background:rgba(255,192,64,.06);border:1px solid rgba(255,192,64,.2);border-radius:10px;padding:12px 16px;font-size:.82rem;margin:12px 0;line-height:1.7;}
+.warn::before{content:'⚠️ ';font-size:1rem;}
+
+/* FAQ 아코디언 */
+.faq{margin-top:8px;}
+.faq-item{border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.faq-q{padding:14px 16px;font-weight:700;font-size:.9rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:var(--surface);transition:background .15s;}
+.faq-q:active{background:var(--surface2);}
+.faq-q .arrow{color:var(--muted);font-size:.8rem;transition:transform .2s;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease;padding:0 16px;font-size:.85rem;color:var(--text);line-height:1.7;}
+.faq-item.open .faq-a{max-height:300px;padding:0 16px 14px;}
+.faq-item.open .arrow{transform:rotate(180deg);}
+
+/* 하단 네비 */
+.back-link{display:flex;align-items:center;gap:6px;position:fixed;top:12px;left:12px;z-index:99;background:rgba(8,8,8,.85);border:1px solid var(--border);border-radius:10px;padding:6px 12px;font-size:.72rem;font-weight:700;color:var(--orange);text-decoration:none;backdrop-filter:blur(8px);}
+
+/* 반응형 */
+@media(max-width:390px){
+  .hero-title{font-size:1.35rem;}
+  .card{padding:14px;}
+  .code-block{font-size:.75rem;padding:12px;}
+}
+</style>
+</head>
+<body>
+
+<a href="index.html" class="back-link" onclick="sessionStorage.setItem('ORACLE_ENTRY',Date.now())">
+  <span style="font-size:.85rem;">←</span> ORACLE
+</a>
+
+<!-- ═══ 히어로 ═══ -->
+<div class="hero">
+  <span class="hero-icon">✈️</span>
+  <div class="hero-title"><span>Telegram</span> 알림 설정</div>
+  <div class="hero-sub">ORACLE 시그널을 실시간으로 텔레그램에서 받으세요</div>
+</div>
+
+<div class="content">
+
+<!-- ═══ 개요 ═══ -->
+<div class="section">
+  <div class="section-title"><span class="section-num">0</span> 어떻게 작동하나요?</div>
+  <div class="card highlight">
+    <div style="font-size:.9rem;line-height:1.8;">
+      ORACLE이 매수/매도 시그널을 감지하면, <strong style="color:var(--tg-blue)">텔레그램 봇</strong>이 <strong>본인의 텔레그램</strong>으로 알림을 보냅니다.<br><br>
+      다른 사용자에게는 전송되지 않습니다 — <strong style="color:var(--green)">Chat ID</strong>로 개인 식별되기 때문입니다.
+    </div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+      <span style="background:rgba(34,158,217,.1);border:1px solid rgba(34,158,217,.3);padding:4px 10px;border-radius:20px;font-size:.75rem;font-family:var(--mono);color:var(--tg-blue);">봇 1개</span>
+      <span style="font-size:.85rem;color:var(--muted);">×</span>
+      <span style="background:rgba(0,212,160,.1);border:1px solid rgba(0,212,160,.3);padding:4px 10px;border-radius:20px;font-size:.75rem;font-family:var(--mono);color:var(--green);">Chat ID 각자 다름</span>
+      <span style="font-size:.85rem;color:var(--muted);">=</span>
+      <span style="background:rgba(255,107,0,.1);border:1px solid rgba(255,107,0,.3);padding:4px 10px;border-radius:20px;font-size:.75rem;font-family:var(--mono);color:var(--orange);">각자 본인에게만 도착</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 1: 텔레그램 설치 ═══ -->
+<div class="section">
+  <div class="section-title"><span class="section-num">1</span> 텔레그램 설치</div>
+  <div class="card">
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-title">앱 다운로드</div>
+        <div class="step-desc">
+          이미 설치되어 있다면 이 단계를 건너뛰세요.<br>
+          <a href="https://telegram.org/dl" target="_blank">telegram.org/dl</a> 에서 다운로드하거나<br>
+          앱스토어/플레이스토어에서 <strong>Telegram</strong> 검색
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-title">회원가입</div>
+        <div class="step-desc">전화번호로 가입 → 인증코드 입력 → 완료</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 2: 봇 찾기 ═══ -->
+<div class="section">
+  <div class="section-title"><span class="section-num">2</span> ORACLE 봇 추가</div>
+  <div class="card">
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-title">봇 검색</div>
+        <div class="step-desc">텔레그램 상단 검색창에서 아래 이름을 검색하세요:</div>
+        <div class="code-block">
+          <span class="cmd">@OracleSignalBot</span>
+          <span class="comment"> ← 검색창에 입력</span>
+          <button class="copy-btn" onclick="copyText('@OracleSignalBot',this)">복사</button>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-title">대화 시작</div>
+        <div class="step-desc">봇을 찾으면 터치 → 하단의 <strong style="color:var(--tg-blue)">시작(START)</strong> 버튼을 누르세요.</div>
+      </div>
+    </div>
+    <div class="visual-guide">
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:8px;">대화 화면 예시</div>
+      <div class="tg-msg" style="text-align:center;">
+        <span style="font-size:1.5rem;">🍊</span><br>
+        <strong>ORACLE Signal Bot</strong><br>
+        <span style="font-size:.8rem;color:var(--muted);">bot</span>
+      </div>
+      <div style="margin:12px 0;">
+        <span style="background:var(--tg-blue);color:#fff;padding:8px 24px;border-radius:8px;font-weight:700;font-size:.9rem;">▶ 시작 (START)</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ STEP 3: Chat ID 확인 ═══ -->
+<div class="section">
+  <div class="section-title"><span class="section-num">3</span> 내 Chat ID 확인</div>
+  <div class="card highlight">
+    <div class="card-label">방법 A — 봇에게 직접 받기 (가장 쉬움)</div>
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-desc">
+          ORACLE 봇에게 <strong>/start</strong> 를 보내면 봇이 자동으로 Chat ID를 알려줍니다.
+        </div>
+        <div class="visual-guide" style="text-align:left;padding:14px;">
+          <div class="tg-msg"><span style="color:var(--tg-blue);">/start</span></div>
+          <div class="tg-msg bot">
+            안녕하세요! 🍊 ORACLE Signal Bot입니다.<br>
+            <strong style="color:var(--green);">당신의 Chat ID: 1234567890</strong><br>
+            <span style="font-size:.8rem;color:var(--muted);">이 숫자를 ORACLE 설정에 입력하세요.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">방법 B — userinfobot 사용</div>
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-desc">
+          텔레그램 검색창에서 <strong>@userinfobot</strong> 검색 → 대화 시작 → 아무 메시지 전송
+        </div>
+        <div class="code-block">
+          <span class="cmd">@userinfobot</span>
+          <span class="comment"> ← 검색창에 입력</span>
+          <button class="copy-btn" onclick="copyText('@userinfobot',this)">복사</button>
+        </div>
+        <div class="step-desc" style="margin-top:8px;">
+          봇이 응답하는 메시지에서 <strong style="color:var(--green)">Id: 1234567890</strong> 부분이 Chat ID입니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="warn">Chat ID는 숫자로만 구성됩니다 (예: <code style="color:var(--green);">1234567890</code>). 다른 사람에게 공유하지 마세요.</div>
+</div>
+
+<!-- ═══ STEP 4: ORACLE에 입력 ═══ -->
+<div class="section">
+  <div class="section-title"><span class="section-num">4</span> ORACLE에 Chat ID 입력</div>
+  <div class="card">
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-title">설정 열기</div>
+        <div class="step-desc">
+          ORACLE 분석기(Stock Signal / Coin Signal)에서<br>
+          <strong>워치리스트 → 알림 설정</strong> 또는 <strong>설정 탭</strong>을 엽니다.
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-title">Chat ID 입력</div>
+        <div class="step-desc">
+          텔레그램 Chat ID 입력란에 3단계에서 확인한 숫자를 입력하고 <strong>저장</strong>을 누르세요.
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-dot"></div>
+      <div class="step-body">
+        <div class="step-title">테스트 전송</div>
+        <div class="step-desc">
+          <strong style="color:var(--green)">🔔 테스트 알림</strong> 버튼을 눌러 텔레그램에 메시지가 도착하는지 확인하세요.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tip">설정 완료 후 워치리스트에 종목을 추가하면, 시그널 변동 시 자동으로 텔레그램 알림이 발송됩니다.</div>
+</div>
+
+<!-- ═══ 알림 예시 ═══ -->
+<div class="section">
+  <div class="section-title"><span class="section-num">5</span> 알림 예시</div>
+  <div class="card">
+    <div class="visual-guide" style="text-align:left;padding:16px;">
+      <div style="font-size:.7rem;color:var(--muted);margin-bottom:10px;">텔레그램에서 받게 될 알림</div>
+      <div class="tg-msg bot" style="line-height:1.7;">
+        <strong>🍊 ORACLE Signal</strong><br>
+        ━━━━━━━━━━━━<br>
+        <strong style="color:var(--green);">🟢 BUY · KRW-BTC</strong><br>
+        점수 72 · 신뢰도 85%<br>
+        가격 106,500,000원<br>
+        TP 110,200,000 · SL 103,800,000<br>
+        <span style="font-size:.8rem;color:var(--muted);">1D · 스윙 모드 · 06:30</span>
+      </div>
+      <div class="tg-msg bot" style="line-height:1.7;margin-top:8px;">
+        <strong>🍊 ORACLE Signal</strong><br>
+        ━━━━━━━━━━━━<br>
+        <strong style="color:var(--red);">🔴 SELL · 삼성전자</strong><br>
+        점수 28 · 신뢰도 78%<br>
+        가격 58,200원<br>
+        <span style="font-size:.8rem;color:var(--muted);">D · 보수적 모드 · 09:15</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FAQ ═══ -->
+<div class="section">
+  <div class="section-title" style="margin-bottom:10px;">❓ 자주 묻는 질문</div>
+  <div class="faq">
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        다른 사람도 내 알림을 볼 수 있나요?
+        <span class="arrow">▼</span>
+      </div>
+      <div class="faq-a">아니요. Chat ID는 본인의 텔레그램 계정에만 연결되며, 다른 사용자의 알림과 완전히 분리됩니다. 봇은 하나지만, 메시지는 각자의 Chat ID로만 전송됩니다.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Chat ID가 유출되면 위험한가요?
+        <span class="arrow">▼</span>
+      </div>
+      <div class="faq-a">Chat ID 자체로는 계정 해킹이 불가능합니다. 하지만 스팸 메시지를 받을 수 있으므로, 불필요하게 공유하지 않는 것을 권장합니다.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        알림이 안 오면 어떻게 하나요?
+        <span class="arrow">▼</span>
+      </div>
+      <div class="faq-a">
+        ① Chat ID가 정확한지 확인<br>
+        ② ORACLE 봇에게 /start를 다시 보내기<br>
+        ③ 텔레그램 알림 설정이 켜져있는지 확인<br>
+        ④ ORACLE 설정에서 테스트 알림 재시도
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        Chat ID를 변경할 수 있나요?
+        <span class="arrow">▼</span>
+      </div>
+      <div class="faq-a">Chat ID는 텔레그램 계정에 고정된 값이라 변경할 수 없습니다. 다른 계정을 사용하고 싶다면 해당 계정의 Chat ID를 새로 확인하세요.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        무료인가요?
+        <span class="arrow">▼</span>
+      </div>
+      <div class="faq-a">네. 텔레그램 앱, ORACLE 봇, 알림 서비스 모두 무료입니다.</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ 하단 ═══ -->
+<div style="text-align:center;padding:32px 0 20px;border-top:1px solid var(--border);margin-top:32px;">
+  <div style="font-size:.7rem;color:var(--muted);letter-spacing:.15em;font-family:var(--mono);">ORACLE PLATFORM · TELEGRAM GUIDE</div>
+</div>
+
+</div><!-- /content -->
+
+<script>
+function toggleFaq(el){
+  const item=el.closest('.faq-item');
+  item.classList.toggle('open');
+}
+function copyText(text,btn){
+  navigator.clipboard?.writeText(text).then(()=>{
+    btn.textContent='✓';
+    setTimeout(()=>btn.textContent='복사',1200);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.cssText='position:fixed;opacity:0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent='✓';
+    setTimeout(()=>btn.textContent='복사',1200);
+  });
+}
+</script>
+</body>
+</html>
