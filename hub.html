@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎯🏹 다트 & 양궁</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0c12; --surface:#12151e; --surface2:#1a1e2a;
+  --border:rgba(255,255,255,0.07);
+  --accent-dart:#00e5ff; --accent-arch:#06d6a0;
+  --gold:#ffd166; --text:#e8eaf0; --sub:#6b7280;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;
+  font-family:'Noto Sans KR',sans-serif;color:var(--text);}
+
+/* ── 탭바 ── */
+.tab-bar{
+  display:flex; align-items:stretch;
+  background:rgba(10,12,18,0.98);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  height:52px; flex-shrink:0;
+}
+.tab-btn{
+  flex:1; background:none; border:none;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:17px; letter-spacing:2px;
+  color:var(--sub); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  position:relative; transition:color .2s;
+}
+.tab-btn .ico{font-size:19px;}
+.tab-btn::after{
+  content:''; position:absolute;
+  bottom:0; left:8%; right:8%; height:2px;
+  border-radius:2px 2px 0 0;
+  background:currentColor; opacity:0; transition:opacity .2s;
+}
+.tab-btn[data-tab="dart"].active  {color:var(--accent-dart);}
+.tab-btn[data-tab="archery"].active{color:var(--accent-arch);}
+.tab-btn.active::after{opacity:1;}
+
+/* 탭바 우측 잔액 뱃지 */
+.tab-bar-bal{
+  display:flex; align-items:center; gap:6px;
+  padding:0 14px; flex-shrink:0;
+  border-left:1px solid var(--border);
+}
+.bal-chip{
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:16px; padding:3px 10px;
+  font-size:11px; font-weight:700; color:var(--sub);
+  display:flex; align-items:center; gap:3px;
+}
+.bal-chip .bval{color:var(--gold);}
+
+/* ── iframe 영역 ── */
+.frames{position:relative; width:100%;}
+iframe{
+  position:absolute; top:0; left:0;
+  width:100%; height:100%;
+  border:none; background:var(--bg);
+}
+iframe.hidden{opacity:0;pointer-events:none;visibility:hidden;}
+</style>
+</head>
+<body>
+<div style="display:flex;flex-direction:column;width:100%;height:100dvh;">
+
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="dart">
+      <span class="ico">🎯</span> DART
+    </button>
+    <button class="tab-btn" data-tab="archery">
+      <span class="ico">🏹</span> ARCHERY
+    </button>
+    <div class="tab-bar-bal">
+      <div class="bal-chip" id="balChipDart">🎯 <span class="bval" id="hubBalDart">-</span></div>
+      <div class="bal-chip" id="balChipArch">🏹 <span class="bval" id="hubBalArch">-</span></div>
+    </div>
+  </div>
+
+  <div class="frames" id="frames">
+    <iframe id="frameDart"    title="다트존"></iframe>
+    <iframe id="frameArchery" class="hidden" title="양궁존"></iframe>
+  </div>
+
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  상수
+// ═══════════════════════════════════════════════════════════════
+const BAL_KEY_DART    = 'MG_BAL_DART';
+const BAL_KEY_ARCHERY = 'MG_BAL_ARCHERY';
+
+// ═══════════════════════════════════════════════════════════════
+//  허브 상태  (index로부터 INIT으로 주입)
+// ═══════════════════════════════════════════════════════════════
+const hub = {
+  points    : 0,
+  balDart   : 0,
+  balArch   : 0,
+  aiProfile : null,
+  dartReady : false,
+  archReady : false,
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DOM
+// ═══════════════════════════════════════════════════════════════
+const $          = id => document.getElementById(id);
+const frameDart    = $('frameDart');
+const frameArchery = $('frameArchery');
+let activeTab = 'dart';
+
+// ── iframe 동적 로드 (토큰가드 호환) ──
+function loadFrame(frame, url) {
+  sessionStorage.setItem('ORACLE_ENTRY', Date.now());
+  frame.src = url;
+}
+setTimeout(()=>loadFrame(frameDart, 'dart.html'),0);
+setTimeout(()=>loadFrame(frameArchery, 'archery.html'),200);
+
+// ═══════════════════════════════════════════════════════════════
+//  레이아웃
+// ═══════════════════════════════════════════════════════════════
+function adjustLayout() {
+  $('frames').style.height = `calc(100dvh - ${$('tabBar').offsetHeight}px)`;
+}
+window.addEventListener('resize', adjustLayout);
+
+// ═══════════════════════════════════════════════════════════════
+//  HUD
+// ═══════════════════════════════════════════════════════════════
+function fmtMoney(n) {
+  const v = Math.round(Number(n));
+  if (v >= 1000000) return (v/1000000).toFixed(1).replace(/\.0$/,'') + '백만';
+  if (v >= 10000)   return Math.round(v/10000) + '만';
+  return v.toLocaleString('ko-KR') + '원';
+}
+function renderHUD() {
+  $('hubBalDart').textContent = hub.balDart > 0 ? fmtMoney(hub.balDart) : '0원';
+  $('hubBalArch').textContent = hub.balArch > 0 ? fmtMoney(hub.balArch) : '0원';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  localStorage 헬퍼 (index와 동일 키 공유)
+// ═══════════════════════════════════════════════════════════════
+function loadLocalBals() {
+  const d = localStorage.getItem(BAL_KEY_DART);
+  const a = localStorage.getItem(BAL_KEY_ARCHERY);
+  hub.balDart = d !== null ? Math.max(0, Number(d)) : 0;
+  hub.balArch = a !== null ? Math.max(0, Number(a)) : 0;
+}
+function saveBal(gameId, val) {
+  const v = Math.max(0, Math.round(val));
+  if (gameId === 'dart')    { hub.balDart = v; localStorage.setItem(BAL_KEY_DART,    String(v)); }
+  if (gameId === 'archery') { hub.balArch = v; localStorage.setItem(BAL_KEY_ARCHERY, String(v)); }
+  renderHUD();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  탭 전환
+// ═══════════════════════════════════════════════════════════════
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab)
+  );
+  frameDart.classList.toggle('hidden',    tab !== 'dart');
+  frameArchery.classList.toggle('hidden', tab !== 'archery');
+  sendInitToGame(tab);
+}
+document.querySelectorAll('.tab-btn').forEach(b =>
+  b.addEventListener('click', () => switchTab(b.dataset.tab))
+);
+
+// ═══════════════════════════════════════════════════════════════
+//  게임으로 메시지 전송
+// ═══════════════════════════════════════════════════════════════
+const ALLOWED_ORIGINS = [window.location.origin, 'null'];
+function isTrusted(o) { return ALLOWED_ORIGINS.includes(o) || o === window.location.origin; }
+function postToGame(gameId, msg) {
+  try {
+    (gameId === 'dart' ? frameDart : frameArchery).contentWindow.postMessage(msg, window.location.origin);
+  } catch(e) {}
+}
+function postToParent(msg) { try { parent.postMessage(msg, window.location.origin); } catch(e) {} }
+function balOf(gameId) { return gameId === 'dart' ? hub.balDart : hub.balArch; }
+
+function sendInitToGame(gameId) {
+  postToGame(gameId, {
+    type     : 'INIT',
+    balance  : balOf(gameId),
+    points   : hub.points,
+    aiProfile: hub.aiProfile,
+  });
+}
+function sendPointUpdateToGame(gameId) {
+  postToGame(gameId, {
+    type   : 'POINT_UPDATE',
+    balance: balOf(gameId),
+    points : hub.points,
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  postMessage 수신
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('message', e => {
+  if (!isTrusted(e.origin)) return;
+  const d = e.data;
+  if (!d || !d.type) return;
+
+  // ── [위] index → hub ────────────────────────────────────────
+  if (e.source === parent) {
+    switch (d.type) {
+
+      case 'INIT': {
+        loadLocalBals();
+        if (hub.balDart === 0 && hub.balArch === 0
+            && d.balance !== undefined && d.balance > 0) {
+          const initBal=Math.max(0,Math.round(d.balance));
+          hub.balDart = initBal; hub.balArch = initBal;
+          localStorage.setItem(BAL_KEY_DART, String(hub.balDart));
+          localStorage.setItem(BAL_KEY_ARCHERY, String(hub.balArch));
+        }
+        hub.points    = d.points    ?? hub.points;
+        hub.aiProfile = d.aiProfile ?? hub.aiProfile;
+        renderHUD();
+        if (hub.dartReady) sendInitToGame('dart');
+        if (hub.archReady) sendInitToGame('archery');
+        break;
+      }
+
+      case 'AI_PROFILE': {
+        hub.aiProfile = d.profile ?? hub.aiProfile;
+        // 양쪽 게임에 모두 전달
+        postToGame('dart',    { type: 'AI_PROFILE', profile: hub.aiProfile });
+        postToGame('archery', { type: 'AI_PROFILE', profile: hub.aiProfile });
+        break;
+      }
+
+      case 'POINT_UPDATE': {
+        loadLocalBals();
+        hub.points = d.points ?? hub.points;
+        renderHUD();
+        sendPointUpdateToGame(activeTab);
+        break;
+      }
+
+      case 'SPEND_RESULT': {
+        hub.points = d.points ?? hub.points;
+        postToGame(activeTab, d);
+        renderHUD();
+        break;
+      }
+
+      case 'CHARGE': {
+        loadLocalBals();
+        renderHUD();
+        postToGame(activeTab, {
+          type    : 'CHARGE',
+          amount  : d.amount,
+          balance : balOf(activeTab),
+        });
+        break;
+      }
+
+      case 'BALANCE_UPDATE': {
+        loadLocalBals();
+        renderHUD();
+        postToGame(activeTab, {
+          type   : 'BALANCE_UPDATE',
+          balance: balOf(activeTab),
+        });
+        break;
+      }
+    }
+    return;
+  }
+
+  // ── [아래] dart / archery → hub ─────────────────────────────
+  let fromGame = null;
+  if (e.source === frameDart.contentWindow)    fromGame = 'dart';
+  if (e.source === frameArchery.contentWindow) fromGame = 'archery';
+  if (!fromGame) return;
+
+  switch (d.type) {
+
+    // 포인트 차감 요청 → index로 위임 (fromGame gameId 정확히 전달)
+    case 'SPEND_POINTS': {
+      postToParent({ ...d, gameId: fromGame });
+      break;
+    }
+
+    // 포인트 획득 → EARN_POINTS로 변환하여 index로 위임
+    case 'POINT_DELTA':
+    case 'EARN_POINTS': {
+      postToParent({
+        type       : 'EARN_POINTS',
+        deltaPoints: d.deltaPoints ?? d.amount ?? 0,
+        source     : fromGame,
+        gameId     : fromGame,
+        meta       : d.meta,
+      });
+      break;
+    }
+
+    // 게임 종료 알림 → index 미션 진행도용
+    case 'GAME_OVER': {
+      postToParent({ ...d, gameId: fromGame });
+      break;
+    }
+
+    // 잔액 저장
+    case 'SAVE_BALANCE': {
+      saveBal(fromGame, Number(d.balance) || 0);
+      postToParent({
+        type    : 'SAVE_BALANCE',
+        gameId  : 'dart',
+        balance : hub.balDart + hub.balArch,
+        _hubSync: true,
+      });
+      break;
+    }
+
+    // 포인트/잔액 정보 요청
+    case 'REQUEST_POINT_INFO': {
+      sendInitToGame(fromGame);
+      postToParent({ type: 'REQUEST_POINT_INFO' });
+      break;
+    }
+
+    // 그 외 (GO_HOME, REQUEST_CHARGE, MG_ATMO_DELTA 등) → index로 투명 전달
+    default: {
+      postToParent({ ...d });
+      break;
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  iframe 로드 완료
+// ═══════════════════════════════════════════════════════════════
+frameDart.addEventListener('load', () => {
+  hub.dartReady = true;
+  if(hub.balDart > 0 || hub.points > 0) sendInitToGame('dart');
+  else setTimeout(() => sendInitToGame('dart'), 500);
+});
+frameArchery.addEventListener('load', () => {
+  hub.archReady = true;
+  if(hub.balArch > 0 || hub.points > 0) sendInitToGame('archery');
+  else setTimeout(() => sendInitToGame('archery'), 500);
+});
+
+// ═══════════════════════════════════════════════════════════════
+//  초기화
+// ═══════════════════════════════════════════════════════════════
+(function init() {
+  loadLocalBals();
+  renderHUD();
+  adjustLayout();
+  postToParent({ type: 'REQUEST_POINT_INFO' });
+})();
+</script>
+</body>
+</html>
