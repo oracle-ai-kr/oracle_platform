@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<!-- dart.html v2 — dart+archery 통합 (iframe 제거) -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🎯🏹 다트 & 양궁</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   공통 변수 & 리셋
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --bg:#0a0c12; --surface:#12151e; --surface2:#1a1e2a;
+  --border:rgba(255,255,255,0.07);
+  --accent-dart:#00e5ff; --accent-arch:#06d6a0;
+  --gold:#ffd166; --text:#e8eaf0; --sub:#6b7280;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;background:var(--bg);overflow:hidden;
+  font-family:'Noto Sans KR',sans-serif;color:var(--text);}
+
+/* ═══════════════════════════════════════════════════════════
+   탭바
+   ═══════════════════════════════════════════════════════════ */
+.tab-bar{
+  display:flex; align-items:stretch;
+  background:rgba(10,12,18,0.98);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  height:52px; flex-shrink:0;
+}
+.tab-btn{
+  flex:1; background:none; border:none;
+  font-family:'Bebas Neue',sans-serif;
+  font-size:17px; letter-spacing:2px;
+  color:var(--sub); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  position:relative; transition:color .2s;
+}
+.tab-btn .ico{font-size:19px;}
+.tab-btn::after{
+  content:''; position:absolute;
+  bottom:0; left:8%; right:8%; height:2px;
+  border-radius:2px 2px 0 0;
+  background:currentColor; opacity:0; transition:opacity .2s;
+}
+.tab-btn[data-tab="dart"].active  {color:var(--accent-dart);}
+.tab-btn[data-tab="archery"].active{color:var(--accent-arch);}
+.tab-btn.active::after{opacity:1;}
+.tab-bar-bal{
+  display:flex; align-items:center; gap:6px;
+  padding:0 14px; flex-shrink:0;
+  border-left:1px solid var(--border);
+}
+.bal-chip{
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:16px; padding:3px 10px;
+  font-size:11px; font-weight:700; color:var(--sub);
+  display:flex; align-items:center; gap:3px;
+}
+.bal-chip .bval{color:var(--gold);}
+
+/* ═══════════════════════════════════════════════════════════
+   게임 영역 공통
+   ═══════════════════════════════════════════════════════════ */
+.game-section{
+  position:absolute; top:0; left:0; width:100%; height:100%;
+  overflow-x:hidden; overflow-y:auto;
+  overscroll-behavior:none;
+}
+.game-section.hidden{display:none;}
+
+/* ═══════════════════════════════════════════════════════════
+   다트 스타일
+   ═══════════════════════════════════════════════════════════ */
+#dartSection {--accent:var(--accent-dart);}
+#dartSection .header-title{color:var(--accent-dart);}
+#archerySection {--accent:var(--accent-arch);}
+#archerySection .header-title{color:var(--accent-arch);}
+
+.header{position:sticky;top:0;z-index:50;display:flex;align-items:center;
+  justify-content:space-between;padding:10px 16px;
+  background:rgba(10,12,18,0.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);}
+.header-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;}
+.hud-row{display:flex;gap:10px;align-items:center;}
+.hud-badge{background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+  padding:4px 10px;font-size:11px;font-weight:700;color:var(--sub);}
+.hud-badge span{color:var(--text);}
+.btn-settings{width:34px;height:34px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;color:var(--sub);font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;}
+
+.main{padding:8px 14px 16px;display:flex;flex-direction:column;gap:10px;
+  max-width:480px;margin:0 auto;}
+
+.stage{background:var(--surface);border-radius:20px;border:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;}
+.stage-info{display:flex;justify-content:space-between;align-items:center;
+  padding:6px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--sub);}
+.stage-info b{color:var(--text);font-size:14px;}
+
+/* 보드 */
+.board-wrap{position:relative;width:100%;aspect-ratio:1;max-width:300px;margin:10px auto;flex-shrink:0;}
+#dartSvg,#archerySvg{width:100%;height:100%;border-radius:50%;}
+#dartSvg{filter:drop-shadow(0 0 24px rgba(0,229,255,0.12));}
+#archerySvg{filter:drop-shadow(0 0 24px rgba(6,214,160,0.12));}
+.dart-mark{position:absolute;width:14px;height:14px;
+  transform:translate(-50%,-50%);pointer-events:none;z-index:2;}
+.arrow-mark{position:absolute;width:10px;height:10px;
+  transform:translate(-50%,-50%);pointer-events:none;z-index:2;}
+
+.result-text{text-align:center;font-size:11px;color:var(--sub);
+  padding:2px 14px 4px;min-height:18px;}
+
+/* 게이지 */
+.gauges{padding:7px 14px 8px;display:flex;flex-direction:column;gap:7px;
+  border-top:1px solid var(--border);min-height:80px;}
+.gauge-row{display:flex;flex-direction:column;gap:3px;}
+.gauge-label-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--sub);}
+.gauge-label-row .gval{font-weight:700;color:var(--text);width:70px;text-align:right;flex-shrink:0;font-size:11px;height:16px;line-height:16px;overflow:hidden;}
+
+.needle-track{position:relative;height:8px;background:rgba(255,255,255,0.05);
+  border-radius:4px;overflow:visible;}
+.needle-track::after{content:'';position:absolute;left:50%;top:50%;
+  width:1px;height:14px;background:rgba(255,255,255,0.2);
+  transform:translate(-50%,-50%);}
+.needle{position:absolute;top:50%;width:12px;height:12px;
+  border-radius:50%;
+  transform:translate(-50%,-50%);
+  transition:left .016s linear;}
+
+/* 다트 needle */
+#dartSection .needle{background:var(--accent-dart);box-shadow:0 0 6px var(--accent-dart),0 0 12px rgba(0,229,255,0.35);}
+#dartSection .needle.h{background:#ff9f1c;box-shadow:0 0 6px #ff9f1c,0 0 12px rgba(255,159,28,0.35);}
+/* 양궁 needle */
+#archerySection .needle{background:var(--accent-arch);box-shadow:0 0 6px var(--accent-arch),0 0 12px rgba(6,214,160,0.35);}
+#archerySection .needle.h{background:#ff9f1c;box-shadow:0 0 6px #ff9f1c,0 0 12px rgba(255,159,28,0.35);}
+
+/* 파워 (공통 + 양궁 전용 power-track) */
+.gauge-fill.over, .power-fill.over{animation:overFlicker .2s infinite alternate;}
+@keyframes overFlicker{from{opacity:1;}to{opacity:.5;filter:brightness(1.6);}}
+
+.power-track{position:relative;height:8px;background:rgba(255,255,255,0.05);border-radius:4px;overflow:visible;}
+.power-fill{height:100%;width:0%;border-radius:4px;
+  background:linear-gradient(90deg,#1e7cff 0%,#06d6a0 45%,#ffd166 75%,#ff3d6b 100%);
+  transition:width .016s linear;}
+.power-track-line{position:absolute;left:calc(100% * 100 / 120);top:-3px;bottom:-3px;
+  width:2px;background:rgba(255,255,255,0.35);border-radius:1px;pointer-events:none;}
+
+/* 발사 버튼 */
+.fire-btn-wrap{padding:12px 14px 14px;touch-action:none;flex-shrink:0;}
+.fire-btn{width:100%;height:68px;border:none;border-radius:14px;
+  color:#fff;font-size:20px;font-weight:900;
+  font-family:'Bebas Neue',sans-serif;letter-spacing:2px;cursor:pointer;
+  user-select:none;-webkit-user-select:none;touch-action:none;
+  -webkit-tap-highlight-color:transparent;
+  transition:transform .08s,opacity .2s;}
+.fire-btn:active{filter:brightness(0.9);}
+.fire-btn.locked{opacity:0.55;}
+#dartSection .fire-btn{background:linear-gradient(135deg,#ffd166,#ff9f1c);color:#1a1200;
+  box-shadow:0 4px 16px rgba(255,209,102,0.3);}
+#archerySection .fire-btn{background:linear-gradient(135deg,#06d6a0,#0077ff);
+  box-shadow:0 4px 16px rgba(6,214,160,0.3);}
+#archerySection .fire-btn:active{transform:scale(0.97);}
+
+.lock-bar-wrap{height:3px;margin-top:6px;
+  background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;
+  opacity:0;transition:opacity .15s;}
+.lock-bar-wrap.show{opacity:1;visibility:visible;}
+.lock-bar{height:100%;width:0%;border-radius:2px;box-shadow:0 0 6px currentColor;}
+#dartSection .lock-bar{background:var(--accent-dart);color:var(--accent-dart);}
+#archerySection .lock-bar{background:var(--accent-arch);color:var(--accent-arch);}
+
+/* 조준점 */
+.crosshair{position:absolute;width:40px;height:40px;
+  transform:translate(-50%,-50%);pointer-events:none;z-index:5;
+  opacity:0;transition:opacity .12s;}
+.crosshair.show{opacity:1;}
+#dartSection .crosshair svg{filter:drop-shadow(0 0 6px #00e5ff) drop-shadow(0 0 12px rgba(0,229,255,0.6));}
+#archerySection .crosshair svg{filter:drop-shadow(0 0 6px #06d6a0) drop-shadow(0 0 12px rgba(6,214,160,0.6));}
+
+/* 마크 반짝이 */
+@keyframes markGlow {
+  0%   { filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff); }
+  25%  { filter: drop-shadow(0 0 2px #ffd166) drop-shadow(0 0 4px #ffd166); }
+  50%  { filter: drop-shadow(0 0 2px #00e5ff) drop-shadow(0 0 4px #00e5ff); }
+  75%  { filter: drop-shadow(0 0 2px #ff3d6b) drop-shadow(0 0 4px #ff3d6b); }
+  100% { filter: drop-shadow(0 0 2px #06d6a0) drop-shadow(0 0 4px #06d6a0); }
+}
+.dart-mark svg, .arrow-mark svg { animation: markGlow 1.2s linear infinite; }
+
+/* confetti (양궁) */
+.confetti-wrap{position:fixed;inset:0;z-index:85;pointer-events:none;overflow:hidden;}
+.confetti-wrap.hide{display:none;}
+@keyframes confettiFall{
+  0%  {transform:translateY(-20px) rotate(0deg);   opacity:1;}
+  100%{transform:translateY(110vh) rotate(720deg); opacity:0;}
+}
+
+/* 결과 오버레이 */
+.result-overlay{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .3s;}
+.result-overlay.show{opacity:1;pointer-events:all;}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;
+  padding:24px 20px;width:calc(100% - 32px);max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);}
+.result-title{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;
+  text-align:center;margin-bottom:16px;}
+#dartSection .result-title{color:var(--accent-dart);}
+#archerySection .result-title{color:var(--accent-arch);}
+.score-display{text-align:center;font-family:'Bebas Neue',sans-serif;
+  font-size:72px;line-height:1;color:var(--gold);margin-bottom:4px;}
+.score-sub{text-align:center;font-size:12px;color:var(--sub);margin-bottom:18px;}
+.shots-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:18px;}
+.shot-chip{background:var(--surface2);border-radius:8px;padding:6px 4px;text-align:center;}
+.shot-chip .pt{font-weight:900;font-size:14px;}
+#dartSection .shot-chip .pt{color:var(--accent-dart);}
+#archerySection .shot-chip .pt{color:var(--accent-arch);}
+.shot-chip .lb{color:var(--sub);font-size:9px;}
+.reward-box{border-radius:12px;padding:14px;text-align:center;margin-bottom:14px;}
+#dartSection .reward-box{background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.18);}
+#archerySection .reward-box{background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.18);}
+.reward-label{font-size:11px;color:var(--sub);margin-bottom:4px;}
+.reward-amount{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--gold);letter-spacing:1px;}
+.reward-detail{font-size:11px;color:var(--sub);margin-top:2px;}
+.btn-close{width:100%;height:48px;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface2);color:var(--text);font-size:14px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans KR',sans-serif;}
+
+/* 플래시 */
+.fx-flash{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:0;transition:opacity .08s;}
+.fx-flash.bull{background:radial-gradient(circle,rgba(255,209,102,0.55),transparent 65%);}
+.fx-flash.good{background:radial-gradient(circle,rgba(0,229,255,0.3),transparent 65%);}
+.fx-flash.miss{background:radial-gradient(circle,rgba(255,61,107,0.25),transparent 65%);}
+
+/* 토스트 */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--surface2);border:1px solid var(--border);border-radius:20px;
+  padding:8px 18px;font-size:13px;font-weight:700;
+  opacity:0;transition:all .2s;z-index:100;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* 콤보 */
+.combo-pop{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%) scale(0);
+  z-index:70;pointer-events:none;font-family:'Bebas Neue',sans-serif;
+  font-size:52px;letter-spacing:3px;color:var(--gold);
+  text-shadow:0 0 30px rgba(255,209,102,0.8);
+  transition:transform .15s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;}
+.combo-pop.show{transform:translate(-50%,-50%) scale(1);opacity:1;}
+
+/* 히스토리 */
+.history-wrap{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px;}
+.history-title{font-size:12px;color:var(--sub);font-weight:700;margin-bottom:10px;
+  text-transform:uppercase;letter-spacing:1px;}
+.history-list{display:flex;flex-direction:column;gap:6px;max-height:160px;overflow-y:auto;}
+.history-item{display:flex;justify-content:space-between;align-items:center;
+  padding:7px 10px;background:var(--surface2);border-radius:8px;font-size:12px;}
+#dartSection .history-item .hi-score{font-weight:900;color:var(--accent-dart);}
+#archerySection .history-item .hi-score{font-weight:900;color:var(--accent-arch);}
+.history-item .hi-reward{color:var(--gold);font-weight:700;}
+.history-item .hi-mode{color:var(--sub);}
+.history-empty{text-align:center;color:var(--sub);font-size:12px;padding:12px;}
+
+/* 설정 */
+.settings-panel{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(6px);display:flex;align-items:flex-end;
+  opacity:0;pointer-events:none;transition:opacity .25s;}
+.settings-panel.show{opacity:1;pointer-events:all;}
+.settings-sheet{background:var(--surface);border-radius:24px 24px 0 0;
+  border-top:1px solid var(--border);width:100%;padding:20px 20px 40px;
+  max-width:480px;margin:0 auto;}
+.settings-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;
+  margin-bottom:16px;}
+#dartSection .settings-title{color:var(--accent-dart);}
+#archerySection .settings-title{color:var(--accent-arch);}
+.settings-row{display:flex;justify-content:space-between;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--border);font-size:14px;}
+.settings-row label{color:var(--sub);}
+.settings-row b{color:var(--text);}
+.btn-start-fee,.btn-test{width:100%;height:52px;border:none;border-radius:14px;
+  font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;
+  font-family:'Noto Sans KR',sans-serif;}
+#dartSection .btn-start-fee{background:linear-gradient(135deg,var(--accent-dart),#0077ff);color:#000;}
+#archerySection .btn-start-fee{background:linear-gradient(135deg,var(--accent-arch),#0077ff);color:#000;}
+.btn-test{background:var(--surface2);border:1px solid var(--border);color:var(--sub);}
+</style>
+</head>
+<body>
+<div style="display:flex;flex-direction:column;width:100%;height:100dvh;">
+
+  <!-- ═══ 탭바 ═══ -->
+  <div class="tab-bar" id="tabBar">
+    <button class="tab-btn active" data-tab="dart">
+      <span class="ico">🎯</span> DART
+    </button>
+    <button class="tab-btn" data-tab="archery">
+      <span class="ico">🏹</span> ARCHERY
+    </button>
+    <div class="tab-bar-bal">
+      <div class="bal-chip" id="balChipDart">🎯 <span class="bval" id="hubBalDart">-</span></div>
+      <div class="bal-chip" id="balChipArch">🏹 <span class="bval" id="hubBalArch">-</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ 게임 영역 컨테이너 ═══ -->
+  <div style="position:relative;flex:1;overflow:hidden;" id="gameContainer">
+
+    <!-- ═══════════ 다트 섹션 ═══════════ -->
+    <div class="game-section" id="dartSection">
+      <!-- 헤더 제거: 미니센터 게임바 + 탭바로 대체 -->
+      <div class="main">
+        <div class="stage">
+          <div class="board-wrap" id="d_boardWrap">
+            <svg id="dartSvg" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="crosshair" id="d_crosshair">
+              <svg width="40" height="40" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="8" fill="none" stroke="#00e5ff" stroke-width="1.5" opacity="0.9"/>
+                <line x1="20" y1="2"  x2="20" y2="12" stroke="#00e5ff" stroke-width="1.5"/>
+                <line x1="20" y1="28" x2="20" y2="38" stroke="#00e5ff" stroke-width="1.5"/>
+                <line x1="2"  y1="20" x2="12" y2="20" stroke="#00e5ff" stroke-width="1.5"/>
+                <line x1="28" y1="20" x2="38" y2="20" stroke="#00e5ff" stroke-width="1.5"/>
+                <circle cx="20" cy="20" r="1.5" fill="#00e5ff"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stage-info">
+            <span>남은 다트 <b id="d_infoShots">10</b></span>
+            <span>점수 <b id="d_infoScore">0</b></span>
+            <span id="d_infoReward" style="color:var(--gold);font-weight:700;font-size:11px;"></span>
+          </div>
+          <div class="result-text" id="d_resultText">게임을 시작하세요</div>
+          <div class="gauges">
+            <div class="gauge-row">
+              <div class="gauge-label-row">
+                <span>↔ 각도 좌/우</span>
+                <span class="gval" id="d_hVal">-</span>
+              </div>
+              <div class="needle-track">
+                <div class="needle h" id="d_hNeedle"></div>
+              </div>
+            </div>
+            <div class="gauge-row">
+              <div class="gauge-label-row">
+                <span>💪 파워 (상/하)</span>
+                <span class="gval" id="d_powerVal">— 대기중</span>
+              </div>
+              <div class="needle-track" style="overflow:visible;">
+                <div class="gauge-fill" id="d_powerFill" style="width:0%;height:100%;border-radius:4px;
+                  background:linear-gradient(90deg,#1e7cff 0%,#06d6a0 50%,#ffd166 80%,#ff3d6b 100%);"></div>
+                <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;
+                  background:rgba(255,255,255,0.3);transform:translateX(-50%);pointer-events:none;"></div>
+                <div style="position:absolute;left:calc(100% * 100 / 110);top:-3px;bottom:-3px;
+                  width:2px;background:rgba(255,255,255,0.5);border-radius:1px;pointer-events:none;
+                  box-shadow:0 0 4px rgba(255,255,255,0.6);"></div>
+              </div>
+            </div>
+          </div>
+          <div class="fire-btn-wrap">
+            <button class="fire-btn" id="d_btnFire">🎯</button>
+            <div class="lock-bar-wrap" id="d_lockBarWrap">
+              <div class="lock-bar" id="d_lockBar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="history-wrap">
+          <div class="history-title">📋 최근 라운드</div>
+          <div class="history-list" id="d_historyList">
+            <div class="history-empty">아직 기록이 없어요</div>
+          </div>
+        </div>
+      </div>
+      <!-- 다트 결과 오버레이 -->
+      <div class="result-overlay" id="d_resultOverlay">
+        <div class="result-card">
+          <div class="result-title">🎯 라운드 결과</div>
+          <div class="score-display" id="d_resultScore">0</div>
+          <div class="score-sub" id="d_resultScoreSub"></div>
+          <div class="shots-grid" id="d_shotsGrid"></div>
+          <div class="reward-box">
+            <div class="reward-label">획득 보상</div>
+            <div class="reward-amount" id="d_rewardAmount">₩0</div>
+            <div class="reward-detail" id="d_rewardDetail"></div>
+          </div>
+          <button class="btn-close" onclick="DART.closeResult()">확인</button>
+        </div>
+      </div>
+      <!-- 다트 설정 -->
+      <div class="settings-panel" id="d_settingsPanel">
+        <div class="settings-sheet">
+          <div class="settings-title">⚙️ 다트존</div>
+          <div class="settings-row"><label>발수</label><b>10발</b></div>
+          <div class="settings-row"><label>입장료</label><b>₩100,000 P</b></div>
+          <button class="btn-start-fee" id="d_btnStartFee" onclick="DART.startFee()">💰 ₩100,000 내고 시작</button>
+          <button class="btn-test" onclick="DART.startTest()">🎓 연습 모드 (무료)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ 양궁 섹션 ═══════════ -->
+    <div class="game-section hidden" id="archerySection">
+      <!-- 헤더 제거: 미니센터 게임바 + 탭바로 대체 -->
+      <div class="main">
+        <div class="stage">
+          <div class="board-wrap" id="a_boardWrap">
+            <svg id="archerySvg" viewBox="0 0 500 500" preserveAspectRatio="xMidYMid meet"></svg>
+            <div class="crosshair" id="a_crosshair">
+              <svg width="40" height="40" viewBox="0 0 40 40">
+                <circle cx="20" cy="20" r="8" fill="none" stroke="#06d6a0" stroke-width="1.5" opacity="0.9"/>
+                <line x1="20" y1="2"  x2="20" y2="12" stroke="#06d6a0" stroke-width="1.5"/>
+                <line x1="20" y1="28" x2="20" y2="38" stroke="#06d6a0" stroke-width="1.5"/>
+                <line x1="2"  y1="20" x2="12" y2="20" stroke="#06d6a0" stroke-width="1.5"/>
+                <line x1="28" y1="20" x2="38" y2="20" stroke="#06d6a0" stroke-width="1.5"/>
+                <circle cx="20" cy="20" r="1.5" fill="#06d6a0"/>
+              </svg>
+            </div>
+          </div>
+          <div class="stage-info">
+            <span>남은 화살 <b id="a_infoShots">10</b></span>
+            <span>점수 <b id="a_infoScore">0</b></span>
+            <span id="a_infoReward" style="color:var(--gold);font-weight:700;font-size:11px;"></span>
+          </div>
+          <div class="result-text" id="a_resultText">게임을 시작하세요</div>
+          <div class="gauges">
+            <div class="gauge-row">
+              <div class="gauge-label-row">
+                <span>↕ 각도 상/하</span>
+                <span class="gval" id="a_vVal">-</span>
+              </div>
+              <div class="needle-track">
+                <div class="needle" id="a_vNeedle" style="left:50%"></div>
+              </div>
+            </div>
+            <div class="gauge-row">
+              <div class="gauge-label-row">
+                <span>↔ 각도 좌/우</span>
+                <span class="gval" id="a_hVal">-</span>
+              </div>
+              <div class="needle-track">
+                <div class="needle h" id="a_hNeedle" style="left:50%"></div>
+              </div>
+            </div>
+            <div class="gauge-row">
+              <div class="gauge-label-row">
+                <span>💪 파워 (각도 보정)</span>
+                <span class="gval" id="a_powerVal">— 대기중</span>
+              </div>
+              <div class="power-track">
+                <div class="power-fill" id="a_powerFill"></div>
+                <div class="power-track-line"></div>
+              </div>
+            </div>
+          </div>
+          <div class="fire-btn-wrap">
+            <button class="fire-btn" id="a_btnFire">🏹</button>
+            <div class="lock-bar-wrap" id="a_lockBarWrap">
+              <div class="lock-bar" id="a_lockBar"></div>
+            </div>
+          </div>
+        </div>
+        <div class="history-wrap">
+          <div class="history-title">📋 최근 라운드</div>
+          <div class="history-list" id="a_historyList">
+            <div class="history-empty">아직 기록이 없어요</div>
+          </div>
+        </div>
+      </div>
+      <!-- 양궁 confetti -->
+      <div class="confetti-wrap hide" id="a_confettiWrap"></div>
+      <!-- 양궁 결과 오버레이 -->
+      <div class="result-overlay" id="a_resultOverlay">
+        <div class="result-card">
+          <div class="result-title">🏹 라운드 결과</div>
+          <div class="score-display" id="a_resultScore">0</div>
+          <div class="score-sub" id="a_resultScoreSub"></div>
+          <div class="shots-grid" id="a_shotsGrid"></div>
+          <div class="reward-box">
+            <div class="reward-label">획득 보상</div>
+            <div class="reward-amount" id="a_rewardAmount">₩0</div>
+            <div class="reward-detail" id="a_rewardDetail"></div>
+          </div>
+          <button class="btn-close" onclick="ARCH.closeResult()">확인</button>
+        </div>
+      </div>
+      <!-- 양궁 설정 -->
+      <div class="settings-panel" id="a_settingsPanel">
+        <div class="settings-sheet">
+          <div class="settings-title">⚙️ 양궁존</div>
+          <div class="settings-row"><label>발수</label><b>10발</b></div>
+          <div class="settings-row"><label>입장료</label><b>₩100,000 P</b></div>
+          <button class="btn-start-fee" id="a_btnStartFee" onclick="ARCH.startFee()">💰 ₩100,000 내고 시작</button>
+          <button class="btn-test" onclick="ARCH.startTest()">🎓 연습 모드 (무료)</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /gameContainer -->
+</div>
+
+<!-- 공용 FX -->
+<div class="combo-pop" id="comboPop"></div>
+<div class="fx-flash" id="fxFlash"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  공통 유틸
+// ═══════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const fmtMoney = v => '₩' + Math.abs(Math.round(v)).toLocaleString('ko-KR');
+let _toastT;
+function toast(msg) {
+  const el = $('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(_toastT); _toastT = setTimeout(() => el.classList.remove('show'), 1400);
+}
+function flash(type) {
+  const el = $('fxFlash'); el.className = 'fx-flash ' + type; el.style.opacity = '0.9';
+  setTimeout(() => { el.style.opacity = '0'; }, 180);
+}
+function vibrate(pattern) {
+  try { if (navigator.vibrate) navigator.vibrate(pattern); } catch(_) {}
+}
+function showCombo(n) {
+  const el = $('comboPop');
+  el.textContent = `🔥 ${n} COMBO!`;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 900);
+}
+function startLockBar(wrapId, barId, ms) {
+  const wrap = $(wrapId), bar = $(barId);
+  bar.style.transition = 'none'; bar.style.width = '0%';
+  wrap.classList.add('show');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.transition = `width ${ms}ms linear`;
+    bar.style.width = '100%';
+  }));
+  setTimeout(() => {
+    wrap.classList.remove('show');
+    bar.style.transition = 'none'; bar.style.width = '0%';
+  }, ms + 50);
+}
+function angleToNorm(vAngle, hAngle) {
+  return {
+    nx: Math.sin(hAngle * Math.PI / 180),
+    ny: Math.sin(vAngle * Math.PI / 180),
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  허브 상태 (mini_center로부터 INIT으로 주입)
+// ═══════════════════════════════════════════════════════════════
+const BAL_KEY_DART    = 'MG_BAL_DART';
+const BAL_KEY_ARCHERY = 'MG_BAL_ARCHERY';
+const hub = { points:0, balDart:0, balArch:0, aiProfile:null };
+let activeTab = 'dart';
+
+function loadLocalBals() {
+  const d = localStorage.getItem(BAL_KEY_DART);
+  const a = localStorage.getItem(BAL_KEY_ARCHERY);
+  hub.balDart = d !== null ? Math.max(0, Number(d)) : 0;
+  hub.balArch = a !== null ? Math.max(0, Number(a)) : 0;
+}
+function saveBal(gameId, val) {
+  const v = Math.max(0, Math.round(val));
+  if (gameId === 'dart')    { hub.balDart = v; localStorage.setItem(BAL_KEY_DART,    String(v)); }
+  if (gameId === 'archery') { hub.balArch = v; localStorage.setItem(BAL_KEY_ARCHERY, String(v)); }
+  renderHUD();
+}
+function balOf(gameId) { return gameId === 'dart' ? hub.balDart : hub.balArch; }
+function renderHUD() {
+  $('hubBalDart').textContent = hub.balDart > 0 ? fmtMoney(hub.balDart) : '0원';
+  $('hubBalArch').textContent = hub.balArch > 0 ? fmtMoney(hub.balArch) : '0원';
+  // 개별 게임 헤더 제거됨 — 탭바 HUD만 표시
+}
+
+function postToParent(msg) { try { parent.postMessage(msg, window.location.origin); } catch(e) {} }
+
+// ═══════════════════════════════════════════════════════════════
+//  탭 전환
+// ═══════════════════════════════════════════════════════════════
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tab === tab)
+  );
+  $('dartSection').classList.toggle('hidden', tab !== 'dart');
+  $('archerySection').classList.toggle('hidden', tab !== 'archery');
+}
+document.querySelectorAll('.tab-btn').forEach(b =>
+  b.addEventListener('click', () => switchTab(b.dataset.tab))
+);
+
+// ═══════════════════════════════════════════════════════════════
+//  postMessage 수신 (mini_center → hub)
+// ═══════════════════════════════════════════════════════════════
+const ALLOWED_ORIGINS = [window.location.origin, 'null'];
+function isTrusted(o) { return ALLOWED_ORIGINS.includes(o) || o === window.location.origin; }
+
+window.addEventListener('message', e => {
+  if (!isTrusted(e.origin)) return;
+  const d = e.data; if (!d || !d.type) return;
+
+  switch (d.type) {
+    case 'INIT': {
+      loadLocalBals();
+      if (hub.balDart === 0 && hub.balArch === 0
+          && d.balance !== undefined && d.balance > 0) {
+        const initBal = Math.max(0, Math.round(d.balance));
+        hub.balDart = initBal; hub.balArch = initBal;
+        localStorage.setItem(BAL_KEY_DART, String(hub.balDart));
+        localStorage.setItem(BAL_KEY_ARCHERY, String(hub.balArch));
+      }
+      hub.points    = d.points    ?? hub.points;
+      hub.aiProfile = d.aiProfile ?? hub.aiProfile;
+      renderHUD();
+      break;
+    }
+    case 'AI_PROFILE': {
+      hub.aiProfile = d.profile ?? hub.aiProfile;
+      break;
+    }
+    case 'POINT_UPDATE': {
+      loadLocalBals();
+      hub.points = d.points ?? hub.points;
+      renderHUD();
+      break;
+    }
+    case 'CHARGE': {
+      loadLocalBals(); renderHUD();
+      toast(`💰 충전 완료! ${fmtMoney(d.amount || 0)}`);
+      break;
+    }
+    case 'BALANCE_UPDATE': {
+      loadLocalBals(); renderHUD();
+      break;
+    }
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+//                    다트 게임 엔진 (DART)
+// ═══════════════════════════════════════════════════════════════
+const DART = (() => {
+  const GAME_ID     = 'dart';
+  const TOTAL_SHOTS = 10;
+  const FEE         = 100000;
+  const LOCK_MS     = 800;
+  const POWER_RATE  = 0.0842;
+  const H_RATE      = Math.PI * 2 / 5000;
+  const MAX_ANGLE   = 45;
+  const POWER_MAX   = 110;
+  const SECTORS     = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+
+  function calcReward(score) {
+    let base = 0;
+    if      (score >= 350) base = 500000;
+    else if (score >= 251) base = 300000;
+    else if (score >= 201) base = 250000;
+    else if (score >= 151) base = 200000;
+    else if (score >= 101) base = 100000;
+    return { base, total: base };
+  }
+
+  function calcDartScore(nx, ny) {
+    const r = Math.sqrt(nx*nx + ny*ny);
+    if (r <= 0.021) return {score:50, label:'불스아이 🎯', ring:'bull'};
+    if (r <= 0.059) return {score:25, label:'불 ⭕',       ring:'bull25'};
+    if (r > 0.814)  return {score:0,  label:'미스 ❌',     ring:'miss'};
+    const angle = ((Math.atan2(nx,-ny)*180/Math.PI)+360)%360;
+    const si    = Math.floor(((angle+9)%360)/18);
+    const base  = SECTORS[si%20];
+    if (r <= 0.557) return {score:base,   label:`${base}`,   ring:'single'};
+    if (r <= 0.641) return {score:base*3, label:`T${base}`,  ring:'triple'};
+    if (r <= 0.751) return {score:base,   label:`${base}`,   ring:'single'};
+                    return {score:base*2, label:`D${base}`,  ring:'double'};
+  }
+
+  function normToPixel(nx, ny) {
+    const boardEl = $('d_boardWrap');
+    const half = boardEl ? boardEl.clientWidth / 2 : 150;
+    return { x: half + nx * half * 0.95, y: half + ny * half * 0.95 };
+  }
+
+  let S = {};
+  function initState() {
+    return {
+      active:false, isTest:false, score:0, shots:[], remaining:TOTAL_SHOTS,
+      combo:0, history:S.history||[],
+      power:0, powerActive:false, autoFired:false,
+      hPhase: Math.random()*Math.PI*2,
+      vVal:0, hVal:0, lockUntil:0, pending:[],
+    };
+  }
+  S = initState();
+
+  function buildBoard() {
+    const svg = $('dartSvg'); svg.innerHTML = '';
+    const NS = 'http://www.w3.org/2000/svg';
+    const cx = 250, cy = 250;
+    const nums = [20,1,18,4,13,6,10,15,2,17,3,19,7,16,8,11,14,9,12,5];
+    const mk = (tag, attrs) => {
+      const el = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k,v));
+      return el;
+    };
+    const polar = (a,r) => {
+      const rad = (a-90)*Math.PI/180;
+      return [cx+r*Math.cos(rad), cy+r*Math.sin(rad)];
+    };
+    const sector = (s,e,r1,r2,fill) => {
+      const [x1,y1]=polar(s,r2),[x2,y2]=polar(e,r2),[x3,y3]=polar(e,r1),[x4,y4]=polar(s,r1);
+      return mk('path',{
+        d:`M${x1},${y1} A${r2},${r2} 0 0,1 ${x2},${y2} L${x3},${y3} A${r1},${r1} 0 0,0 ${x4},${y4}Z`,
+        fill, stroke:'rgba(0,0,0,.6)', 'stroke-width':'1.5'
+      });
+    };
+    svg.appendChild(mk('circle',{cx,cy,r:249,fill:'#111'}));
+    svg.appendChild(mk('circle',{cx,cy,r:237,fill:'#181818'}));
+    const g = mk('g',{});
+    const si = ['#1c1c1c','#f0ede0'], tr = ['#cc2233','#2a8c3a'], db = ['#cc2233','#2a8c3a'];
+    for (let i=0;i<20;i++) {
+      const s=i*18-9, e=(i+1)*18-9;
+      g.appendChild(sector(s,e,38,132,si[i%2]));
+      g.appendChild(sector(s,e,132,152,tr[i%2]));
+      g.appendChild(sector(s,e,152,178,si[i%2]));
+      g.appendChild(sector(s,e,178,193,db[i%2]));
+    }
+    svg.appendChild(g);
+    const ng = mk('g',{});
+    for (let i=0;i<20;i++) {
+      const [x,y]=polar(i*18,220);
+      const t = mk('text',{x,y,'text-anchor':'middle','dominant-baseline':'middle',
+        fill:'#ddd','font-family':'Arial Black','font-size':nums[i]===20?21:17,'font-weight':'bold'});
+      t.textContent=nums[i]; ng.appendChild(t);
+    }
+    svg.appendChild(ng);
+    svg.appendChild(mk('circle',{cx,cy,r:38,fill:'#1c6e32'}));
+    svg.appendChild(mk('circle',{cx,cy,r:14,fill:'#cc2233'}));
+    svg.appendChild(mk('circle',{cx,cy,r:5, fill:'#ff4455'}));
+  }
+
+  function update(dt) {
+    S.hPhase += H_RATE * dt;
+    S.hVal = Math.sin(S.hPhase) * MAX_ANGLE;
+    if (!S.active) { updateUI(); return; }
+    if (S.powerActive) {
+      const base = POWER_RATE * dt;
+      let spd;
+      const dc = Math.abs(S.power - 50);
+      if (S.power >= 100)      spd = base / 2.5;
+      else if (dc > 40)        spd = base / 3.5;
+      else if (dc > 30)        spd = base / 2.0;
+      else if (dc > 20)        spd = base / 1.3;
+      else if (dc > 10)        spd = base / 1.0;
+      else                     spd = base * 1.5;
+      S.power = Math.min(POWER_MAX, S.power + spd);
+      S.vVal = ((S.power / 100) - 0.5) * 2 * -MAX_ANGLE;
+      if (S.power >= POWER_MAX && !S.autoFired) {
+        S.autoFired = true; S.powerActive = false; fire();
+      }
+    }
+    updateUI();
+    for (let i = S.pending.length - 1; i >= 0; i--) {
+      S.pending[i].elapsed += dt;
+      if (S.pending[i].elapsed >= S.pending[i].delay) resolveDart(S.pending.splice(i, 1)[0]);
+    }
+  }
+
+  function updateUI() {
+    const hPct = (S.hVal + MAX_ANGLE) / (MAX_ANGLE * 2) * 100;
+    $('d_hNeedle').style.left = hPct.toFixed(1) + '%';
+    const hDir = S.hVal < -1 ? '좌' : S.hVal > 1 ? '우' : '정중앙';
+    $('d_hVal').textContent = Math.abs(S.hVal) < 1 ? '정중앙' : `${hDir} ${Math.abs(S.hVal).toFixed(0)}°`;
+    const NORMAL_PCT = 100 / POWER_MAX * 100;
+    let fillPct = S.power <= 100 ? (S.power/100)*NORMAL_PCT : NORMAL_PCT+((S.power-100)/(POWER_MAX-100))*(100-NORMAL_PCT);
+    const pFill = $('d_powerFill');
+    pFill.style.width = fillPct.toFixed(1) + '%';
+    pFill.classList.toggle('over', S.power > 100);
+    const pwrDir = S.power < 49 ? '아래' : S.power > 51 ? '위' : '정중앙';
+    $('d_powerVal').textContent = !S.powerActive ? '— 대기중' :
+      (Math.abs(S.vVal) < 1 ? '정중앙' : `${pwrDir} ${Math.abs(S.vVal).toFixed(0)}°`);
+    if (S.active) {
+      const ch = $('d_crosshair');
+      if (S.powerActive && S.isTest) {
+        const { nx, ny } = angleToNorm(S.vVal, S.hVal);
+        const { x, y } = normToPixel(nx, ny);
+        ch.style.left = x + 'px'; ch.style.top = y + 'px';
+        ch.classList.add('show');
+      } else ch.classList.remove('show');
+    }
+    const locked = Date.now() < S.lockUntil;
+    const btn = $('d_btnFire');
+    btn.classList.toggle('locked', locked);
+    if (locked) btn.textContent = '⏳ 재충전 중...';
+    else if (!S.powerActive) btn.textContent = '🎯';
+  }
+
+  function fire() {
+    vibrate(25);
+    S.remaining--;
+    $('d_infoShots').textContent = S.remaining;
+    S.pending.push({ vAngle: S.vVal, hAngle: S.hVal, delay: 0, elapsed: 0 });
+    S.power = 0; S.autoFired = false; S.powerActive = false;
+    S.lockUntil = Date.now() + LOCK_MS;
+    startLockBar('d_lockBarWrap', 'd_lockBar', LOCK_MS);
+    $('d_powerFill').style.width = '0%';
+    $('d_powerFill').classList.remove('over');
+    $('d_powerVal').textContent = '— 대기중';
+    $('d_resultText').textContent = '🎯 발사!';
+  }
+
+  function resolveDart(snap) {
+    const { nx, ny } = angleToNorm(snap.vAngle, snap.hAngle);
+    const result = calcDartScore(nx, ny);
+    const { x, y } = normToPixel(nx, ny);
+    addMark(x, y, result.ring);
+    S.shots.push({ score:result.score, label:result.label, ring:result.ring });
+    S.score += result.score;
+    $('d_infoScore').textContent = S.score;
+    const projected = calcReward(S.score);
+    const rewEl = $('d_infoReward');
+    if (rewEl) rewEl.textContent = projected.total > 0 ? `→ ${fmtMoney(projected.total)}` : '';
+    if (result.score >= 25) { S.combo++; if (S.combo >= 3) showCombo(S.combo); }
+    else S.combo = 0;
+    if      (result.ring === 'bull')  { flash('bull'); vibrate([60,30,60]); }
+    else if (result.score >= 20)      { flash('good'); vibrate([40]); }
+    else if (result.score === 0)      { flash('miss'); vibrate([15]); }
+    else                              { vibrate([25]); }
+    $('d_resultText').textContent = `${result.label} · +${result.score}점`;
+    if (S.remaining <= 0 && S.pending.length === 0) setTimeout(showResult, 500);
+  }
+
+  function addMark(x, y, ring) {
+    const wrap = $('d_boardWrap');
+    const mk = document.createElement('div');
+    mk.className = 'dart-mark';
+    mk.style.left = x + 'px'; mk.style.top = y + 'px';
+    const colors = {bull:'#ffd166',bull25:'#ffd166',triple:'#ff3d6b',double:'#ff3d6b',single:'#00e5ff',miss:'#6b7280'};
+    mk.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14">
+      <polygon points="7,0 8.5,5.5 14,5.5 9.5,9 11,14 7,11 3,14 4.5,9 0,5.5 5.5,5.5"
+        fill="${colors[ring]||'#aaa'}" opacity="0.95"/>
+    </svg>`;
+    wrap.appendChild(mk);
+  }
+  function clearMarks() { $('d_boardWrap').querySelectorAll('.dart-mark').forEach(m=>m.remove()); }
+
+  function showResult() {
+    const r = calcReward(S.score);
+    const total = r.total || 0;
+    $('d_resultScore').textContent = S.score;
+    $('d_resultScoreSub').textContent = `총 ${TOTAL_SHOTS}발 · 평균 ${(S.score/TOTAL_SHOTS).toFixed(1)}점`;
+    const grid = $('d_shotsGrid'); grid.innerHTML = '';
+    S.shots.forEach(s => {
+      const c = document.createElement('div');
+      c.className = 'shot-chip';
+      c.innerHTML = `<div class="pt">${s.score}</div><div class="lb">${s.label}</div>`;
+      grid.appendChild(c);
+    });
+    const rewardBox = $('dartSection').querySelector('.reward-box');
+    if (S.isTest) { rewardBox.style.background = 'rgba(255,255,255,0.04)'; rewardBox.style.borderColor = 'rgba(255,255,255,0.1)'; }
+    else { rewardBox.style.background = ''; rewardBox.style.borderColor = ''; }
+    $('d_rewardAmount').textContent = S.isTest ? '연습 모드' : fmtMoney(total);
+    $('d_rewardDetail').textContent = S.isTest
+      ? '연습 모드 · 보상이 적용되지 않습니다'
+      : (total > 0 ? `${S.score}점 달성 → ${fmtMoney(total)}` : '100점 이하 보상 없음 (101점 이상 필요)');
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    S.history.unshift({ score:S.score, reward:total, time:timeStr, test:S.isTest });
+    if (S.history.length > 10) S.history.pop();
+    renderHistory();
+    $('d_resultOverlay').classList.add('show');
+    if (total > 0 && !S.isTest) {
+      postToParent({ type:'EARN_POINTS', deltaPoints: Math.round(total / 100000), source: GAME_ID, meta:{ score: S.score } });
+      postToParent({ type:'SAVE_BALANCE', balance: hub.balDart + total, gameId: 'dart', _hubSync: true });
+      hub.balDart += total;
+      saveBal('dart', hub.balDart);
+    }
+    postToParent({ type:'GAME_OVER', gameId: GAME_ID, score: S.score, reward: Math.round(total / 100000) });
+  }
+
+  function renderHistory() {
+    const list = $('d_historyList');
+    if (!S.history.length) { list.innerHTML = '<div class="history-empty">아직 기록이 없어요</div>'; return; }
+    list.innerHTML = S.history.map(h =>
+      `<div class="history-item">
+        <span class="hi-mode">${h.test ? '🎓' : '🎯'} ${h.time || ''}</span>
+        <span class="hi-score">${h.score}점</span>
+        <span class="hi-reward">${h.test ? '연습' : (h.reward>0?fmtMoney(h.reward):'꽝')}</span>
+      </div>`
+    ).join('');
+  }
+
+  function startGame(isTest = false) {
+    clearMarks(); vibrate(40);
+    const hist = S.history;
+    S = initState(); S.history = hist;
+    S.active = true; S.isTest = isTest;
+    $('d_infoShots').textContent = TOTAL_SHOTS;
+    $('d_infoScore').textContent = 0;
+    const rewEl = $('d_infoReward'); if(rewEl) rewEl.textContent = '';
+    $('d_resultText').textContent = S.isTest ? '🎓 연습 모드 · 버튼을 눌러 발사!' : '버튼을 눌러 발사!';
+    $('d_resultOverlay').classList.remove('show');
+    closeSettings();
+  }
+
+  function openSettings()  { $('d_settingsPanel').classList.add('show'); }
+  function closeSettings() { $('d_settingsPanel').classList.remove('show'); }
+
+  // 발사 버튼 이벤트
+  function setupEvents() {
+    const btn = $('d_btnFire');
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!S.active) { toast('게임을 먼저 시작하세요!'); return; }
+      if (S.remaining <= 0) return;
+      if (Date.now() < S.lockUntil) return;
+      if (S.powerActive) return;
+      try { e.target.setPointerCapture(e.pointerId); } catch(_) {}
+      S.power = 0; S.autoFired = false; S.powerActive = true;
+    }, {passive:false});
+    btn.addEventListener('pointerup', e => {
+      e.preventDefault();
+      if (!S.powerActive) return;
+      S.powerActive = false; fire();
+    }, {passive:false});
+    btn.addEventListener('pointercancel', e => {
+      if (!S.powerActive) return;
+      S.powerActive = false; fire();
+    }, {passive:false});
+    $('d_settingsPanel').addEventListener('click', e => {
+      if (e.target === $('d_settingsPanel')) closeSettings();
+    });
+  }
+
+  return {
+    update, buildBoard, setupEvents, startGame, renderHistory,
+    openSettings, closeSettings,
+    closeResult: () => $('d_resultOverlay').classList.remove('show'),
+    startFee: () => {
+      if (hub.balDart < FEE) {
+        toast('잔액이 부족합니다! 충전하세요');
+        postToParent({ type:'REQUEST_CHARGE', gameId:'dart' });
+        return;
+      }
+      hub.balDart -= FEE;
+      saveBal('dart', hub.balDart);
+      postToParent({ type:'SAVE_BALANCE', balance: hub.balDart, gameId:'dart', _hubSync:true });
+      startGame();
+    },
+    startTest: () => { closeSettings(); startGame(true); },
+    get state() { return S; },
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+//                    양궁 게임 엔진 (ARCH)
+// ═══════════════════════════════════════════════════════════════
+const ARCH = (() => {
+  const GAME_ID     = 'archery';
+  const TOTAL_SHOTS = 10;
+  const FEE         = 100000;
+  const LOCK_MS     = 800;
+  const V_SPEED     = 0.040;
+  const H_SPEED     = 0.040;
+  const MAX_ANGLE   = 45;
+  const POWER_RATE  = 0.1119;
+  const POWER_MAX   = 120;
+
+  function getAngleRange(p) {
+    const ep = p > 100 ? 100 - (p - 100) : p;
+    if (ep <= 30) return { min:0, max:100 };
+    if (ep <= 55) return { min:15, max:85 };
+    if (ep <= 75) return { min:25, max:75 };
+    if (ep <= 90) return { min:35, max:65 };
+    return { min:42, max:58 };
+  }
+  function applyAutoFireError(vPct, hPct) {
+    const err = () => {
+      const mag = 10 + Math.random() * 20;
+      return (Math.random() > 0.5 ? 1 : -1) * mag;
+    };
+    const wrap = (v) => {
+      let r = v + err();
+      if (r < 0) r = -r;
+      if (r > 100) r = 200 - r;
+      return Math.max(0, Math.min(100, r));
+    };
+    return { vPct: wrap(vPct), hPct: wrap(hPct) };
+  }
+
+  function calcReward(score) {
+    let base = 0;
+    if      (score >= 98) base = 500000;
+    else if (score >= 91) base = 300000;
+    else if (score >= 81) base = 200000;
+    else if (score >= 71) base = 100000;
+    return { base, total: base };
+  }
+
+  function calcScore(nx, ny) {
+    const r = Math.sqrt(nx*nx + ny*ny);
+    if      (r <= 0.100) return { score:10, label:'10점 🎯', ring:'x'    };
+    else if (r <= 0.200) return { score:9,  label:'9점',     ring:'9'    };
+    else if (r <= 0.300) return { score:8,  label:'8점',     ring:'8'    };
+    else if (r <= 0.400) return { score:7,  label:'7점',     ring:'7'    };
+    else if (r <= 0.500) return { score:6,  label:'6점',     ring:'6'    };
+    else if (r <= 0.600) return { score:5,  label:'5점',     ring:'5'    };
+    else if (r <= 0.700) return { score:4,  label:'4점',     ring:'4'    };
+    else if (r <= 0.800) return { score:3,  label:'3점',     ring:'3'    };
+    else if (r <= 0.900) return { score:2,  label:'2점',     ring:'2'    };
+    else if (r <= 1.000) return { score:1,  label:'1점',     ring:'1'    };
+    else                 return { score:0,  label:'미스 ❌', ring:'miss' };
+  }
+
+  function normToPixel(nx, ny) {
+    const boardEl = $('a_boardWrap');
+    const half = boardEl ? boardEl.clientWidth / 2 : 150;
+    return { x: half + nx * half * 0.92, y: half + ny * half * 0.92 };
+  }
+
+  let S = {};
+  function initState() {
+    return {
+      active:false, isTest:false, score:0, shots:[], remaining:TOTAL_SHOTS,
+      combo:0, history:S.history||[],
+      vPct:50, hPct:50,
+      vDir:(Math.random()>0.5?1:-1), hDir:(Math.random()>0.5?1:-1),
+      smoothMin:0, smoothMax:100, vVal:0, hVal:0,
+      power:0, powerActive:false, autoFired:false,
+      lockUntil:0, pending:[],
+    };
+  }
+  S = initState();
+
+  function buildBoard() {
+    const svg = $('archerySvg'); svg.innerHTML = '';
+    const NS = 'http://www.w3.org/2000/svg';
+    const cx = 250, cy = 250;
+    const mk = (tag, attrs, txt) => {
+      const el = document.createElementNS(NS, tag);
+      Object.entries(attrs).forEach(([k,v]) => el.setAttribute(k,v));
+      if (txt) el.textContent = txt;
+      return el;
+    };
+    svg.appendChild(mk('circle',{cx,cy,r:249,fill:'#111'}));
+    svg.appendChild(mk('circle',{cx,cy,r:237,fill:'#181818'}));
+    const rings = [
+      {r:230,fill:'#fff',stroke:'#ccc'},{r:207,fill:'#fff',stroke:'#ccc'},
+      {r:184,fill:'#000',stroke:'#555'},{r:161,fill:'#000',stroke:'#555'},
+      {r:138,fill:'#1a6bc4',stroke:'#1a6bc4'},{r:115,fill:'#1a6bc4',stroke:'#1a6bc4'},
+      {r:92, fill:'#cc2233',stroke:'#cc2233'},{r:69, fill:'#cc2233',stroke:'#cc2233'},
+      {r:46, fill:'#ffd166',stroke:'#e8b800'},{r:23, fill:'#ffd166',stroke:'#e8b800'},
+    ];
+    rings.forEach(({r,fill,stroke}) => {
+      svg.appendChild(mk('circle',{cx,cy,r,fill,stroke,'stroke-width':'1.5'}));
+    });
+    svg.appendChild(mk('line',{x1:cx-230,y1:cy,x2:cx+230,y2:cy,stroke:'rgba(255,255,255,0.2)','stroke-width':'1'}));
+    svg.appendChild(mk('line',{x1:cx,y1:cy-230,x2:cx,y2:cy+230,stroke:'rgba(255,255,255,0.2)','stroke-width':'1'}));
+    svg.appendChild(mk('circle',{cx,cy,r:4,fill:'#ff3d6b'}));
+    const scores = [1,2,3,4,5,6,7,8,9,10];
+    const labelR = [218,196,173,150,127,104,81,58,35,0];
+    scores.forEach((s,i) => {
+      if (i === 9) return;
+      const lbl = mk('text',{
+        x: cx + labelR[i] + 11, y: cy + 4,
+        'text-anchor':'middle','dominant-baseline':'middle',
+        fill: i < 2 ? '#555' : i < 4 ? '#aaa' : i < 6 ? '#cce' : '#fff',
+        'font-family':'Arial','font-size':13,'font-weight':'bold'
+      });
+      lbl.textContent = s;
+      svg.appendChild(lbl);
+    });
+  }
+
+  function update(dt) {
+    const target = getAngleRange(S.active ? S.power : 0);
+    const lerpK  = 1 - Math.pow(0.004, dt / 1000);
+    S.smoothMin += (target.min - S.smoothMin) * lerpK;
+    S.smoothMax += (target.max - S.smoothMax) * lerpK;
+    S.vPct += S.vDir * V_SPEED * dt;
+    if (S.vPct <= S.smoothMin) { S.vPct = S.smoothMin; S.vDir = 1; }
+    if (S.vPct >= S.smoothMax) { S.vPct = S.smoothMax; S.vDir = -1; }
+    S.hPct += S.hDir * H_SPEED * dt;
+    if (S.hPct <= S.smoothMin) { S.hPct = S.smoothMin; S.hDir = 1; }
+    if (S.hPct >= S.smoothMax) { S.hPct = S.smoothMax; S.hDir = -1; }
+    S.vVal = (S.vPct / 100 - 0.5) * 2 * MAX_ANGLE;
+    S.hVal = (S.hPct / 100 - 0.5) * 2 * MAX_ANGLE;
+    updateUI();
+    if (!S.active) return;
+    if (S.powerActive) {
+      const base = POWER_RATE * dt;
+      let spd;
+      if      (S.power < 50)  spd = base / 3;
+      else if (S.power < 75)  spd = base / 1.8;
+      else if (S.power < 90)  spd = base / 1.2;
+      else if (S.power < 100) spd = base;
+      else                    spd = base / 2.5;
+      S.power = Math.min(POWER_MAX, S.power + spd);
+      if (S.power >= POWER_MAX && !S.autoFired) {
+        S.autoFired = true; S.powerActive = false; fire();
+      }
+    }
+    for (let i = S.pending.length - 1; i >= 0; i--) {
+      S.pending[i].elapsed += dt;
+      if (S.pending[i].elapsed >= S.pending[i].delay) resolveDart(S.pending.splice(i, 1)[0]);
+    }
+  }
+
+  function updateUI() {
+    const vPct = (S.vVal + MAX_ANGLE) / (MAX_ANGLE * 2) * 100;
+    const hPct = (S.hVal + MAX_ANGLE) / (MAX_ANGLE * 2) * 100;
+    $('a_vNeedle').style.left = vPct + '%';
+    $('a_hNeedle').style.left = hPct + '%';
+    const vDir = S.vVal < -1 ? '위' : S.vVal > 1 ? '아래' : '정중앙';
+    const hDir = S.hVal < -1 ? '좌' : S.hVal > 1 ? '우' : '정중앙';
+    $('a_vVal').textContent = Math.abs(S.vVal) < 1 ? '정중앙' : `${vDir} ${Math.abs(S.vVal).toFixed(0)}°`;
+    $('a_hVal').textContent = Math.abs(S.hVal) < 1 ? '정중앙' : `${hDir} ${Math.abs(S.hVal).toFixed(0)}°`;
+    const pFill = $('a_powerFill');
+    const NORMAL_PCT = 100 / POWER_MAX * 100;
+    let fillPct = S.power <= 100 ? (S.power/100)*NORMAL_PCT : NORMAL_PCT+((S.power-100)/(POWER_MAX-100))*(100-NORMAL_PCT);
+    pFill.style.width = fillPct.toFixed(1) + '%';
+    pFill.classList.toggle('over', S.power > 100);
+    $('a_powerVal').textContent = !S.powerActive ? '— 대기중' : `${Math.round(S.power)}%`;
+    const locked = Date.now() < S.lockUntil;
+    const btn = $('a_btnFire');
+    btn.classList.toggle('locked', locked);
+    if (locked) btn.textContent = '⏳ 재충전 중...';
+    else if (!S.powerActive) btn.textContent = '🏹';
+    if (S.active) {
+      const ch = $('a_crosshair');
+      if (S.powerActive && S.isTest) {
+        const { nx, ny } = angleToNorm(S.vVal, S.hVal);
+        const { x, y } = normToPixel(nx, ny);
+        ch.style.left = x + 'px'; ch.style.top = y + 'px';
+        ch.classList.add('show');
+      } else ch.classList.remove('show');
+    }
+  }
+
+  function fire() {
+    let vPct = S.vPct, hPct = S.hPct;
+    vibrate(25);
+    if (S.autoFired) {
+      const err = applyAutoFireError(vPct, hPct);
+      vPct = err.vPct; hPct = err.hPct;
+    }
+    const vAngle = (vPct / 100 - 0.5) * 2 * MAX_ANGLE;
+    const hAngle = (hPct / 100 - 0.5) * 2 * MAX_ANGLE;
+    S.remaining--;
+    $('a_infoShots').textContent = S.remaining;
+    S.power = 0; S.autoFired = false; S.powerActive = false;
+    $('a_powerFill').style.width = '0%';
+    $('a_powerFill').classList.remove('over');
+    $('a_powerVal').textContent = '— 대기중';
+    S.pending.push({ vAngle, hAngle, delay: 0, elapsed: 0 });
+    S.lockUntil = Date.now() + LOCK_MS;
+    startLockBar('a_lockBarWrap', 'a_lockBar', LOCK_MS);
+    $('a_resultText').textContent = '🏹 발사!';
+  }
+
+  function resolveDart(snap) {
+    const { nx, ny } = angleToNorm(snap.vAngle, snap.hAngle);
+    const result = calcScore(nx, ny);
+    const { x, y } = normToPixel(nx, ny);
+    addMark(x, y, result.ring);
+    S.shots.push({ score:result.score, label:result.label, ring:result.ring });
+    S.score += result.score;
+    $('a_infoScore').textContent = S.score;
+    const projected = calcReward(S.score);
+    const rewEl = $('a_infoReward');
+    if (rewEl) rewEl.textContent = projected.total > 0 ? `→ ${fmtMoney(projected.total)}` : '';
+    if (result.score >= 8) { S.combo++; if (S.combo >= 3) showCombo(S.combo); }
+    else S.combo = 0;
+    if      (result.ring === 'x')    { flash('bull'); vibrate([60,30,60]); }
+    else if (result.score >= 9)      { flash('good'); vibrate([50,20,50]); }
+    else if (result.score >= 7)      { flash('good'); vibrate([35]); }
+    else if (result.score === 0)     { flash('miss'); vibrate([15]); }
+    else                             { vibrate([20]); }
+    $('a_resultText').textContent = `${result.label} · +${result.score}점`;
+    if (S.remaining <= 0 && S.pending.length === 0) setTimeout(showResult, 500);
+  }
+
+  function addMark(x, y, ring) {
+    const wrap = $('a_boardWrap');
+    const mk = document.createElement('div');
+    mk.className = 'arrow-mark';
+    mk.style.left = x + 'px'; mk.style.top = y + 'px';
+    const colors = {'x':'#ffd166','9':'#ffd166','8':'#ff3d6b','7':'#ff3d6b',
+      '6':'#6ec6ff','5':'#6ec6ff','4':'#aaa','3':'#aaa','2':'#aaa','1':'#aaa','miss':'#555'};
+    mk.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10">
+      <polygon points="5,0 6,4 10,4 7,6.5 8,10 5,8 2,10 3,6.5 0,4 4,4"
+        fill="${colors[ring]||'#aaa'}" opacity="0.95"/>
+    </svg>`;
+    wrap.appendChild(mk);
+  }
+  function clearMarks() { $('a_boardWrap').querySelectorAll('.arrow-mark').forEach(m=>m.remove()); }
+
+  function launchConfetti() {
+    const wrap = $('a_confettiWrap');
+    wrap.innerHTML = ''; wrap.classList.remove('hide');
+    const colors = ['#ffd166','#06d6a0','#00e5ff','#ff3d6b','#a855f7','#fff'];
+    for (let i = 0; i < 72; i++) {
+      const el = document.createElement('div');
+      const size = 6 + Math.random() * 8;
+      el.style.cssText = `position:absolute;left:${Math.random()*100}%;top:${-10-Math.random()*20}px;
+        width:${size}px;height:${size*(Math.random()>0.5?1:2.5)}px;
+        background:${colors[Math.floor(Math.random()*colors.length)]};
+        border-radius:${Math.random()>0.5?'50%':'2px'};
+        animation:confettiFall ${1.4+Math.random()*1.2}s ${Math.random()*0.8}s ease-in forwards;opacity:0.9;`;
+      wrap.appendChild(el);
+    }
+    setTimeout(() => { wrap.classList.add('hide'); wrap.innerHTML=''; }, 3000);
+  }
+
+  function showResult() {
+    const r = calcReward(S.score);
+    $('a_resultScore').textContent = S.score;
+    $('a_resultScoreSub').textContent = `총 ${TOTAL_SHOTS}발 · 평균 ${(S.score/TOTAL_SHOTS).toFixed(1)}점`;
+    const grid = $('a_shotsGrid'); grid.innerHTML = '';
+    S.shots.forEach(s => {
+      const c = document.createElement('div');
+      c.className = 'shot-chip';
+      c.innerHTML = `<div class="pt">${s.score}</div><div class="lb">${s.label}</div>`;
+      grid.appendChild(c);
+    });
+    const rewardBox = $('archerySection').querySelector('.reward-box');
+    if (S.isTest) { rewardBox.style.background = 'rgba(255,255,255,0.04)'; rewardBox.style.borderColor = 'rgba(255,255,255,0.1)'; }
+    else { rewardBox.style.background = ''; rewardBox.style.borderColor = ''; }
+    $('a_rewardAmount').textContent = S.isTest ? '연습 모드' : fmtMoney(r.total);
+    $('a_rewardDetail').textContent = S.isTest
+      ? '연습 모드 · 보상이 적용되지 않습니다'
+      : (r.total > 0
+          ? (S.score >= 98 ? `🎯 퍼펙트! ${S.score}점 달성 → ${fmtMoney(r.total)}` : `${S.score}점 달성 → ${fmtMoney(r.total)}`)
+          : '70점 이하 보상 없음 (71점 이상 필요)');
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    S.history.unshift({ score:S.score, reward:r.total, time:timeStr, test:S.isTest });
+    if (S.history.length > 10) S.history.pop();
+    renderHistory();
+    $('a_resultOverlay').classList.add('show');
+    if (S.score >= 98 && !S.isTest) launchConfetti();
+    if (r.total > 0 && !S.isTest) {
+      postToParent({ type:'EARN_POINTS', deltaPoints: Math.round(r.total / 100000), source: GAME_ID, meta:{ score: S.score } });
+      postToParent({ type:'SAVE_BALANCE', balance: hub.balArch + r.total, gameId: 'dart', _hubSync: true });
+      hub.balArch += r.total;
+      saveBal('archery', hub.balArch);
+    }
+    postToParent({ type:'GAME_OVER', gameId: GAME_ID, score: S.score, reward: Math.round(r.total / 100000) });
+  }
+
+  function renderHistory() {
+    const list = $('a_historyList');
+    if (!S.history.length) { list.innerHTML = '<div class="history-empty">아직 기록이 없어요</div>'; return; }
+    list.innerHTML = S.history.map(h =>
+      `<div class="history-item">
+        <span class="hi-mode">${h.test ? '🎓' : '🏹'} ${h.time || ''}</span>
+        <span class="hi-score">${h.score}점</span>
+        <span class="hi-reward">${h.test ? '연습' : (h.reward>0?fmtMoney(h.reward):'꽝')}</span>
+      </div>`
+    ).join('');
+  }
+
+  function startGame(isTest = false) {
+    vibrate(40); clearMarks();
+    const cw = $('a_confettiWrap');
+    if (cw) { cw.classList.add('hide'); cw.innerHTML = ''; }
+    const hist = S.history;
+    S = initState(); S.history = hist;
+    S.active = true; S.isTest = isTest;
+    $('a_infoShots').textContent = TOTAL_SHOTS;
+    $('a_infoScore').textContent = 0;
+    const rewEl = $('a_infoReward'); if(rewEl) rewEl.textContent = '';
+    $('a_resultText').textContent = S.isTest ? '🎓 연습 모드 · 버튼을 눌렀다 떼서 발사!' : '버튼을 눌렀다 떼서 발사!';
+    $('a_resultOverlay').classList.remove('show');
+    closeSettings();
+  }
+
+  function openSettings()  { $('a_settingsPanel').classList.add('show'); }
+  function closeSettings() { $('a_settingsPanel').classList.remove('show'); }
+
+  function setupEvents() {
+    const btn = $('a_btnFire');
+    btn.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation();
+      if (!S.active) { toast('게임을 먼저 시작하세요!'); return; }
+      if (S.remaining <= 0) return;
+      if (Date.now() < S.lockUntil) return;
+      if (S.powerActive) return;
+      try { e.target.setPointerCapture(e.pointerId); } catch(_) {}
+      S.power = 0; S.autoFired = false; S.powerActive = true;
+    }, {passive:false});
+    btn.addEventListener('pointerup', e => {
+      e.preventDefault();
+      if (!S.powerActive) return;
+      S.powerActive = false; fire();
+    }, {passive:false});
+    btn.addEventListener('pointercancel', e => {
+      if (!S.powerActive) return;
+      S.powerActive = false; fire();
+    }, {passive:false});
+    $('a_settingsPanel').addEventListener('click', e => {
+      if (e.target === $('a_settingsPanel')) closeSettings();
+    });
+  }
+
+  return {
+    update, buildBoard, setupEvents, startGame, renderHistory,
+    openSettings, closeSettings,
+    closeResult: () => $('a_resultOverlay').classList.remove('show'),
+    startFee: () => {
+      if (hub.balArch < FEE) {
+        toast('잔액이 부족합니다! 충전하세요');
+        postToParent({ type:'REQUEST_CHARGE', gameId:'archery' });
+        return;
+      }
+      hub.balArch -= FEE;
+      saveBal('archery', hub.balArch);
+      postToParent({ type:'SAVE_BALANCE', balance: hub.balArch, gameId:'dart', _hubSync:true });
+      startGame();
+    },
+    startTest: () => { closeSettings(); startGame(true); },
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════
+//  통합 메인 루프
+// ═══════════════════════════════════════════════════════════════
+let lastTs = null;
+function mainLoop(ts) {
+  requestAnimationFrame(mainLoop);
+  if (!lastTs) { lastTs = ts; return; }
+  const dt = Math.min(40, ts - lastTs);
+  lastTs = ts;
+  DART.update(dt);
+  ARCH.update(dt);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  초기화
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  DART.buildBoard();
+  DART.renderHistory();
+  DART.setupEvents();
+  ARCH.buildBoard();
+  ARCH.renderHistory();
+  ARCH.setupEvents();
+  loadLocalBals();
+  renderHUD();
+  requestAnimationFrame(mainLoop);
+  postToParent({ type: 'REQUEST_POINT_INFO' });
+  setTimeout(() => {
+    if (hub.points === 0) postToParent({ type: 'REQUEST_POINT_INFO' });
+  }, 1000);
+  // 다트 설정 자동 열기
+  setTimeout(() => DART.openSettings(), 300);
+});
+</script>
+</body>
+</html>
