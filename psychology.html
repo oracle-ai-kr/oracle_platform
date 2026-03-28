@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>심리전</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f;--panel:#0d0f1e;
+  --accent:#7c3aed;--accent2:#a855f7;--gold:#f59e0b;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --red:#ef4444;--green:#22c55e;--pink:#ec4899;
+  --border:rgba(168,85,247,.25);--radius:14px;
+  --h-bar:52px;
+  --safe-top:env(safe-area-inset-top,0px);
+  --top-total:calc(var(--h-bar) + var(--safe-top));
+  --theme-color:#7c3aed;--theme-color2:#a855f7;--theme-glow:rgba(124,58,237,.3);
+}
+/* WebView에서 safe-area가 0으로 오는 경우를 위한 fallback: JS로 --safe-top 재설정 */
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;overflow-x:hidden;}
+body.theme-easy   {--theme-color:#22c55e;--theme-color2:#4ade80;--theme-glow:rgba(34,197,94,.25);--border:rgba(34,197,94,.2);}
+body.theme-normal {--theme-color:#7c3aed;--theme-color2:#a855f7;--theme-glow:rgba(124,58,237,.3);--border:rgba(168,85,247,.25);}
+body.theme-hard   {--theme-color:#d97706;--theme-color2:#f59e0b;--theme-glow:rgba(217,119,6,.3); --border:rgba(245,158,11,.25);}
+body.theme-extreme{--theme-color:#dc2626;--theme-color2:#ef4444;--theme-glow:rgba(220,38,38,.35);--border:rgba(239,68,68,.25);}
+
+/* ── TOP BAR ── */
+#topBar{position:fixed;top:0;left:0;right:0;height:var(--top-total);background:rgba(13,15,30,.97);border-bottom:1px solid var(--border);display:flex;align-items:flex-end;padding:0 12px calc(8px) 12px;padding-top:var(--safe-top);gap:8px;z-index:100;backdrop-filter:blur(8px);}
+body.in-iframe #topBar{display:none!important;}
+body.in-iframe .main{padding-top:12px!important;}
+#homeBtn{background:rgba(124,58,237,.15);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:18px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s;}
+#homeBtn:hover{background:rgba(124,58,237,.3);}
+#gameTitle{font-family:'Black Han Sans',sans-serif;font-size:20px;letter-spacing:2px;color:var(--accent2);flex:1;text-align:center;}
+#balBox{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:4px 10px;font-size:13px;color:var(--gold);white-space:nowrap;}
+#pointBox{background:rgba(74,144,226,.12);border:1px solid rgba(74,144,226,.3);border-radius:8px;padding:4px 10px;font-size:13px;color:#8bc4f8;white-space:nowrap;}
+#chargeBtn{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;padding:6px 10px;cursor:pointer;white-space:nowrap;transition:.2s;}
+#chargeBtn:hover{filter:brightness(1.2);}
+
+.main{padding-top:80px;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:14px;padding-left:12px;padding-right:12px;}
+
+/* ── START SCREEN ── */
+#startScreen{display:flex;flex-direction:column;gap:12px;}
+.cost-banner{background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(168,85,247,.1));border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center;}
+.cost-banner .cost-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+
+/* A. 베팅 조절 */
+.bet-selector{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.bet-title{font-size:12px;color:var(--text2);font-weight:700;letter-spacing:1px;margin-bottom:10px;}
+.bet-opts{display:flex;gap:8px;}
+.bet-opt{flex:1;padding:10px 6px;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);border-radius:10px;text-align:center;cursor:pointer;transition:.2s;}
+.bet-opt .bo-amt{font-family:'Black Han Sans',sans-serif;font-size:16px;color:var(--text);}
+.bet-opt .bo-ret{font-size:10px;color:var(--text3);margin-top:2px;}
+.bet-opt.selected{border-color:var(--theme-color);background:color-mix(in srgb,var(--theme-color) 15%,transparent);}
+.bet-opt.selected .bo-amt{color:var(--theme-color2);}
+.bet-opt:hover:not(.selected){border-color:rgba(255,255,255,.25);background:rgba(255,255,255,.08);}
+
+.payout-table{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.pt-title{font-size:12px;color:var(--text2);font-weight:700;letter-spacing:1px;margin-bottom:10px;}
+.pt-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.pt-row.last{border:none;}
+.pt-cond{font-size:14px;}.pt-pay{font-size:14px;font-weight:700;}
+.pt-pay.gold{color:var(--gold);}.pt-pay.green{color:var(--green);}.pt-pay.red{color:var(--red);}
+.win-rate-box{display:flex;gap:6px;margin-top:8px;}
+.wr-item{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:6px;text-align:center;}
+.wr-label{font-size:10px;color:var(--text3);}
+.wr-val{font-size:15px;font-weight:700;margin-top:2px;}
+.wr-val.gold{color:var(--gold);}.wr-val.green{color:var(--green);}.wr-val.red{color:var(--red);}
+
+/* E. 미션 */
+.mission-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+.mb-title{font-size:12px;color:var(--text2);font-weight:700;letter-spacing:1px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+.mb-list{display:flex;flex-direction:column;gap:6px;}
+.mission-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.03);}
+.mission-row.done{background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.15);}
+.mr-icon{font-size:18px;width:24px;text-align:center;}
+.mr-info{flex:1;}
+.mr-name{font-size:12px;font-weight:700;}
+.mr-desc{font-size:10px;color:var(--text3);}
+.mr-reward{font-size:11px;color:var(--gold);font-weight:700;white-space:nowrap;}
+.mr-done{font-size:11px;color:var(--green);font-weight:700;}
+
+/* F. AI 레벨 진화 알림 */
+.evo-banner{position:fixed;top:calc(var(--top-total)+12px);left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(239,68,68,.95),rgba(220,38,38,.9));border:1px solid rgba(239,68,68,.5);border-radius:var(--radius);padding:10px 20px;display:none;align-items:center;gap:10px;z-index:310;white-space:nowrap;box-shadow:0 4px 24px rgba(239,68,68,.4);}
+.evo-banner.show{display:flex;animation:slideIn .4s ease;}
+.eb-icon{font-size:24px;}.eb-text{flex:1;font-size:12px;color:#fca5a5;font-weight:700;}
+
+/* D. 대전 기록 / 라이벌 */
+.rival-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+.rb-title{font-size:12px;color:var(--text2);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.rival-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.rival-row:last-child{border:none;}
+.rr-avatar{font-size:22px;width:30px;text-align:center;}
+.rr-info{flex:1;}
+.rr-name{font-size:13px;font-weight:700;}
+.rr-record{font-size:11px;color:var(--text3);}
+.rr-tag{font-size:10px;padding:2px 6px;border-radius:6px;font-weight:700;}
+.rr-tag.revenge{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.25);}
+.rr-tag.dominate{background:rgba(34,197,94,.12);color:#86efac;border:1px solid rgba(34,197,94,.2);}
+
+.consec-banner{background:linear-gradient(135deg,rgba(245,158,11,.15),rgba(251,191,36,.06));border:1px solid rgba(245,158,11,.3);border-radius:var(--radius);padding:10px 14px;display:none;align-items:center;gap:10px;}
+.consec-banner.show{display:flex;}
+.cb-icon{font-size:22px;}.cb-text{font-size:12px;color:var(--gold);font-weight:700;flex:1;}
+.cb-badge{font-size:11px;background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.4);color:var(--gold);border-radius:8px;padding:2px 8px;font-weight:700;}
+
+.ai-profile-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:12px;transition:border-color .4s;}
+.ai-avatar{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:2px solid var(--border);transition:.4s;flex-shrink:0;}
+/* G. 아바타 애니메이션 */
+@keyframes avatarShake{0%,100%{transform:rotate(0);}20%{transform:rotate(-8deg);}40%{transform:rotate(8deg);}60%{transform:rotate(-5deg);}80%{transform:rotate(5deg);}}
+@keyframes avatarBounce{0%,100%{transform:scale(1);}30%{transform:scale(1.3);}60%{transform:scale(.9);}}
+@keyframes avatarSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.ai-avatar.shake{animation:avatarShake .5s ease;}
+.ai-avatar.bounce{animation:avatarBounce .5s ease;}
+.ai-avatar.evolve{animation:avatarSpin .6s ease;}
+.ai-info{flex:1;min-width:0;}
+.ai-tier-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:4px;}
+.ai-atmo-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:3px;overflow:hidden;}
+.ai-atmo-fill{height:100%;border-radius:3px;transition:.6s ease;}
+.tilt-indicator{font-size:11px;margin-top:5px;padding:3px 8px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:6px;color:#fca5a5;display:none;}
+.tilt-indicator.show{display:block;}
+/* F. 진화 레벨 게이지 */
+.evo-bar-wrap{margin-top:4px;}
+.evo-bar-label{font-size:10px;color:var(--text3);display:flex;justify-content:space-between;}
+.evo-bar{height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-top:2px;}
+.evo-bar-fill{height:100%;border-radius:2px;transition:width .6s ease;background:var(--theme-color);}
+
+/* ② 플레이어 성장 카드 */
+.player-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:14px;}
+.pc-avatar{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;border:2px solid var(--border);flex-shrink:0;transition:.5s;}
+@keyframes rankUp{0%{transform:scale(1);}30%{transform:scale(1.5) rotate(-15deg);}60%{transform:scale(1.2) rotate(8deg);}100%{transform:scale(1) rotate(0);}}
+.pc-avatar.rankup{animation:rankUp .7s ease;}
+.pc-info{flex:1;min-width:0;}
+.pc-title{font-size:11px;color:var(--text3);margin-bottom:2px;}
+.pc-rank{font-family:'Black Han Sans',sans-serif;font-size:18px;color:var(--accent2);}
+.pc-exp-bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:5px;}
+.pc-exp-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .7s ease;}
+.pc-exp-label{font-size:10px;color:var(--text3);margin-top:3px;display:flex;justify-content:space-between;}
+.pc-wins-total{font-size:20px;font-weight:900;color:var(--gold);text-align:right;white-space:nowrap;}
+.pc-wins-label{font-size:10px;color:var(--text3);text-align:right;}
+
+/* ① 공정성 리포트 패널 */
+.fairness-box{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+.fb-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.fb-title{font-size:12px;color:var(--text2);font-weight:700;letter-spacing:1px;}
+.fb-toggle{font-size:11px;color:var(--accent2);cursor:pointer;background:none;border:1px solid var(--border);border-radius:6px;padding:2px 8px;}
+.fb-body{display:none;}
+.fb-body.open{display:block;}
+.fb-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;}
+.fb-row:last-child{border:none;}
+.fb-label{color:var(--text3);}
+.fb-val{font-weight:700;}
+.fb-bar-row{margin-top:8px;}
+.fb-bar-label{font-size:10px;color:var(--text3);margin-bottom:3px;}
+.fb-bar-wrap{height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden;display:flex;}
+.fb-bar-rock{background:#a855f7;height:100%;transition:width .5s ease;}
+.fb-bar-scissors{background:#f59e0b;height:100%;transition:width .5s ease;}
+.fb-bar-paper{background:#22c55e;height:100%;transition:width .5s ease;}
+.fb-legend{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap;}
+.fb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.fb-legend-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3);}
+
+/* ④ 패배 분석 오버레이 */
+.defeat-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;flex-direction:column;align-items:center;z-index:205;backdrop-filter:blur(8px);overflow-y:auto;padding:24px 16px;gap:12px;}
+.defeat-overlay.show{display:flex;animation:fadeIn .35s ease;}
+.defeat-header{font-family:'Black Han Sans',sans-serif;font-size:26px;color:var(--red);text-align:center;}
+.defeat-sub{font-size:13px;color:var(--text3);text-align:center;margin-top:-4px;}
+.defeat-timeline{width:100%;max-width:360px;}
+.dt-title{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.dt-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.03);margin-bottom:5px;border-left:3px solid transparent;}
+.dt-row.win{border-left-color:var(--green);}
+.dt-row.lose{border-left-color:var(--red);}
+.dt-row.draw{border-left-color:var(--gold);}
+.dt-round{font-size:11px;color:var(--text3);width:28px;flex-shrink:0;}
+.dt-choices{display:flex;align-items:center;gap:6px;font-size:18px;flex:1;}
+.dt-vs{font-size:10px;color:var(--text3);}
+.dt-result{font-size:12px;font-weight:700;white-space:nowrap;}
+.dt-result.win{color:var(--green);}
+.dt-result.lose{color:var(--red);}
+.dt-result.draw{color:var(--gold);}
+.dt-insight{font-size:10px;color:var(--text3);margin-top:1px;}
+.defeat-verdict{width:100%;max-width:360px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:14px 16px;}
+.dv-title{font-size:11px;color:var(--red);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.dv-item{font-size:13px;color:var(--text2);line-height:1.7;padding-left:14px;position:relative;}
+.dv-item::before{content:'→';position:absolute;left:0;color:var(--red);}
+.defeat-hint{width:100%;max-width:360px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2);border-radius:12px;padding:14px 16px;}
+.dh-title{font-size:11px;color:var(--accent2);font-weight:700;letter-spacing:1px;margin-bottom:6px;}
+.dh-text{font-size:13px;color:var(--text2);line-height:1.7;}
+.defeat-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+
+/* ② 랭크업 연출 */
+.rankup-pop{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:rgba(13,15,30,.98);border:2px solid var(--gold);border-radius:20px;padding:28px 36px;text-align:center;z-index:300;pointer-events:none;opacity:0;transition:.3s;}
+.rankup-pop.show{transform:translate(-50%,-50%) scale(1);opacity:1;}
+.rup-icon{font-size:52px;}
+.rup-title{font-family:'Black Han Sans',sans-serif;font-size:22px;color:var(--gold);margin-top:8px;}
+.rup-sub{font-size:13px;color:var(--text2);margin-top:4px;}
+
+.start-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--theme-color),var(--theme-color2));border:none;border-radius:14px;color:#fff;font-family:'Black Han Sans',sans-serif;font-size:22px;letter-spacing:3px;cursor:pointer;transition:.25s;position:relative;overflow:hidden;}
+.start-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,.12),transparent);transform:translateX(-100%);transition:.5s;}
+.start-btn:not(:disabled):hover::after{transform:translateX(100%);}
+.start-btn:disabled{opacity:.4;cursor:not-allowed;}
+.start-btn:hover:not(:disabled){filter:brightness(1.15);transform:translateY(-1px);box-shadow:0 8px 24px var(--theme-glow);}
+
+/* ── GAME SCREEN ── */
+#gameScreen{display:none;flex-direction:column;gap:12px;}
+.round-bar{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+.round-dots{display:flex;gap:6px;}
+.round-dot{width:24px;height:24px;border-radius:50%;border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text3);transition:.3s;}
+.round-dot.win{background:var(--green);border-color:var(--green);color:#fff;}
+.round-dot.lose{background:var(--red);border-color:var(--red);color:#fff;}
+.round-dot.draw{background:var(--gold);border-color:var(--gold);color:#000;}
+.round-dot.current{border-color:var(--accent2);color:var(--accent2);animation:pulse 1s infinite;}
+.round-dot.golden{border-color:var(--gold)!important;box-shadow:0 0 8px rgba(245,158,11,.7);color:var(--gold)!important;font-size:10px;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(168,85,247,.4);}50%{box-shadow:0 0 0 6px rgba(168,85,247,0);}}
+
+.bet-display{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:6px 14px;display:flex;align-items:center;justify-content:space-between;font-size:12px;}
+.bd-label{color:var(--text3);}
+.bd-val{font-family:'Black Han Sans',sans-serif;font-size:16px;color:var(--gold);}
+
+.score-bar{display:flex;gap:8px;}
+.score-card{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px;text-align:center;}
+.score-card .s-label{font-size:11px;color:var(--text3);margin-bottom:4px;}
+.score-card .s-num{font-family:'Black Han Sans',sans-serif;font-size:28px;}
+.s-num.player{color:var(--accent2);}.s-num.ai-s{color:var(--red);}
+
+/* ARENA */
+.arena{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:18px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;transition:border-color .4s,box-shadow .4s;}
+.arena.glow{box-shadow:0 0 28px var(--theme-glow),inset 0 0 20px rgba(0,0,0,.2);}
+.vs-row{display:flex;align-items:center;gap:20px;width:100%;}
+.fighter{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.fighter-icon-wrap{position:relative;display:flex;align-items:center;justify-content:center;}
+.fighter-icon{font-size:52px;line-height:1;transition:.2s;}
+/* G. 파이터 아이콘 애니메이션 */
+@keyframes fighterWin{0%,100%{transform:scale(1) rotate(0);}30%{transform:scale(1.4) rotate(-10deg);}60%{transform:scale(1.2) rotate(5deg);}}
+@keyframes fighterLose{0%,100%{transform:scale(1);}20%,60%{transform:scale(.85);}40%,80%{transform:scale(.95);}}
+@keyframes fighterDraw{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.fighter-icon.win-anim{animation:fighterWin .6s ease;}
+.fighter-icon.lose-anim{animation:fighterLose .5s ease;}
+.fighter-icon.draw-anim{animation:fighterDraw .5s ease;}
+.fighter-name{font-size:12px;color:var(--text2);}
+.choice-display{width:56px;height:56px;background:rgba(255,255,255,.05);border:2px solid var(--border);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:30px;transition:.3s;}
+.choice-display.selected{border-color:var(--accent2);background:rgba(168,85,247,.15);}
+.choice-display.ai-revealed{border-color:var(--red);background:rgba(239,68,68,.1);}
+.choice-display.golden-glow{border-color:var(--gold)!important;box-shadow:0 0 12px rgba(245,158,11,.5);}
+@keyframes revealAnim{from{transform:scale(0) rotate(180deg);}to{transform:scale(1) rotate(0deg);}}
+.choice-display.reveal{animation:revealAnim .3s ease;}
+
+/* 타이머 */
+.timer-wrap{width:100%;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;display:none;}
+.timer-wrap.show{display:block;}
+.timer-bar{height:100%;border-radius:3px;}
+@keyframes urgentPulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+.timer-bar.urgent{animation:urgentPulse .35s infinite;}
+
+/* THINKING DOTS */
+@keyframes thinkDot{0%,80%,100%{transform:scale(.6);opacity:.3}40%{transform:scale(1);opacity:1}}
+.thinking-dots{display:flex;gap:4px;align-items:center;}
+.thinking-dots span{width:6px;height:6px;background:var(--accent2);border-radius:50%;animation:thinkDot 1.2s ease-in-out infinite;}
+.thinking-dots span:nth-child(2){animation-delay:.15s;}
+.thinking-dots span:nth-child(3){animation-delay:.3s;}
+
+.vs-badge{font-family:'Black Han Sans',sans-serif;font-size:24px;color:var(--text3);}
+.hint-bar{font-size:13px;color:var(--text3);text-align:center;min-height:20px;display:flex;align-items:center;justify-content:center;gap:6px;}
+
+.bluff-bubble{background:rgba(236,72,153,.1);border:1px solid rgba(236,72,153,.3);border-radius:10px;padding:7px 12px;font-size:12px;color:#f9a8d4;text-align:center;display:none;width:100%;}
+.bluff-bubble.show{display:block;animation:slideIn .3s ease;}
+
+/* C. 스킬 버튼 */
+.skill-bar{display:flex;gap:6px;width:100%;}
+.skill-btn{flex:1;padding:8px 4px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:var(--text);font-size:11px;cursor:pointer;transition:.2s;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative;}
+.skill-btn .sk-icon{font-size:18px;}
+.skill-btn .sk-name{font-size:9px;color:var(--text3);}
+.skill-btn:hover:not(:disabled){background:rgba(168,85,247,.15);border-color:var(--accent);}
+.skill-btn:disabled{opacity:.3;cursor:not-allowed;}
+.skill-btn.used{opacity:.25;cursor:not-allowed;}
+.skill-btn.ready{border-color:var(--theme-color);box-shadow:0 0 8px var(--theme-glow);}
+.skill-used-overlay{position:absolute;inset:0;background:rgba(0,0,0,.5);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+
+/* CHOICE BUTTONS */
+.choice-btns{display:flex;gap:10px;width:100%;}
+.choice-btn{flex:1;padding:14px 8px;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:14px;color:var(--text);font-size:26px;cursor:pointer;transition:.18s;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;overflow:hidden;}
+.choice-btn .lbl{font-size:11px;color:var(--text2);}
+.choice-btn .sub{font-size:9px;color:var(--text3);display:none;}
+.choice-btn.hints-on .sub{display:block;}
+.choice-btn:hover:not(:disabled){background:rgba(168,85,247,.2);border-color:var(--accent);transform:translateY(-3px);box-shadow:0 8px 20px rgba(124,58,237,.3);}
+.choice-btn:active:not(:disabled){transform:translateY(0);}
+.choice-btn:disabled{opacity:.35;cursor:not-allowed;}
+/* 모바일 320px 이하 버튼 최소 높이 보장 */
+@media(max-width:360px){
+  .choice-btn{min-height:72px;font-size:22px;padding:10px 4px;}
+  .choice-btn .lbl{font-size:10px;}
+}
+/* 타이머 일시정지 표시 */
+.timer-wrap.paused .timer-bar{opacity:.4;}
+.timer-paused-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:10px;color:var(--gold);font-weight:700;background:rgba(0,0,0,.7);padding:1px 6px;border-radius:4px;pointer-events:none;display:none;}
+.timer-wrap.paused .timer-paused-badge{display:block;}
+
+#hintToggleBtn{position:absolute;top:8px;left:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--text3);font-size:10px;padding:2px 7px;cursor:pointer;z-index:5;transition:.2s;}
+#hintToggleBtn.on{color:var(--gold);border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.1);}
+.streak-badge{position:absolute;top:8px;right:8px;font-size:12px;font-weight:700;padding:2px 6px;border-radius:10px;background:rgba(245,158,11,.2);color:var(--gold);border:1px solid rgba(245,158,11,.3);display:none;}
+.streak-badge.show{display:block;}
+.rescue-badge{font-size:11px;padding:4px 10px;border-radius:8px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#fca5a5;display:none;text-align:center;width:100%;}
+.rescue-badge.show{display:block;animation:slideIn .3s ease;}
+.early-info{font-size:12px;color:var(--text3);text-align:center;padding:6px;background:rgba(255,255,255,.03);border-radius:8px;display:none;width:100%;}
+.early-info.show{display:block;}
+
+/* B. 더블다운 */
+.doubledown-wrap{width:100%;display:none;}
+.doubledown-wrap.show{display:block;animation:slideIn .3s ease;}
+.dd-btn{width:100%;padding:12px;background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(251,191,36,.1));border:2px solid rgba(245,158,11,.5);border-radius:12px;color:var(--gold);font-family:'Black Han Sans',sans-serif;font-size:16px;letter-spacing:1px;cursor:pointer;transition:.2s;position:relative;overflow:hidden;}
+.dd-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);transform:translateX(-100%);animation:ddShimmer 2s infinite;}
+@keyframes ddShimmer{to{transform:translateX(200%);}}
+.dd-btn:hover{filter:brightness(1.2);transform:scale(1.02);}
+.dd-skip{font-size:11px;color:var(--text3);text-align:center;cursor:pointer;margin-top:4px;padding:10px 16px;}
+.dd-skip:hover{color:var(--text2);}
+
+/* SKILL RESULT OVERLAY */
+.skill-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:160;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.skill-overlay.show{display:flex;animation:fadeIn .25s ease;}
+.skill-panel{background:rgba(13,15,30,.98);border:2px solid var(--border);border-radius:20px;padding:24px;max-width:280px;width:90%;text-align:center;}
+.sp-title{font-family:'Black Han Sans',sans-serif;font-size:20px;margin-bottom:12px;}
+.sp-content{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:16px;}
+.sp-close{padding:10px 24px;background:linear-gradient(135deg,var(--theme-color),var(--theme-color2));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;}
+
+/* ROUND POPUP */
+.round-result{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(13,15,30,.97);border:2px solid var(--border);border-radius:20px;padding:20px 32px;text-align:center;z-index:250;display:none;pointer-events:none;backdrop-filter:blur(8px);}
+.round-result.show{display:block;animation:popIn .3s ease;}
+@keyframes popIn{from{transform:translate(-50%,-50%) scale(.5);opacity:0;}to{transform:translate(-50%,-50%) scale(1);opacity:1;}}
+.rr-emoji{font-size:48px;}.rr-text{font-family:'Black Han Sans',sans-serif;font-size:24px;margin-top:4px;}
+.rr-sub{font-size:12px;color:var(--text2);margin-top:4px;}
+.rr-golden{font-size:13px;color:var(--gold);font-weight:700;margin-top:6px;display:none;}
+.rr-golden.show{display:block;}
+.rr-text.win{color:var(--green);}.rr-text.lose{color:var(--red);}.rr-text.draw{color:var(--gold);}
+
+/* FINAL OVERLAY */
+.result-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:200;gap:10px;backdrop-filter:blur(8px);overflow-y:auto;padding:20px 16px;}
+.result-overlay.show{display:flex;animation:fadeIn .4s ease;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.ro-icon{font-size:72px;}.ro-title{font-family:'Black Han Sans',sans-serif;font-size:48px;}
+.ro-title.win{color:var(--green);}.ro-title.lose{color:var(--red);}.ro-title.draw{color:var(--gold);}
+.ro-sub{font-size:16px;color:var(--text2);text-align:center;line-height:1.6;}
+.ro-payout{font-family:'Black Han Sans',sans-serif;font-size:26px;color:var(--gold);text-align:center;}
+.match-summary{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ms-round{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;}
+.ms-round.win{background:var(--green);color:#fff;}.ms-round.lose{background:var(--red);color:#fff;}.ms-round.draw{background:var(--gold);color:#000;}
+.ms-round.golden{background:var(--gold);color:#000;box-shadow:0 0 8px rgba(245,158,11,.9);}
+.pattern-report{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:12px 16px;width:100%;max-width:300px;}
+.pr-title{font-size:11px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.pr-bars{display:flex;flex-direction:column;gap:6px;}
+.pr-row{display:flex;align-items:center;gap:8px;}
+.pr-icon{font-size:16px;width:22px;text-align:center;}
+.pr-bar-wrap{flex:1;height:7px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;}
+.pr-bar-fill{height:100%;border-radius:4px;transition:width .7s ease;}
+.pr-pct{font-size:11px;color:var(--text2);width:30px;text-align:right;}
+/* E. 게임 내 미션 달성 알림 */
+.mission-pop{position:fixed;top:calc(var(--top-total)+18px);left:50%;transform:translateX(-50%) translateY(-80px);background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:8px 18px;font-size:13px;color:var(--gold);font-weight:700;z-index:300;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;}
+.mission-pop.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.ro-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+.ro-btn{padding:11px 20px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.2s;}
+.ro-btn.home{background:rgba(255,255,255,.1);color:var(--text);}
+.ro-btn.home:hover{background:rgba(255,255,255,.2);}
+.ro-btn.again{background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;}
+.ro-btn.again:hover{filter:brightness(1.15);}
+.ro-btn.share{background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.3);color:var(--green);}
+.ro-btn.share:hover{background:rgba(34,197,94,.22);}
+
+.ai-comment{background:rgba(124,58,237,.1);border:1px solid rgba(168,85,247,.2);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--text2);line-height:1.6;display:none;position:relative;}
+.ai-comment::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent2);border-radius:3px 0 0 3px;}
+.ai-comment.show{display:block;animation:slideIn .3s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:rgba(30,32,60,.96);border:1px solid var(--border);border-radius:20px;padding:10px 22px;font-size:14px;color:var(--text);z-index:999;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@keyframes scoreFlash{0%{transform:scale(1);}50%{transform:scale(1.3);}100%{transform:scale(1);}}
+.score-flash{animation:scoreFlash .3s ease;}
+#confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:195;display:none;}
+</style>
+</head>
+<body class="theme-normal">
+
+<div id="topBar">
+  <button id="homeBtn" onclick="goHome()">🏠</button>
+  <span id="gameTitle">🧠 심리전</span>
+  <div id="balBox">₩ <span id="balNum">0</span></div>
+  <div id="pointBox">🪙 <span id="pointNum">0</span>P</div>
+  <button id="chargeBtn" onclick="requestCharge()">충전</button>
+</div>
+
+<div class="main">
+  <!-- ══ START SCREEN ══ -->
+  <div id="startScreen">
+
+    <!-- ② 플레이어 성장 카드 -->
+    <div class="player-card" id="playerCard">
+      <div class="pc-avatar" id="pcAvatar">🧑</div>
+      <div class="pc-info">
+        <div class="pc-title">나의 등급</div>
+        <div class="pc-rank" id="pcRank">뉴비</div>
+        <div class="pc-exp-bar"><div class="pc-exp-fill" id="pcExpFill" style="width:0%"></div></div>
+        <div class="pc-exp-label"><span id="pcExpLabel">0 / 3 승</span><span id="pcNextRank" style="color:var(--accent2)"></span></div>
+      </div>
+      <div>
+        <div class="pc-wins-total" id="pcWinsTotal">0</div>
+        <div class="pc-wins-label">총 승리</div>
+      </div>
+    </div>
+
+    <!-- ① 공정성 리포트 -->
+    <div class="fairness-box" id="fairnessBox" style="display:none;">
+      <div class="fb-header">
+        <span class="fb-title">⚖️ 공정성 리포트</span>
+        <button class="fb-toggle" onclick="toggleFairness()">상세 보기 ▾</button>
+      </div>
+      <div class="fb-body" id="fairnessBody"></div>
+    </div>
+
+    <!-- A. 베팅 조절 -->
+    <div class="bet-selector">
+      <div class="bet-title">💰 베팅 금액 선택</div>
+      <div class="bet-opts" id="betOpts">
+        <div class="bet-opt" data-bet="50000" onclick="selectBet(50000)">
+          <div class="bo-amt">₩50,000</div><div class="bo-ret">3승 → +₩50K</div>
+        </div>
+        <div class="bet-opt selected" data-bet="100000" onclick="selectBet(100000)">
+          <div class="bo-amt">₩100,000</div><div class="bo-ret">3승 → +₩100K</div>
+        </div>
+        <div class="bet-opt" data-bet="200000" onclick="selectBet(200000)">
+          <div class="bo-amt">₩200,000</div><div class="bo-ret">3승 → +₩200K</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cost-banner" id="costBanner">
+      <div style="font-family:'Black Han Sans',sans-serif;font-size:28px;color:var(--gold);" id="costNum">₩100,000</div>
+      <div class="cost-sub">5라운드 가위바위보 심리전</div>
+    </div>
+
+    <div class="payout-table" id="payoutTableEl">
+      <div class="pt-title">💎 페이아웃 테이블</div>
+      <div id="payoutRows"></div>
+      <div class="win-rate-box">
+        <div class="wr-item"><div class="wr-label">기대 수익</div><div class="wr-val" id="evDisplay">—</div></div>
+        <div class="wr-item"><div class="wr-label">승률</div><div class="wr-val" id="winRateDisplay">—</div></div>
+        <div class="wr-item"><div class="wr-label">플레이</div><div class="wr-val gold" id="playCountDisplay">0</div></div>
+      </div>
+    </div>
+
+    <!-- E. 미션 -->
+    <div class="mission-box">
+      <div class="mb-title">
+        <span>🎯 미션</span>
+        <span style="font-size:11px;color:var(--text3);">달성 시 보너스 지급</span>
+      </div>
+      <div class="mb-list" id="missionList"></div>
+    </div>
+
+    <!-- D. 라이벌 -->
+    <div class="rival-box" id="rivalBox" style="display:none;">
+      <div class="rb-title">⚔️ 대전 기록</div>
+      <div id="rivalList"></div>
+    </div>
+
+    <div class="consec-banner" id="consecBanner">
+      <div class="cb-icon">🔥</div>
+      <div class="cb-text" id="consecText">연속 승리 보너스!</div>
+      <div class="cb-badge" id="consecBadge">×1.0</div>
+    </div>
+
+    <div class="ai-profile-box" id="aiProfileBox">
+      <div class="ai-avatar" id="aiAvatar">🤖</div>
+      <div class="ai-info">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="ai-tier-badge" id="aiTierBadge">NORMAL</div>
+          <span style="font-size:10px;color:var(--text3);" id="aiEvoLevel">Lv.1</span>
+        </div>
+        <div style="font-size:14px;font-weight:700;margin-top:2px;" id="aiMoodText">분위기: 보통</div>
+        <div class="evo-bar-wrap">
+          <div class="evo-bar-label"><span style="font-size:10px;color:var(--text3);">진화 게이지</span><span id="evoGaugeLabel" style="font-size:10px;color:var(--text3);">0 / 5</span></div>
+          <div class="evo-bar"><div class="evo-bar-fill" id="evoBarFill" style="width:0%;"></div></div>
+        </div>
+        <div class="ai-atmo-bar" style="margin-top:4px;"><div class="ai-atmo-fill" id="atmoFill"></div></div>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px;" id="tierDesc"></div>
+        <div class="tilt-indicator" id="tiltIndicator">😤 AI 흔들림 — 지금이 기회!</div>
+      </div>
+    </div>
+    <button class="start-btn" id="startBtn" onclick="startGame()">⚔️ 게임 시작</button>
+  </div>
+
+  <!-- ══ GAME SCREEN ══ -->
+  <div id="gameScreen">
+    <div class="round-bar">
+      <span style="font-size:13px;color:var(--text2);">라운드</span>
+      <div class="round-dots" id="roundDots"></div>
+      <span style="font-size:13px;color:var(--text2);" id="roundLabel">1 / 5</span>
+    </div>
+    <div class="bet-display">
+      <span class="bd-label">현재 베팅</span>
+      <span class="bd-val" id="betDisplay">₩100,000</span>
+    </div>
+    <div class="score-bar">
+      <div class="score-card"><div class="s-label">나</div><div class="s-num player" id="playerScore">0</div></div>
+      <div class="score-card" style="flex:.4;"><div class="s-label">무</div><div class="s-num" style="color:var(--gold);font-size:22px;" id="drawScore">0</div></div>
+      <div class="score-card"><div class="s-label">AI</div><div class="s-num ai-s" id="aiScore">0</div></div>
+    </div>
+
+    <div class="arena glow" id="arena">
+      <button id="hintToggleBtn" onclick="toggleHints()">💡 힌트</button>
+      <div class="vs-row">
+        <div class="fighter">
+          <div class="fighter-icon-wrap">
+            <div class="fighter-icon" id="playerFighterIcon">🧑</div>
+          </div>
+          <div class="fighter-name">나</div>
+          <div class="choice-display" id="playerDisplay">❓</div>
+        </div>
+        <div class="vs-badge">VS</div>
+        <div class="fighter">
+          <div class="fighter-icon-wrap">
+            <div class="fighter-icon" id="aiIconGame">🤖</div>
+          </div>
+          <div class="fighter-name" id="aiNameGame">AI</div>
+          <div class="choice-display" id="aiDisplay">❓</div>
+        </div>
+      </div>
+      <div class="timer-wrap" id="timerWrap" style="position:relative;"><div class="timer-bar" id="timerBar" style="width:100%;background:var(--green);"></div><div class="timer-paused-badge">⏸ 일시정지</div></div>
+      <div class="hint-bar" id="hintBar">선택하세요</div>
+      <div class="bluff-bubble" id="bluffBubble"></div>
+
+      <!-- C. 스킬 버튼 -->
+      <div class="skill-bar" id="skillBar"></div>
+
+      <div class="choice-btns">
+        <button class="choice-btn" id="btnRock" onclick="choose('rock')">✊<span class="lbl">바위</span><span class="sub">✌️ 가위 이김</span></button>
+        <button class="choice-btn" id="btnScissors" onclick="choose('scissors')">✌️<span class="lbl">가위</span><span class="sub">🖐️ 보 이김</span></button>
+        <button class="choice-btn" id="btnPaper" onclick="choose('paper')">🖐️<span class="lbl">보</span><span class="sub">✊ 바위 이김</span></button>
+      </div>
+
+      <!-- B. 더블다운 -->
+      <div class="doubledown-wrap" id="doubledownWrap">
+        <button class="dd-btn" onclick="doDoubleDown()">⚡ 더블다운 — 베팅 2배 & 페이아웃 2배!</button>
+        <div class="dd-skip" onclick="skipDoubleDown()">그냥 진행</div>
+      </div>
+
+      <div class="streak-badge" id="streakBadge">🔥 연승!</div>
+      <div class="rescue-badge" id="rescueBadge"></div>
+      <div class="early-info" id="earlyInfo"></div>
+    </div>
+    <div class="ai-comment" id="aiComment"></div>
+  </div>
+</div>
+
+<!-- ROUND POPUP -->
+<div class="round-result" id="roundResult">
+  <div class="rr-emoji" id="rrEmoji"></div>
+  <div class="rr-text" id="rrText"></div>
+  <div class="rr-sub" id="rrSub"></div>
+  <div class="rr-golden" id="rrGolden">⭐ 골든 라운드! 보너스!</div>
+</div>
+
+<!-- C. 스킬 결과 패널 -->
+<div class="skill-overlay" id="skillOverlay">
+  <div class="skill-panel">
+    <div class="sp-title" id="spTitle">스킬 사용</div>
+    <div class="sp-content" id="spContent"></div>
+    <button class="sp-close" onclick="closeSkillPanel()">확인</button>
+  </div>
+</div>
+
+<!-- F. 진화 배너 (fixed, z-index 높음) -->
+<div class="evo-banner" id="evoBanner">
+  <div class="eb-icon" id="evoIcon">⚡</div>
+  <div class="eb-text" id="evoText">AI가 진화했습니다!</div>
+</div>
+
+<!-- FINAL OVERLAY -->
+<div class="result-overlay" id="resultOverlay">
+  <div class="ro-icon" id="roIcon"></div>
+  <div class="ro-title" id="roTitle"></div>
+  <div class="ro-sub" id="roSub"></div>
+  <div class="match-summary" id="matchSummary"></div>
+  <div class="ro-payout" id="roPayout"></div>
+  <div class="pattern-report">
+    <div class="pr-title">📊 나의 선택 패턴</div>
+    <div class="pr-bars">
+      <div class="pr-row"><div class="pr-icon">✊</div><div class="pr-bar-wrap"><div class="pr-bar-fill" id="prRock" style="width:0%;background:#a855f7;"></div></div><div class="pr-pct" id="prRockPct">0%</div></div>
+      <div class="pr-row"><div class="pr-icon">✌️</div><div class="pr-bar-wrap"><div class="pr-bar-fill" id="prScissors" style="width:0%;background:#f59e0b;"></div></div><div class="pr-pct" id="prScissorsPct">0%</div></div>
+      <div class="pr-row"><div class="pr-icon">🖐️</div><div class="pr-bar-wrap"><div class="pr-bar-fill" id="prPaper" style="width:0%;background:#22c55e;"></div></div><div class="pr-pct" id="prPaperPct">0%</div></div>
+    </div>
+  </div>
+  <div class="ro-btns">
+    <button class="ro-btn home" onclick="goHome()">🏠 홈</button>
+    <button class="ro-btn again" onclick="resetGame()">🔄 다시</button>
+    <button class="ro-btn share" onclick="shareResult()">📋 공유</button>
+    <button class="ro-btn" id="defeatAnalysisBtn" onclick="document.getElementById('resultOverlay').classList.remove('show');showDefeatAnalysis()" style="background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);color:#fca5a5;display:none;">🔎 패배 분석</button>
+  </div>
+  <div id="finalAiComment" style="font-size:13px;color:rgba(148,163,184,.75);text-align:center;max-width:300px;line-height:1.6;margin-top:4px;"></div>
+</div>
+
+<!-- E. 미션 달성 팝업 -->
+<div class="mission-pop" id="missionPop"></div>
+
+<!-- ④ 패배 분석 오버레이 -->
+<div class="defeat-overlay" id="defeatOverlay">
+  <div class="defeat-header">💀 패배 분석</div>
+  <div class="defeat-sub" id="defeatSub"></div>
+  <div class="defeat-timeline" id="defeatTimeline">
+    <div class="dt-title">📋 라운드별 타임라인</div>
+    <div id="dtRows"></div>
+  </div>
+  <div class="defeat-verdict" id="defeatVerdict">
+    <div class="dv-title">🔎 AI가 읽은 당신의 패턴</div>
+    <div id="dvItems"></div>
+  </div>
+  <div class="defeat-hint">
+    <div class="dh-title">💡 다음 판을 위한 조언</div>
+    <div class="dh-text" id="dhText"></div>
+  </div>
+  <div class="defeat-btns">
+    <button class="ro-btn home" onclick="closeDefeat();goHome()">🏠 홈</button>
+    <button class="ro-btn again" onclick="closeDefeat();resetGame()">🔄 다시 도전</button>
+  </div>
+</div>
+
+<!-- ② 랭크업 팝업 -->
+<div class="rankup-pop" id="rankupPop">
+  <div class="rup-icon" id="rupIcon"></div>
+  <div class="rup-title" id="rupTitle">등급 상승!</div>
+  <div class="rup-sub" id="rupSub"></div>
+</div>
+
+<canvas id="confettiCanvas"></canvas>
+<div id="toast"></div>
+
+<script>
+// ② 플레이어 랭크 시스템
+const PLAYER_RANKS=[
+  {min:0,  icon:'🧑', name:'뉴비',       color:'#94a3b8'},
+  {min:3,  icon:'🥷', name:'견습 심리사', color:'#22c55e'},
+  {min:8,  icon:'⚔️', name:'전략가',     color:'#3b82f6'},
+  {min:15, icon:'🎭', name:'심리술사',   color:'#a855f7'},
+  {min:25, icon:'👑', name:'심리전의 달인',color:'#f59e0b'},
+  {min:40, icon:'🔱', name:'전설',       color:'#ef4444'},
+];
+function getPlayerRank(totalWins){
+  let rank=PLAYER_RANKS[0];
+  for(const r of PLAYER_RANKS){if(totalWins>=r.min)rank=r;}
+  return rank;
+}
+function getNextRank(totalWins){
+  for(const r of PLAYER_RANKS){if(r.min>totalWins)return r;}
+  return null;
+}
+
+// ① AI별 공정성 메타 데이터 (라운드당 이론 확률)
+const FAIRNESS_META={
+  EASY:  {randPct:75,counterPct:10,copyPct:15,patternTrigger:0,  desc:'거의 무작위로 선택합니다.'},
+  NORMAL:{randPct:50,counterPct:30,copyPct:20,patternTrigger:0,  desc:'간단한 카운터 패턴을 씁니다.'},
+  HARD:  {randPct:45,counterPct:35,copyPct:20,patternTrigger:35, desc:'플레이어 패턴을 분석해 카운터합니다.'},
+  EXTREME:{randPct:35,counterPct:45,copyPct:20,patternTrigger:55,desc:'고급 심리 분석으로 대응합니다.'},
+};
+
+// ─────────────────────────────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────────────────────────────
+const BAL_KEY='MG_BAL_PSYCHOLOGY', AI_KEY='MG_AI_PROFILE', STATS_KEY='MG_PSY2_STATS', HIST_KEY='MG_PSY2_HIST';
+const TOTAL_ROUNDS=5;
+const CHOICES=['rock','scissors','paper'];
+const ICONS={rock:'✊',scissors:'✌️',paper:'🖐️'};
+const BEATS={rock:'scissors',scissors:'paper',paper:'rock'};
+const COUNTER={scissors:'rock',paper:'scissors',rock:'paper'};
+
+// A. 베팅 옵션 설정
+const BET_CONFIGS={
+  50000: {cost:50000, payouts:{5:90000,4:65000,3:50000,2:0,1:0,0:0}},
+  100000:{cost:100000,payouts:{5:180000,4:130000,3:100000,2:0,1:0,0:0}},
+  200000:{cost:200000,payouts:{5:360000,4:260000,3:200000,2:0,1:0,0:0}}
+};
+
+const TIMER_SECS={EASY:0,NORMAL:0,HARD:5,EXTREME:3};
+const GOLDEN_BONUS_RATIO=0.10; // 골든라운드 베팅의 10% 추가
+const CONSEC_MULT={2:1.05,3:1.10,4:1.15,5:1.20};
+
+const TIER_ORDER=['EASY','NORMAL','HARD','EXTREME'];
+const TIER_DESCS={EASY:'✅ 무작위에 가깝게 플레이합니다',NORMAL:'⚖️ 간단한 패턴을 사용합니다',HARD:'⚡ 당신의 패턴을 분석합니다',EXTREME:'💀 고급 심리 전략을 구사합니다'};
+const TIER_NAMES={EASY:'라이언',NORMAL:'알파',HARD:'제우스',EXTREME:'다크'};
+const TIER_AVATARS={EASY:'😊',NORMAL:'🤖',HARD:'😤',EXTREME:'👿'};
+const TIER_COLORS={EASY:'#22c55e',NORMAL:'#a855f7',HARD:'#f59e0b',EXTREME:'#ef4444'};
+
+// F. AI 진화: EVO_WINS[tier] = 해당 티어에서 몇 번 이겨야 진화
+const EVO_WINS={EASY:3,NORMAL:4,HARD:5,EXTREME:null};
+
+// C. 스킬 정의
+const SKILLS=[
+  {id:'intel',icon:'🔍',name:'정보력',desc:'AI의 최근 패턴 분석 공개',costRatio:0.10},
+  {id:'shield',icon:'🛡️',name:'보험',desc:'이번 라운드 패배 → 무승부로 처리',costRatio:0.25},
+  {id:'vision',icon:'👁️',name:'예지',desc:'AI의 다음 선택 확률 표시',costRatio:0.15}
+];
+function getSkillCost(id){const sk=SKILLS.find(s=>s.id===id);return sk?Math.round(currentBet*(sk.costRatio||0)):0;}
+
+// E. 미션 정의
+const MISSIONS=[
+  {id:'m_rock3',icon:'✊',name:'바위 마니아',desc:'한 게임에 바위 3회 이상',reward:5000,check:(h)=>h.filter(r=>r.p==='rock').length>=3},
+  {id:'m_perfect',icon:'🏆',name:'퍼펙트 게임',desc:'패배 없이 게임 승리 (전승)',reward:30000,check:(h)=>h.length>=3&&h.filter(r=>r.result==='lose').length===0&&h.filter(r=>r.result==='win').length>=3},
+  {id:'m_reverse',icon:'🔄',name:'대역전',desc:'2연패 후 3연승',reward:20000,check:(h)=>{
+    if(h.length<5)return false;
+    const r=h.map(x=>x.result);
+    for(let i=0;i<=r.length-5;i++){
+      if(r[i]==='lose'&&r[i+1]==='lose'&&r[i+2]==='win'&&r[i+3]==='win'&&r[i+4]==='win')return true;
+    }
+    return false;
+  }},
+  {id:'m_extreme',icon:'💀',name:'극한 도전',desc:'EXTREME 상대로 승리',reward:50000,check:(h,tier)=>tier==='EXTREME'&&h.filter(r=>r.result==='win').length>=3},
+  {id:'m_diverse',icon:'🎯',name:'올라운더',desc:'바위·가위·보 각 1회 이상',reward:8000,check:(h)=>{
+    const s=new Set(h.map(r=>r.p));return s.has('rock')&&s.has('scissors')&&s.has('paper');
+  }},
+  {id:'m_nodraw',icon:'⚡',name:'무무승부',desc:'무승부 없이 게임 끝내기',reward:10000,check:(h)=>h.length>0&&h.filter(r=>r.result==='draw').length===0}
+];
+
+// ② 블러프
+const BLUFF_MSGS={NORMAL:['이번엔 바위 낼 것 같죠? 😏','가위는 어때요?'],HARD:['흥, 보를 내봐.','바위... 아닌가?'],EXTREME:['✌️','✊','다 알고 있다.','...']};
+const BLUFF_CHANCE={NORMAL:.2,HARD:.35,EXTREME:.5};
+
+// ─────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────
+let balance=0;
+let pointBalance=0;
+let aiProfile={tier:'NORMAL',mood:50,atmosphereScore:100};
+let currentBet=100000;           // A
+let doubleDown=false;            // B
+let doubleDownSkipped=false;     // B: 더블다운 패널 숨기기 전용 플래그
+let currentPayouts={...BET_CONFIGS[100000].payouts};
+let roundNum=0,playerWins=0,aiWins=0,draws=0;
+let btnLock=false,gameStarted=false;
+let history=[];
+let playerStreak=0,aiLoseStreak=0,aiTilted=false;
+let goldenRound=-1,goldenBonus=0;
+let consecWins=0;
+let skillsUsed={intel:false,shield:false,vision:false}; // C
+let shieldActive=false;                                  // C
+let visionResult=null;                                   // C
+let evoProgress=0;               // F: 현 티어에서 승리 게임 수
+let completedMissions=new Set(); // E
+let gameRecords=[];              // D: 대전 기록 (최근 10게임)
+let stats={plays:0,wins:0,totalWins:0};
+let timerInterval=null;
+let awaitingChoice=false; // 플레이어 선택 대기 중 여부
+let hintsOn=false;
+
+
+
+// ─────────────────────────────────────────────────────────────────
+// A. 베팅 조절
+// ─────────────────────────────────────────────────────────────────
+function selectBet(amt, force=false){
+  if(gameStarted){showToast('게임 중에는 베팅을 변경할 수 없습니다');return;}
+  if(!force && balance<amt){showToast(`₩${fmt(amt)} 베팅은 잔액이 부족합니다`);return;}
+  currentBet=amt;
+  currentPayouts={...BET_CONFIGS[amt].payouts};
+  document.querySelectorAll('.bet-opt').forEach(el=>{
+    el.classList.toggle('selected',parseInt(el.dataset.bet)===amt);
+  });
+  document.getElementById('costNum').textContent='₩'+fmt(amt);
+  renderPayoutTable();
+  updateBalUI();
+}
+
+function renderPayoutTable(){
+  const rows=document.getElementById('payoutRows');
+  rows.innerHTML='';
+  const pay=currentPayouts;
+  const data=[
+    {cond:'🏆 5승',pay:pay[5],cls:'gold'},
+    {cond:'✨ 4승',pay:pay[4],cls:'gold'},
+    {cond:'🤝 3승 (환급)',pay:pay[3],cls:'green'},
+    {cond:'😞 2승 이하',pay:0,cls:'red'}
+  ];
+  data.forEach((d,i)=>{
+    const row=document.createElement('div');
+    row.className='pt-row'+(i===data.length-1?' last':'');
+    row.innerHTML=`<span class="pt-cond">${d.cond}</span><span class="pt-pay ${d.cls}">${d.pay>0?'₩'+fmt(d.pay):'₩0'}</span>`;
+    rows.appendChild(row);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// STATS & STORAGE
+// ─────────────────────────────────────────────────────────────────
+function loadAll(){
+  try{
+    const s=localStorage.getItem(STATS_KEY);
+    if(s){const p=JSON.parse(s);stats=p.stats||{plays:0,wins:0,totalWins:0};if(!stats.totalWins)stats.totalWins=stats.wins||0;consecWins=p.consecWins||0;evoProgress=p.evoProgress||0;completedMissions=new Set(p.missions||[]);}
+    const h=localStorage.getItem(HIST_KEY);
+    if(h)gameRecords=JSON.parse(h);
+  }catch(e){}
+  updateStatsUI();updateConsecBanner();renderMissions();renderRivalBox();updatePlayerCard();updateFairnessBox();
+}
+function saveAll(){
+  localStorage.setItem(STATS_KEY,JSON.stringify({stats,consecWins,evoProgress,missions:[...completedMissions]}));
+  localStorage.setItem(HIST_KEY,JSON.stringify(gameRecords.slice(-10)));
+}
+function updateStatsUI(){
+  document.getElementById('playCountDisplay').textContent=stats.plays;
+  if(stats.plays>0){
+    const wr=Math.round(stats.wins/stats.plays*100);
+    const wrEl=document.getElementById('winRateDisplay');wrEl.textContent=wr+'%';wrEl.className='wr-val '+(wr>=50?'green':'red');
+    // [BUG FIX] 기대수익: 게임 수가 충분할 때만 표시, 근거 없는 ^0.6 보정 제거
+    const evEl=document.getElementById('evDisplay');
+    evEl.style.color=''; // inline style 초기화 (className 색상이 제대로 적용되도록)
+    if(stats.plays>=5){
+      const p=stats.wins/stats.plays;
+      const pay=currentPayouts;
+      const ev5=Math.pow(p,5)*pay[5];
+      const ev4=5*Math.pow(p,4)*Math.pow(1-p,1)*pay[4];
+      const ev3=10*Math.pow(p,3)*Math.pow(1-p,2)*pay[3];
+      const expectedReturn=ev5+ev4+ev3;
+      const ev=Math.round(expectedReturn-currentBet);
+      evEl.textContent=(ev>=0?'+':'')+'₩'+fmt(Math.abs(ev));evEl.className='wr-val '+(ev>=0?'green':'red');
+    } else {
+      evEl.textContent='데이터 부족';evEl.className='wr-val';evEl.style.color='var(--text3)';
+    }
+  } else {
+    document.getElementById('winRateDisplay').textContent='—';
+    document.getElementById('evDisplay').textContent='—';
+  }
+}
+function updateConsecBanner(){
+  const banner=document.getElementById('consecBanner');
+  const mult=CONSEC_MULT[consecWins]||1;
+  if(consecWins>=2&&mult>1){document.getElementById('consecText').textContent=`${consecWins}연승 보너스!`;document.getElementById('consecBadge').textContent=`×${mult}`;banner.classList.add('show');}
+  else banner.classList.remove('show');
+}
+
+// ─────────────────────────────────────────────────────────────────
+// BALANCE
+// ─────────────────────────────────────────────────────────────────
+function loadBal(){balance=Math.max(0,parseInt(localStorage.getItem(BAL_KEY)||'0'));updateBalUI();}
+function saveBal(){localStorage.setItem(BAL_KEY,Math.max(0,balance));try{window.parent.postMessage({type:'SAVE_BALANCE',balance:Math.max(0,balance)},window.location.origin);}catch(e){}}
+function updateBalUI(){
+  document.getElementById('balNum').textContent=fmt(balance);
+  const pn=document.getElementById('pointNum');
+  if(pn) pn.textContent=Math.floor(pointBalance).toLocaleString('ko-KR');
+  const btn=document.getElementById('startBtn');
+  btn.disabled=balance<currentBet;
+  btn.textContent=balance<currentBet?'⚠️ 잔액 부족':'⚔️ 게임 시작';
+}
+function fmt(n){return Number(n).toLocaleString('ko-KR');}
+
+// ② 플레이어 카드 업데이트
+function updatePlayerCard(justWon=false,winsGained=1){
+  const tw=stats.totalWins||0;
+  const rank=getPlayerRank(tw);
+  const next=getNextRank(tw);
+  const prevRank=getPlayerRank(tw-(justWon?winsGained:0));
+
+  document.getElementById('pcAvatar').textContent=rank.icon;
+  document.getElementById('pcAvatar').style.borderColor=rank.color;
+  document.getElementById('pcRank').textContent=rank.name;
+  document.getElementById('pcRank').style.color=rank.color;
+  document.getElementById('pcWinsTotal').textContent=tw;
+
+  if(next){
+    const inRank=tw-rank.min;
+    const toNext=next.min-rank.min;
+    const pct=Math.min(100,Math.round(inRank/toNext*100));
+    document.getElementById('pcExpFill').style.width=pct+'%';
+    document.getElementById('pcExpLabel').textContent=`${tw} / ${next.min} 승`;
+    document.getElementById('pcNextRank').textContent=`→ ${next.name}`;
+  } else {
+    document.getElementById('pcExpFill').style.width='100%';
+    document.getElementById('pcExpLabel').textContent='최고 등급 달성!';
+    document.getElementById('pcNextRank').textContent='';
+  }
+
+  // 랭크업 연출
+  if(justWon && rank.min!==prevRank.min){
+    const av=document.getElementById('pcAvatar');
+    av.classList.remove('rankup');void av.offsetWidth;av.classList.add('rankup');
+    setTimeout(()=>av.classList.remove('rankup'),800);
+    showRankupPop(rank);
+  }
+}
+let _rupTimer=null;
+function showRankupPop(rank){
+  const pop=document.getElementById('rankupPop');
+  document.getElementById('rupIcon').textContent=rank.icon;
+  document.getElementById('rupTitle').textContent=`${rank.name} 달성!`;
+  document.getElementById('rupSub').textContent=`총 ${rank.min}승 돌파 🎉`;
+  if(_rupTimer)clearTimeout(_rupTimer);
+  pop.classList.add('show');
+  _rupTimer=setTimeout(()=>{pop.classList.remove('show');_rupTimer=null;},2800);
+}
+
+// ① 공정성 리포트
+function updateFairnessBox(){
+  const box=document.getElementById('fairnessBox');
+  if(!gameRecords.length){box.style.display='none';return;}
+  box.style.display='block';
+  renderFairness();
+}
+function toggleFairness(){
+  const body=document.getElementById('fairnessBody');
+  const btn=document.querySelector('.fb-toggle');
+  const open=body.classList.toggle('open');
+  btn.textContent=open?'접기 ▴':'상세 보기 ▾';
+  if(open)renderFairness();
+}
+function renderFairness(){
+  const tier=aiProfile.tier||'NORMAL';
+  const meta=FAIRNESS_META[tier]||FAIRNESS_META.NORMAL;
+  const body=document.getElementById('fairnessBody');
+
+  // 실제 AI 선택 분포 (gameRecords에서)
+  const tierRecords=gameRecords.filter(r=>r.tier===tier);
+  const totalGames=tierRecords.length;
+  const playerWinRate=totalGames?Math.round(tierRecords.filter(r=>r.wins>=3).length/totalGames*100):null;
+
+  const aiFreq={rock:0,scissors:0,paper:0};
+  let aiTotal=0;
+  if(history.length){
+    history.forEach(h=>{aiFreq[h.a]++;aiTotal++;});
+  }
+
+  body.innerHTML=`
+    <div class="fb-row"><span class="fb-label">현재 AI</span><span class="fb-val" style="color:${TIER_COLORS[tier]}">${TIER_NAMES[tier]} (${tier})</span></div>
+    <div class="fb-row"><span class="fb-label">AI 전략 설명</span><span class="fb-val" style="color:var(--text2);font-size:11px;">${meta.desc}</span></div>
+    <div class="fb-row"><span class="fb-label">무작위 선택 확률</span><span class="fb-val" style="color:var(--green)">${meta.randPct}%</span></div>
+    <div class="fb-row"><span class="fb-label">카운터 확률 (기본)</span><span class="fb-val" style="color:var(--red)">${meta.counterPct}%</span></div>
+    ${meta.patternTrigger?`<div class="fb-row"><span class="fb-label">패턴 분석 발동률</span><span class="fb-val" style="color:var(--red);font-weight:900;">${meta.patternTrigger}% → 100% 카운터</span></div>`:''}
+    <div class="fb-row"><span class="fb-label">모방 확률</span><span class="fb-val" style="color:var(--gold)">${meta.copyPct}%</span></div>
+    ${totalGames?`<div class="fb-row"><span class="fb-label">${tier} 상대 승률</span><span class="fb-val" style="color:${playerWinRate>=50?'var(--green)':'var(--red)'};">${playerWinRate}%</span></div>`:''}
+    ${aiTotal?`
+    <div class="fb-bar-row">
+      <div class="fb-bar-label">이번 게임 AI 선택 분포</div>
+      <div class="fb-bar-wrap">
+        <div class="fb-bar-rock" style="width:${Math.round(aiFreq.rock/aiTotal*100)}%"></div>
+        <div class="fb-bar-scissors" style="width:${Math.round(aiFreq.scissors/aiTotal*100)}%"></div>
+        <div class="fb-bar-paper" style="width:${Math.round(aiFreq.paper/aiTotal*100)}%"></div>
+      </div>
+      <div class="fb-legend">
+        <div class="fb-legend-item"><div class="fb-dot" style="background:#a855f7"></div>✊ ${Math.round(aiFreq.rock/aiTotal*100)}%</div>
+        <div class="fb-legend-item"><div class="fb-dot" style="background:#f59e0b"></div>✌️ ${Math.round(aiFreq.scissors/aiTotal*100)}%</div>
+        <div class="fb-legend-item"><div class="fb-dot" style="background:#22c55e"></div>🖐️ ${Math.round(aiFreq.paper/aiTotal*100)}%</div>
+      </div>
+    </div>`:''}
+  `;
+}
+
+
+// ─────────────────────────────────────────────────────────────────
+function loadAI(){try{const s=localStorage.getItem(AI_KEY);if(s)aiProfile=JSON.parse(s);}catch(e){}updateAiUI();}
+function updateAiUI(){
+  const tier=aiProfile.tier||'NORMAL';
+  const score=typeof aiProfile.atmosphereScore==='number'?aiProfile.atmosphereScore:100;
+  const col=TIER_COLORS[tier]||'#a855f7';
+  document.body.className='theme-'+tier.toLowerCase();
+  const av=document.getElementById('aiAvatar');
+  av.textContent=TIER_AVATARS[tier];av.style.borderColor=col;av.style.boxShadow=`0 0 14px ${col}44`;
+  document.getElementById('aiProfileBox').style.borderColor=col+'55';
+  const badge=document.getElementById('aiTierBadge');badge.textContent=tier;badge.style.background=col+'28';badge.style.color=col;
+  document.getElementById('aiMoodText').textContent='분위기: '+(score>=70?'🟢 좋음':score>=40?'🟡 보통':'🔴 긴장');
+  const fill=document.getElementById('atmoFill');fill.style.width=Math.max(0,Math.min(100,score))+'%';fill.style.background=score>=70?'#22c55e':score>=40?col:'#ef4444';
+  document.getElementById('tierDesc').textContent=TIER_DESCS[tier]||'';
+  document.getElementById('tiltIndicator').classList.toggle('show',aiTilted);
+  const gi=document.getElementById('aiIconGame');if(gi)gi.textContent=TIER_AVATARS[tier];
+  const gn=document.getElementById('aiNameGame');if(gn)gn.textContent=TIER_NAMES[tier]||'AI';
+  const arena=document.getElementById('arena');if(arena)arena.style.borderColor=col+'33';
+  // F. 진화 게이지
+  const maxWins=EVO_WINS[tier];
+  const lvIdx=TIER_ORDER.indexOf(tier);
+  document.getElementById('aiEvoLevel').textContent=`Lv.${lvIdx+1}`;
+  if(maxWins){
+    const pct=Math.min(100,evoProgress/maxWins*100);
+    document.getElementById('evoBarFill').style.width=pct+'%';
+    document.getElementById('evoGaugeLabel').textContent=`${evoProgress} / ${maxWins}`;
+  } else {
+    document.getElementById('evoBarFill').style.width='100%';
+    document.getElementById('evoGaugeLabel').textContent='MAX';
+  }
+}
+
+// G. 아바타 애니메이션
+function animateAvatars(result){
+  const playerIcon=document.getElementById('playerFighterIcon');
+  const aiIcon=document.getElementById('aiIconGame');
+  const cls=result==='win'?'win-anim':result==='lose'?'lose-anim':'draw-anim';
+  playerIcon.classList.remove('win-anim','lose-anim','draw-anim');
+  aiIcon.classList.remove('win-anim','lose-anim','draw-anim');
+  void playerIcon.offsetWidth;
+  playerIcon.classList.add(cls);
+  aiIcon.classList.add(result==='win'?'lose-anim':result==='lose'?'win-anim':'draw-anim');
+  setTimeout(()=>{playerIcon.classList.remove(cls);aiIcon.classList.remove('win-anim','lose-anim','draw-anim');},700);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// E. 미션
+// ─────────────────────────────────────────────────────────────────
+function renderMissions(){
+  const list=document.getElementById('missionList');
+  list.innerHTML='';
+  MISSIONS.forEach(m=>{
+    const done=completedMissions.has(m.id);
+    const row=document.createElement('div');
+    row.className='mission-row'+(done?' done':'');
+    row.innerHTML=`<div class="mr-icon">${m.icon}</div><div class="mr-info"><div class="mr-name">${m.name}</div><div class="mr-desc">${m.desc}</div></div>${done?`<div class="mr-done">✅ 완료</div>`:`<div class="mr-reward">+₩${fmt(m.reward)}</div>`}`;
+    list.appendChild(row);
+  });
+}
+function checkMissions(){
+  const tier=aiProfile.tier||'NORMAL';
+  MISSIONS.forEach(m=>{
+    if(completedMissions.has(m.id))return;
+    if(m.check(history,tier)){
+      completedMissions.add(m.id);
+      balance+=m.reward;saveBal();updateBalUI();
+      saveAll(); // 즉시 저장 — 게임 도중 나가도 중복 달성 방지
+      showMissionPop(`🎯 미션 달성: ${m.name} +₩${fmt(m.reward)}`);
+      
+    }
+  });
+  renderMissions();
+}
+let _missionPopTimer=null;
+function showMissionPop(msg){
+  const el=document.getElementById('missionPop');
+  if(_missionPopTimer)clearTimeout(_missionPopTimer);
+  el.textContent=msg;el.classList.add('show');
+  _missionPopTimer=setTimeout(()=>{el.classList.remove('show');_missionPopTimer=null;},3000);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// D. 대전 기록 / 라이벌
+// ─────────────────────────────────────────────────────────────────
+function addGameRecord(tier,wins,ai_wins,payout){
+  gameRecords.push({tier,wins,ai_wins,payout,date:Date.now()});
+  if(gameRecords.length>10)gameRecords.shift();
+}
+function renderRivalBox(){
+  const records=gameRecords;
+  if(!records.length){document.getElementById('rivalBox').style.display='none';return;}
+  document.getElementById('rivalBox').style.display='block';
+  const byTier={};
+  records.forEach(r=>{
+    if(!byTier[r.tier])byTier[r.tier]={wins:0,losses:0,total:0};
+    byTier[r.tier].total++;
+    if(r.wins>=3)byTier[r.tier].wins++;else byTier[r.tier].losses++;
+  });
+  const list=document.getElementById('rivalList');list.innerHTML='';
+  Object.entries(byTier).reverse().slice(0,3).forEach(([tier,rec])=>{
+    const tag=rec.wins<rec.losses?'revenge':rec.wins>rec.losses?'dominate':'';
+    const tagLabel=tag==='revenge'?'복수전 필요':tag==='dominate'?'우세 중':'';
+    const row=document.createElement('div');row.className='rival-row';
+    row.innerHTML=`<div class="rr-avatar">${TIER_AVATARS[tier]||'🤖'}</div><div class="rr-info"><div class="rr-name">${TIER_NAMES[tier]||tier}</div><div class="rr-record">${rec.wins}승 ${rec.losses}패 / ${rec.total}전</div></div>${tag?`<div class="rr-tag ${tag}">${tagLabel}</div>`:''}`;
+    list.appendChild(row);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────
+// F. AI 진화
+// ─────────────────────────────────────────────────────────────────
+function checkAiEvolution(isWin){
+  const tier=aiProfile.tier||'NORMAL';
+  const maxWins=EVO_WINS[tier];
+  if(!maxWins)return; // EXTREME은 진화 없음
+  if(!isWin)return;
+  evoProgress++;
+  if(evoProgress>=maxWins){
+    const nextTier=TIER_ORDER[TIER_ORDER.indexOf(tier)+1];
+    if(nextTier){
+      aiProfile.tier=nextTier;
+      // tier→atmosphereScore 역산하여 index에 역전송
+      const tierToAtmo={EASY:100,NORMAL:70,HARD:40,EXTREME:10};
+      aiProfile.atmosphereScore=tierToAtmo[nextTier]??aiProfile.atmosphereScore;
+      localStorage.setItem(AI_KEY,JSON.stringify(aiProfile));
+      evoProgress=0;
+      try{window.parent.postMessage({type:'AI_PROFILE',profile:{...aiProfile}},window.location.origin);}catch(e){}
+      // 진화 연출
+      
+      const av=document.getElementById('aiAvatar');
+      av.classList.remove('shake','bounce');av.classList.add('evolve');
+      setTimeout(()=>av.classList.remove('evolve'),700);
+      const banner=document.getElementById('evoBanner');
+      document.getElementById('evoIcon').textContent=TIER_AVATARS[nextTier];
+      document.getElementById('evoText').textContent=`AI가 ${tier} → ${nextTier}로 진화했습니다!`;
+      banner.classList.add('show');
+      setTimeout(()=>banner.classList.remove('show'),4000);
+      showToast(`⚡ AI가 ${nextTier}로 진화!`,3500);
+      updateAiUI();
+    }
+  }
+  updateAiUI();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// C. 스킬
+// ─────────────────────────────────────────────────────────────────
+function buildSkillBar(){
+  const bar=document.getElementById('skillBar');bar.innerHTML='';
+  SKILLS.forEach(sk=>{
+    const btn=document.createElement('button');
+    btn.className='skill-btn ready';btn.id='sk_'+sk.id;
+    const cost=getSkillCost(sk.id);
+    btn.innerHTML=`<span class="sk-icon">${sk.icon}</span><span class="sk-name">${sk.name}</span><span class="sk-cost" style="font-size:10px;color:var(--gold);display:block">₩${fmt(cost)}</span>`;
+    btn.onclick=()=>useSkill(sk.id);
+    bar.appendChild(btn);
+  });
+}
+function useSkill(id){
+  if(!gameStarted)return;
+  if(skillsUsed[id])return;
+  if(!awaitingChoice)return;
+  // 스킬 비용 차감
+  const cost=getSkillCost(id);
+  if(cost>0){
+    if(balance<cost){showToast(`⚠️ 스킬 비용 부족 (₩${fmt(cost)} 필요)`);return;}
+    balance=Math.max(0,balance-cost);saveBal();updateBalUI();
+    showToast(`${SKILLS.find(s=>s.id===id)?.icon||''} 스킬 사용 -₩${fmt(cost)}`);
+  }
+  const tier=aiProfile.tier||'NORMAL';
+  skillsUsed[id]=true;
+  document.getElementById('sk_'+id).classList.add('used');
+  if(id==='intel'){
+    const freq={rock:0,scissors:0,paper:0};
+    history.slice(-3).forEach(h=>freq[h.p]++);
+    const sorted=Object.entries(freq).sort((a,b)=>b[1]-a[1]);
+    const dominant=sorted[0][0];
+    const aiWouldCounter=COUNTER[dominant];
+    openSkillPanel('🔍 정보력',`최근 3라운드 분석:\n✊바위 ${freq.rock}회 / ✌️가위 ${freq.scissors}회 / 🖐️보 ${freq.paper}회\n\nAI는 주로 <b style="color:var(--gold)">${ICONS[dominant]}</b>을 카운터할 가능성이 높습니다.\n→ AI 예상: <b style="color:var(--red)">${ICONS[aiWouldCounter]}</b>`);
+  }
+  else if(id==='shield'){
+    shieldActive=true;
+    openSkillPanel('🛡️ 보험 발동',`다음 패배를 무승부로 처리합니다.\n현재 게임에서 1회 사용 가능합니다.`);
+  }
+  else if(id==='vision'){
+    // [BUG FIX] 실제 AI 엔진과 동일한 확률 상수 사용
+    const pat={EASY:[.75,.10,.15],NORMAL:[.50,.30,.20],HARD:[.45,.35,.20],EXTREME:[.35,.45,.20]}[tier]||[.34,.33,.33];
+    const choices=['rock','scissors','paper'];
+    const info=choices.map((c,i)=>`${ICONS[c]} ${Math.round(pat[i]*100)}%`).join(' · ');
+    visionResult={rock:pat[0],scissors:pat[1],paper:pat[2]};
+    openSkillPanel('👁️ 예지',`AI의 다음 선택 예상 확률:\n\n${info}\n\n<span style="color:var(--red);font-size:11px;">⚠️ 주의: AI도 당신이 예지를 사용했음을 감지하여 한 단계 더 깊이 읽습니다.</span>\n<span style="color:var(--text3);font-size:11px;">* 패턴 분석 + 랜덤 요소 포함</span>`);
+  }
+}
+function openSkillPanel(title,content){
+  document.getElementById('spTitle').textContent=title;
+  document.getElementById('spContent').innerHTML=content.replace(/\n/g,'<br>');
+  document.getElementById('skillOverlay').classList.add('show');
+  pauseTimer(); // 스킬 패널 열리면 타이머 일시정지
+}
+function closeSkillPanel(){
+  document.getElementById('skillOverlay').classList.remove('show');
+  // [BUG FIX] DOM 텍스트 비교 대신 awaitingChoice 상태 변수로 판단
+  if(gameStarted && awaitingChoice){
+    btnLock=false;
+    resumeTimer(); // 선택 대기 중이었으면 타이머 재개
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// B. 더블다운
+// ─────────────────────────────────────────────────────────────────
+function checkShowDoubleDown(){
+  if(doubleDown||doubleDownSkipped)return;
+  if(roundNum<2)return;
+  if(playerWins<=aiWins)return;
+  if(balance<currentBet)return;
+  document.getElementById('doubledownWrap').classList.add('show');
+  pauseTimer(); // 더블다운 패널 보는 동안 타이머 정지
+}
+function doDoubleDown(){
+  if(balance<currentBet){showToast('잔액 부족');return;}
+  doubleDown=true;
+  balance=Math.max(0,balance-currentBet);saveBal();updateBalUI();
+  document.getElementById('betDisplay').textContent='₩'+fmt(currentBet*2)+' (2배)';
+  document.getElementById('doubledownWrap').classList.remove('show');
+  resumeTimer(); // 결정 후 타이머 재개
+  showAiComment('doubledown');
+  showToast('⚡ 더블다운! 페이아웃 2배 적용',3000);
+}
+function skipDoubleDown(){
+  doubleDownSkipped=true;
+  document.getElementById('doubledownWrap').classList.remove('show');
+  resumeTimer(); // 스킵 후 타이머 재개
+}
+
+// ─────────────────────────────────────────────────────────────────
+// AI COMMENTS
+// ─────────────────────────────────────────────────────────────────
+const AI_MENTS={
+  game_start:{EASY:['잘 부탁드려요~','같이 즐겨봐요 😊'],NORMAL:['시작하겠습니다.','5라운드, 최선을 다하죠.'],HARD:['어디 실력을 보여주시지.','질 생각은 없습니다.'],EXTREME:['...이길 수 있다고 생각하나.','마지막 기회야.']},
+  round_win:{EASY:['어머, 잘 하셨네요!'],NORMAL:['좋은 선택이었습니다.'],HARD:['흥, 운이 좋았군.'],EXTREME:['...인정한다. 이번만.']},
+  round_lose:{EASY:['아이고, 제가 이겼어요!'],NORMAL:['이번은 제 것이네요.'],HARD:['예상된 결과.'],EXTREME:['당연한 결과다.']},
+  round_draw:{EASY:['비겼어요~!'],NORMAL:['비기다니 흥미롭군요.'],HARD:['무승부... 다음엔 없다.'],EXTREME:['...동률. 재미없어.']},
+  tilt:{HARD:['젠장... 집중해야 해.'],EXTREME:['...잠깐. 정신 차려.']},
+  rescue:{EASY:['괜찮아요! 아직 기회 있어요!'],NORMAL:['역전할 수 있습니다.'],HARD:['흥, 기회를 주지.'],EXTREME:['...살려는 드리지.']},
+  doubledown:{EASY:['오, 배팅을 올렸네요?'],NORMAL:['흥미로운 선택이군요.'],HARD:['배짱이 있는 척하는군.'],EXTREME:['...그래봤자 진다.']},
+  final_win:{EASY:['축하드려요! 🎉'],NORMAL:['축하합니다. 잘 하셨습니다.'],HARD:['...인정합니다. 이번만은.'],EXTREME:['...말이 없다.']},
+  final_lose:{EASY:['다음엔 꼭 이기실 거예요!'],NORMAL:['제가 이겼군요.'],HARD:['예상했습니다.'],EXTREME:['당연하지.']}
+};
+let _acTimer=null;
+function showAiComment(ctx){
+  const tier=aiProfile.tier||'NORMAL';
+  const pool=AI_MENTS[ctx]?.[tier];if(!pool?.length)return;
+  const el=document.getElementById('aiComment');
+  if(_acTimer){clearTimeout(_acTimer);_acTimer=null;}
+  el.textContent='💬 '+pool[~~(Math.random()*pool.length)];
+  el.classList.add('show');
+  _acTimer=setTimeout(()=>{el.classList.remove('show');_acTimer=null;},4000);
+}
+
+// 블러프
+function maybeBluff(){
+  const tier=aiProfile.tier||'NORMAL';
+  const msgs=BLUFF_MSGS[tier];if(!msgs?.length)return;
+  if(Math.random()>=(BLUFF_CHANCE[tier]||0))return;
+  const el=document.getElementById('bluffBubble');
+  el.textContent='🎭 AI 힌트: '+msgs[~~(Math.random()*msgs.length)];
+  el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// AI ENGINE
+// ─────────────────────────────────────────────────────────────────
+function getAiChoice(){
+  const tier=aiProfile.tier||'NORMAL';
+  // tilt 상태: 70% 확률로 완전 랜덤
+  if(aiTilted&&Math.random()<.5)return CHOICES[~~(Math.random()*3)];
+  // HARD/EXTREME: 1라운드부터 히스토리 기반 패턴 분석 적용
+  if((tier==='EXTREME'||tier==='HARD')&&history.length>=1){
+    if(Math.random()<(tier==='EXTREME'?.55:.35)){
+      const freq={rock:0,scissors:0,paper:0};
+      history.slice(-3).forEach(h=>freq[h.p]++);
+      const most=Object.keys(freq).reduce((a,b)=>freq[a]>=freq[b]?a:b);
+      // 예지 스킬 사용 시: AI가 플레이어의 카운터를 예상해 한 단계 더 깊이 읽음
+      if(visionResult){return COUNTER[COUNTER[most]];}
+      return COUNTER[most];
+    }
+  }
+  // [BUG FIX] 모방(copy) 전략: 이전 라운드 플레이어 선택을 따라함 (현재 선택이 아님)
+  const pat={EASY:[.75,.10,.15],NORMAL:[.50,.30,.20],HARD:[.45,.35,.20],EXTREME:[.35,.45,.20]}[tier]||[.34,.33,.33];
+  const r=Math.random();
+  if(r<pat[0])return CHOICES[~~(Math.random()*3)];
+  // 카운터: 이전 라운드 플레이어 선택의 카운터
+  const lastPlayerChoice=history.length?history[history.length-1].p:null;
+  if(r<pat[0]+pat[1])return lastPlayerChoice?COUNTER[lastPlayerChoice]:CHOICES[~~(Math.random()*3)];
+  // 모방: 이전 라운드 플레이어 선택을 그대로
+  return lastPlayerChoice||CHOICES[~~(Math.random()*3)];
+}
+
+// 타이머
+let timerPaused=false;
+let timerElapsed=0;
+let timerSecs=0;
+function startTimer(){
+  timerSecs=TIMER_SECS[aiProfile.tier||'NORMAL']||0;
+  const wrap=document.getElementById('timerWrap');
+  if(!timerSecs){wrap.classList.remove('show');return;}
+  wrap.classList.add('show');wrap.classList.remove('paused');
+  const bar=document.getElementById('timerBar');
+  bar.style.transition='none';bar.style.width='100%';bar.style.background='var(--green)';bar.classList.remove('urgent');
+  timerElapsed=0;timerPaused=false;
+  const tick=50;clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    if(timerPaused)return;
+    timerElapsed+=tick;
+    const pct=Math.max(0,100-timerElapsed/(timerSecs*1000)*100);
+    bar.style.transition=`width ${tick}ms linear`;bar.style.width=pct+'%';
+    if(pct<30){bar.style.background='var(--red)';bar.classList.add('urgent');}
+    else if(pct<60)bar.style.background='var(--gold)';
+    if(timerElapsed>=timerSecs*1000){
+      clearInterval(timerInterval);
+      if(!btnLock&&gameStarted){showToast('⏱️ 시간 초과! 자동 선택');choose(CHOICES[~~(Math.random()*3)],true);}
+    }
+  },tick);
+}
+function pauseTimer(){
+  if(!timerSecs)return;
+  timerPaused=true;
+  document.getElementById('timerWrap').classList.add('paused');
+}
+function resumeTimer(){
+  if(!timerSecs)return;
+  timerPaused=false;
+  document.getElementById('timerWrap').classList.remove('paused');
+}
+function stopTimer(){clearInterval(timerInterval);timerPaused=false;timerElapsed=0;document.getElementById('timerWrap').classList.remove('show','paused');}
+
+// 힌트 토글
+function toggleHints(){
+  hintsOn=!hintsOn;
+  ['btnRock','btnScissors','btnPaper'].forEach(id=>{document.getElementById(id).classList.toggle('hints-on',hintsOn);});
+  const tb=document.getElementById('hintToggleBtn');tb.textContent=hintsOn?'💡 ON':'💡 힌트';tb.classList.toggle('on',hintsOn);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// GAME FLOW
+// ─────────────────────────────────────────────────────────────────
+function startGame(){
+  if(btnLock)return;
+  if(balance<currentBet){showToast('잔액 부족');return;}
+  btnLock=true;
+  balance=Math.max(0,balance-currentBet);saveBal();updateBalUI();
+  roundNum=0;playerWins=0;aiWins=0;draws=0;history=[];
+  gameStarted=true;playerStreak=0;aiLoseStreak=0;aiTilted=false;
+  goldenRound=~~(Math.random()*TOTAL_ROUNDS);goldenBonus=0;
+  doubleDown=false;doubleDownSkipped=false;currentPayouts={...BET_CONFIGS[currentBet].payouts};
+  skillsUsed={intel:false,shield:false,vision:false};shieldActive=false;visionResult=null;
+  document.getElementById('startScreen').style.display='none';
+  document.getElementById('gameScreen').style.display='flex';
+  document.getElementById('betDisplay').textContent='₩'+fmt(currentBet);
+  ['streakBadge','earlyInfo','rescueBadge','bluffBubble','doubledownWrap'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  buildSkillBar();buildRoundDots();updateScoreUI();
+  showAiComment('game_start');btnLock=false; // nextRound() 전에 해제해야 타이머 초과 choose() 정상 작동
+  if(navigator.vibrate)navigator.vibrate(40);
+  nextRound();
+}
+
+function buildRoundDots(){
+  const el=document.getElementById('roundDots');el.innerHTML='';
+  for(let i=0;i<TOTAL_ROUNDS;i++){
+    const d=document.createElement('div');
+    const isG=i===goldenRound;
+    d.className='round-dot'+(i===0?' current':'')+(isG?' golden':'');
+    d.id='dot'+i;d.textContent=isG?'⭐':(i+1);
+    el.appendChild(d);
+  }
+}
+
+function updateScoreUI(){
+  document.getElementById('playerScore').textContent=playerWins;
+  document.getElementById('aiScore').textContent=aiWins;
+  const ds=document.getElementById('drawScore');if(ds)ds.textContent=draws;
+  document.getElementById('roundLabel').textContent=`${Math.min(roundNum+1,TOTAL_ROUNDS)} / ${TOTAL_ROUNDS}`;
+}
+
+function nextRound(){
+  const pd=document.getElementById('playerDisplay'),ad=document.getElementById('aiDisplay');
+  const isGolden=roundNum===goldenRound;
+  pd.textContent='❓';pd.className='choice-display'+(isGolden?' golden-glow':'');
+  ad.textContent='❓';ad.className='choice-display'+(isGolden?' golden-glow':'');
+  document.getElementById('hintBar').innerHTML='선택하세요';
+  document.getElementById('bluffBubble').classList.remove('show');
+  // 매 라운드 시작 시 패널 숨김 — checkShowDoubleDown이 조건 충족 시 다시 표시
+  document.getElementById('doubledownWrap').classList.remove('show');
+  awaitingChoice=true;
+  setChoiceBtns(true);startTimer();
+  setTimeout(maybeBluff,500);
+  // B. 더블다운 체크
+  setTimeout(checkShowDoubleDown,800);
+}
+
+function setChoiceBtns(on){['Rock','Scissors','Paper'].forEach(n=>document.getElementById('btn'+n).disabled=!on);}
+
+function choose(choice,isAuto=false){
+  if(btnLock)return;
+  awaitingChoice=false;
+  if(navigator.vibrate)navigator.vibrate(20);
+  btnLock=true;stopTimer();setChoiceBtns(false);
+  document.getElementById('doubledownWrap').classList.remove('show');
+  const pd=document.getElementById('playerDisplay');
+  pd.textContent=ICONS[choice];pd.classList.add('selected');
+  document.getElementById('hintBar').innerHTML=(isAuto?'⏱️ 자동: ':'')+'AI 선택 중... <div class="thinking-dots"><span></span><span></span><span></span></div>';
+  // [BUG FIX] AI는 플레이어 선택과 무관하게 패턴(이전 히스토리)만으로 미리 결정
+  const aiChoice=getAiChoice();
+  visionResult=null; // 예지 스킬 1라운드만 유효
+  setTimeout(()=>{
+    const ad=document.getElementById('aiDisplay');
+    ad.textContent=ICONS[aiChoice];ad.classList.add('reveal','ai-revealed');
+    setTimeout(()=>ad.classList.remove('reveal'),400);
+    judgeRound(choice,aiChoice);
+  },600);
+}
+
+function judgeRound(p,a){
+  let result;
+  if(p===a)result='draw';
+  else if(BEATS[p]===a)result='win';
+  else result='lose';
+
+  // C. 보험 처리
+  if(result==='lose'&&shieldActive){result='draw';shieldActive=false;showToast('🛡️ 보험 발동! 패배 → 무승부 처리');if(navigator.vibrate)navigator.vibrate([40,20,40]);}
+
+  history.push({round:roundNum,p,a,result,golden:roundNum===goldenRound});
+
+  // G. 아바타 애니메이션
+  animateAvatars(result);
+  if(navigator.vibrate){
+    if(result==="win")navigator.vibrate([50,30,50,30,80]);
+    else if(result==="lose")navigator.vibrate([30]);
+    else navigator.vibrate([20,20,20]);
+  }
+
+  // G. AI 아바타 흔들림
+  const aiAvEl=document.getElementById('aiAvatar');
+  if(result==='win'){aiAvEl.classList.remove('shake','bounce');void aiAvEl.offsetWidth;aiAvEl.classList.add('shake');}
+  else if(result==='lose'){aiAvEl.classList.remove('shake','bounce');void aiAvEl.offsetWidth;aiAvEl.classList.add('bounce');}
+
+  if(result==='win')playerStreak++; else playerStreak=0;
+
+  // ⑩ AI tilt
+  if(result==='win'){
+    aiLoseStreak++;
+    if(aiLoseStreak>=4&&!aiTilted){aiTilted=true;showAiComment('tilt');showToast('😤 AI가 흔들리고 있다!',3000);updateAiUI();}
+  } else {aiLoseStreak=0;if(aiTilted){aiTilted=false;updateAiUI();}}
+
+  const dot=document.getElementById('dot'+roundNum);
+  if(dot){dot.classList.remove('current','golden');dot.classList.add(result==='draw'?'draw':result==='win'?'win':'lose');}
+
+  if(result==='win')playerWins++;
+  else if(result==='lose')aiWins++;
+  else draws++;
+  updateScoreUI();
+
+  if(result==='win'){const el=document.getElementById('playerScore');el.classList.add('score-flash');setTimeout(()=>el.classList.remove('score-flash'),300);}
+
+  const sb=document.getElementById('streakBadge');
+  if(playerStreak>=2){sb.textContent=`🔥 ${playerStreak}연승!`;sb.classList.add('show');}
+  else sb.classList.remove('show');
+
+  // ④ 연패 구제 안내 (AI tilt 강제 설정 제거 — tilt는 AI 연패 기반으로만)
+  const recentLoses=history.slice(-2).filter(h=>h.result==='lose').length;
+  const rb=document.getElementById('rescueBadge');
+  if(recentLoses>=2&&result==='lose'){
+    rb.textContent='💊 AI 집중력 약화 — 다음 라운드 유리!';rb.classList.add('show');
+    showAiComment('rescue');
+  } else rb.classList.remove('show');
+
+  // ③ 골든 라운드 보너스 (더블다운 적용)
+  const isGoldenWin=(roundNum===goldenRound&&result==='win');
+  if(isGoldenWin){goldenBonus+=Math.round(currentBet*GOLDEN_BONUS_RATIO*(doubleDown?2:1));}
+  if(isGoldenWin&&navigator.vibrate)navigator.vibrate([80,40,80,40,150]);
+
+  // E. 미션 체크
+  checkMissions();
+
+  document.getElementById('hintBar').innerHTML={win:`✅ ${ICONS[p]} 이겼습니다!`,lose:`❌ ${ICONS[a]} AI 승`,draw:`🤝 비겼습니다`}[result];
+  showRoundPopup(result,p,a,isGoldenWin);
+  showAiComment(result==='win'?'round_win':result==='lose'?'round_lose':'round_draw');
+
+  roundNum++;
+  const remaining=TOTAL_ROUNDS-roundNum;
+  updateEarlyInfo(remaining);
+
+  if(roundNum>=TOTAL_ROUNDS){setTimeout(()=>endGame(),1300);}
+  else{
+    const canReach3=playerWins+remaining>=3;
+    // [BUG FIX] 5승 전승 보너스를 노릴 수 있는 경우 조기 종료 금지
+    const alreadyWon=playerWins>=4&&(playerWins+remaining)<5;
+    const aiAlreadyWon=aiWins>=3;
+    if(!canReach3||alreadyWon||aiAlreadyWon){setTimeout(()=>endGame(),1300);return;}
+    setTimeout(()=>{
+      const nd=document.getElementById('dot'+roundNum);
+      if(nd){nd.classList.add('current');if(roundNum===goldenRound)nd.classList.add('golden');}
+      updateScoreUI();nextRound();btnLock=false;
+    },1300);
+  }
+}
+
+function updateEarlyInfo(remaining){
+  const el=document.getElementById('earlyInfo');
+  if(remaining<=0){el.classList.remove('show');return;}
+  const needed=3-playerWins;
+  if(playerWins>=4){el.textContent=`🏆 수익 확보! 남은 ${remaining}라운드로 5승 도전 가능`;el.classList.add('show');}
+  else if(needed<=0){el.textContent=`🎯 환급 확보! 남은 ${remaining}라운드로 추가 수익 가능`;el.classList.add('show');}
+  else if(needed>remaining){el.textContent=`⚠️ 환급 불가 — 남은 ${remaining}라운드, ${needed}승 필요`;el.classList.add('show');}
+  else el.classList.remove('show');
+}
+
+function showRoundPopup(result,p,a,isGoldenWin){
+  const popup=document.getElementById('roundResult');
+  document.getElementById('rrEmoji').textContent={win:'🎉',lose:'💔',draw:'🤝'}[result];
+  const txt=document.getElementById('rrText');txt.textContent={win:'승리!',lose:'패배',draw:'무승부'}[result];txt.className='rr-text '+result;
+  document.getElementById('rrSub').textContent={win:`${ICONS[p]} 이(가) ${ICONS[a]} 을(를) 이겼습니다`,lose:`${ICONS[a]} 이(가) ${ICONS[p]} 을(를) 이겼습니다`,draw:`둘 다 ${ICONS[p]}`}[result];
+  document.getElementById('rrGolden').classList.toggle('show',isGoldenWin);
+  popup.classList.add('show');setTimeout(()=>popup.classList.remove('show'),1000);
+}
+
+function endGame(){
+  gameStarted=false;awaitingChoice=false;stopTimer();
+  if(navigator.vibrate)navigator.vibrate(playerWins>=3?[60,30,60,30,120]:[40]);
+  // 게임 중 보류됐던 AI tier 적용
+  if(aiProfile._pendingTier){
+    aiProfile.tier=aiProfile._pendingTier;
+    delete aiProfile._pendingTier;
+    localStorage.setItem(AI_KEY,JSON.stringify(aiProfile));
+    updateAiUI();
+  }
+  // 조기종료 시 각종 게임 내 UI 패널 정리
+  ['doubledownWrap','bluffBubble','streakBadge','rescueBadge','earlyInfo'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.classList.remove('show');
+  });
+  const isWin=playerWins>=3;
+  // F. AI 진화 체크
+  checkAiEvolution(isWin);
+
+  // ⑥ 연속 보너스: consecWins를 먼저 업데이트해야 현재 게임에 정확히 적용됨
+  stats.plays++;
+  if(isWin){stats.wins++;stats.totalWins=(stats.totalWins||0)+1;consecWins++;}
+  else{stats.totalWins=(stats.totalWins||0);consecWins=0;}
+  const basePayout=currentPayouts[playerWins]||0;
+  const mult=basePayout>0?(CONSEC_MULT[consecWins]||1):1;
+  const ddMult=doubleDown?2:1;
+  const payout=Math.round(basePayout*mult*ddMult)+goldenBonus;
+  balance=Math.max(0,balance+payout);saveBal();updateBalUI();
+  // D. 기록 저장
+  addGameRecord(aiProfile.tier,playerWins,aiWins,payout);
+  saveAll();updateStatsUI();updateConsecBanner();
+  updatePlayerCard(isWin,playerWins);updateFairnessBox();
+
+  let icon,title,cls,sub;
+  if(playerWins>=4){icon='🏆';title='승리!';cls='win';sub=playerWins===5?'5전 전승! 완벽합니다!':'4승 — 수익 실현!';}
+  else if(playerWins===3){icon='🤝';title='환급';cls='draw';sub='3승 — 원금 환급';}
+  else{icon='💀';title='패배';cls='lose';sub=`${playerWins}승 ${aiWins}패 — 전액 손실`;}
+
+  document.getElementById('roIcon').textContent=icon;
+  const titleEl=document.getElementById('roTitle');titleEl.textContent=title;titleEl.className='ro-title '+cls;
+  document.getElementById('roSub').textContent=sub;
+  let payTxt=payout>0?`+₩${fmt(payout)} 지급`:'₩0 — 전액 손실';
+  if(goldenBonus>0&&basePayout>0)payTxt+=` (⭐+₩${fmt(goldenBonus)})`;
+  if(mult>1)payTxt+=` (🔥×${mult})`;
+  if(doubleDown&&basePayout>0)payTxt+=' (⚡×2 적용)';
+  document.getElementById('roPayout').textContent=payTxt;
+
+  const ms=document.getElementById('matchSummary');ms.innerHTML='';
+  history.forEach(h=>{
+    const d=document.createElement('div');const gw=h.golden&&h.result==='win';
+    d.className='ms-round '+(gw?'golden':h.result);d.textContent=ICONS[h.p];
+    d.title=`R${h.round+1}${h.golden?'⭐':''}: ${ICONS[h.p]} vs ${ICONS[h.a]}`;ms.appendChild(d);
+  });
+
+  if(history.length){
+    const freq={rock:0,scissors:0,paper:0};history.forEach(h=>freq[h.p]++);const tot=history.length;
+    ['Rock','Scissors','Paper'].forEach(k=>{const key=k.toLowerCase();const pct=Math.round(freq[key]/tot*100);document.getElementById('pr'+k).style.width=pct+'%';document.getElementById('pr'+k+'Pct').textContent=pct+'%';});
+  }
+
+  document.getElementById('resultOverlay').classList.add('show');
+  const dab=document.getElementById('defeatAnalysisBtn');
+  if(dab)dab.style.display=playerWins<3?'block':'none';
+  if(playerWins>=4)launchConfetti();
+
+  // 승리→분위기 상승(AI 약해짐), 패배→분위기 하락(AI 강해짐)
+  try{window.parent.postMessage({type:'ATMOSPHERE',delta:playerWins>=4?+8:playerWins===3?+2:-10},window.location.origin);}catch(e){}
+  try{window.parent.postMessage({type:'GAME_OVER',gameId:'psychology',playerWins,aiWins,draws,payout},window.location.origin);}catch(e){}
+
+  setTimeout(()=>{
+    const tier=aiProfile.tier||'NORMAL';const ctx=playerWins>=3?'final_win':'final_lose';
+    const pool=AI_MENTS[ctx]?.[tier];
+    if(pool?.length){const el=document.getElementById('finalAiComment');if(el)el.textContent='💬 '+pool[~~(Math.random()*pool.length)];}
+  },400);
+}
+
+// 공유
+function shareResult(){
+  const tier=aiProfile.tier||'NORMAL';
+  const roundStr=history.map(h=>h.result==='win'?'✅':h.result==='lose'?'❌':'🟡').join('');
+  const actualBet=doubleDown?currentBet*2:currentBet;
+  const text=`🧠 심리전\n상대: ${tier} ${TIER_AVATARS[tier]}\n베팅: ₩${fmt(actualBet)}${doubleDown?' (더블다운)':''}\n${roundStr}\n${playerWins}승 ${aiWins}패 ${draws}무\n${playerWins>=4?'🏆 승리':playerWins===3?'🤝 환급':'💀 패배'}`;
+  navigator.clipboard.writeText(text).then(()=>showToast('📋 복사 완료!')).catch(()=>showToast('복사 실패'));
+}
+
+// ④ 패배 분석
+function showDefeatAnalysis(){
+  const tier=aiProfile.tier||'NORMAL';
+  document.getElementById('defeatSub').textContent=`vs ${TIER_NAMES[tier]} — ${playerWins}승 ${aiWins}패 ${draws}무`;
+
+  // 타임라인
+  const dtRows=document.getElementById('dtRows');dtRows.innerHTML='';
+  history.forEach((h,i)=>{
+    const insight=getInsight(h,i);
+    const row=document.createElement('div');
+    row.className='dt-row '+h.result;
+    row.innerHTML=`
+      <div class="dt-round">R${i+1}${h.golden?'⭐':''}</div>
+      <div>
+        <div class="dt-choices"><span>${ICONS[h.p]}</span><span class="dt-vs">vs</span><span>${ICONS[h.a]}</span></div>
+        <div class="dt-insight">${insight}</div>
+      </div>
+      <div class="dt-result ${h.result}">${{win:'✅ 승',lose:'❌ 패',draw:'🤝 무'}[h.result]}</div>
+    `;
+    dtRows.appendChild(row);
+  });
+
+  // AI 패턴 분석 verdict
+  const freq={rock:0,scissors:0,paper:0};history.forEach(h=>freq[h.p]++);
+  const tot=history.length||1;
+  const most=Object.keys(freq).reduce((a,b)=>freq[a]>=freq[b]?a:b);
+  const loses=history.filter(h=>h.result==='lose');
+  const dvItems=document.getElementById('dvItems');dvItems.innerHTML='';
+  const verdicts=[];
+  if(freq[most]/tot>=0.5)verdicts.push(`당신은 ${ICONS[most]}을(를) ${Math.round(freq[most]/tot*100)}% 냈습니다. AI가 이를 카운터했습니다.`);
+  if(loses.length>=3){
+    // 연속 2패 이상 발생 횟수 체크
+    let maxConsec=0,cur=0;
+    history.forEach(h=>{if(h.result==='lose'){cur++;maxConsec=Math.max(maxConsec,cur);}else cur=0;});
+    if(maxConsec>=2)verdicts.push(`${loses.length}번 패배 중 연속 ${maxConsec}패 구간이 있었습니다.`);
+    else verdicts.push(`총 ${loses.length}번 패배했습니다.`);
+  }
+  const repeatPattern=detectRepeat(history);
+  if(repeatPattern)verdicts.push(`'${repeatPattern}' 반복 패턴이 감지됐습니다.`);
+  if(!verdicts.length)verdicts.push('특별한 패턴 없음 — 운이 나빴을 수 있습니다.');
+  verdicts.forEach(v=>{const d=document.createElement('div');d.className='dv-item';d.textContent=v;dvItems.appendChild(d);});
+
+  // 조언
+  document.getElementById('dhText').innerHTML=getDefeatHint(freq,tier,tot);
+
+  document.getElementById('defeatOverlay').classList.add('show');
+}
+function getInsight(h,i){
+  if(h.result==='win')return `${ICONS[h.p]}로 ${ICONS[h.a]} 제압`;
+  if(h.result==='draw')return '동일 선택 — 무승부';
+  // 패배 이유 분석
+  const prev=history.slice(0,i).map(x=>x.p);
+  const prevFreq={rock:0,scissors:0,paper:0};
+  prev.forEach(c=>prevFreq[c]++);
+  const prevMost=prev.length?Object.keys(prevFreq).reduce((a,b)=>prevFreq[a]>=prevFreq[b]?a:b):null;
+  if(prevMost&&COUNTER[prevMost]===h.a)return `AI가 패턴(${ICONS[prevMost]})을 읽고 카운터`;
+  return `AI ${ICONS[h.a]}에 패배`;
+}
+function detectRepeat(hist){
+  if(hist.length<4)return null;
+  const choices=hist.map(h=>h.p);
+  // 2-패턴 반복 검사
+  for(let len=2;len<=3;len++){
+    const pattern=choices.slice(-len*2,-len);
+    const recent=choices.slice(-len);
+    if(JSON.stringify(pattern)===JSON.stringify(recent))return recent.map(c=>ICONS[c]).join('');
+  }
+  return null;
+}
+function getDefeatHint(freq,tier,tot){
+  const most=Object.keys(freq).reduce((a,b)=>freq[a]>=freq[b]?a:b);
+  const pct=Math.round(freq[most]/tot*100);
+  const hints=[];
+  if(pct>=50)hints.push(`<b style="color:var(--accent2)">${ICONS[most]} 비중을 줄이세요</b> — 너무 자주 냈습니다 (${pct}%).`);
+  if(tier==='HARD'||tier==='EXTREME')hints.push('HARD 이상은 최근 3라운드를 분석합니다. <b style="color:var(--accent2)">의도적으로 패턴을 섞어야</b> 합니다.');
+  hints.push('연속으로 같은 선택을 하면 카운터 당할 확률이 높습니다.');
+  return hints.join('<br><br>');
+}
+function closeDefeat(){
+  document.getElementById('defeatOverlay').classList.remove('show');
+}
+
+
+function launchConfetti(){
+  const canvas=document.getElementById('confettiCanvas');
+  canvas.style.display='block';canvas.width=innerWidth;canvas.height=innerHeight;
+  const ctx=canvas.getContext('2d');
+  const cols=['#7c3aed','#a855f7','#f59e0b','#22c55e','#ec4899','#fff'];
+  const ps=Array.from({length:150},()=>({x:Math.random()*canvas.width,y:-10,vx:(Math.random()-.5)*5,vy:Math.random()*4+2,c:cols[~~(Math.random()*cols.length)],s:Math.random()*7+3,a:Math.random()*360,sp:Math.random()*6-3}));
+  let f=0;
+  (function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ps.forEach(p=>{ctx.save();ctx.globalAlpha=f>120?Math.max(0,1-(f-120)/60):1;ctx.translate(p.x,p.y);ctx.rotate(p.a*Math.PI/180);ctx.fillStyle=p.c;ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s);ctx.restore();p.x+=p.vx;p.y+=p.vy;p.vy+=.09;p.a+=p.sp;});
+    f++;if(f<180)requestAnimationFrame(draw);else{ctx.clearRect(0,0,canvas.width,canvas.height);canvas.style.display='none';}
+  })();
+}
+
+function resetGame(){
+  stopTimer();
+  document.getElementById('resultOverlay').classList.remove('show');
+  document.getElementById('defeatOverlay').classList.remove('show');
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('startScreen').style.display='flex';
+  roundNum=0;playerWins=0;aiWins=0;draws=0;history=[];
+  gameStarted=false;btnLock=false;awaitingChoice=false;playerStreak=0;aiLoseStreak=0;aiTilted=false;goldenBonus=0;doubleDown=false;doubleDownSkipped=false;
+  currentPayouts={...BET_CONFIGS[currentBet].payouts};
+  document.getElementById('betDisplay').textContent='₩'+fmt(currentBet);
+  skillsUsed={intel:false,shield:false,vision:false};shieldActive=false;visionResult=null;
+  ['streakBadge','earlyInfo','rescueBadge','bluffBubble','doubledownWrap','aiComment'].forEach(id=>document.getElementById(id).classList.remove('show'));
+  const fac=document.getElementById('finalAiComment');if(fac)fac.textContent='';
+  updateBalUI();updateAiUI();updateConsecBanner();renderRivalBox();updatePlayerCard();updateFairnessBox();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// MESSAGES
+// ─────────────────────────────────────────────────────────────────
+const ALLOWED_ORIGINS=[window.location.origin,'null'];
+function isTrustedOrigin(o){return ALLOWED_ORIGINS.includes(o)||o===window.location.origin;}
+
+window.addEventListener('message',e=>{
+  if(!isTrustedOrigin(e.origin))return;
+  const d=e.data||{};
+  switch(d.type){
+    case'INIT':
+      balance=Math.max(0,parseInt(d.balance||localStorage.getItem(BAL_KEY)||0));
+      if(d.points!==undefined) pointBalance=parseInt(d.points)||0;
+      localStorage.setItem(BAL_KEY,balance); // localStorage만 동기화, saveBal() 제거(parent 재전송 루프 방지)
+      document.body.classList.add('in-iframe');
+      updateBalUI();
+      if(d.aiProfile){aiProfile=d.aiProfile;localStorage.setItem(AI_KEY,JSON.stringify(aiProfile));updateAiUI();}
+      break;
+    case'POINT_UPDATE':
+      pointBalance=parseInt(d.points||0);
+      if(d.balance!==undefined&&!gameStarted){balance=Math.max(0,parseInt(d.balance));localStorage.setItem(BAL_KEY,balance);}
+      updateBalUI();
+      break;
+    case'CHARGE':{
+      const newBal=Math.max(0,parseInt(localStorage.getItem(BAL_KEY)||'0'));
+      const diff=newBal-balance;
+      balance=newBal;
+      localStorage.setItem(BAL_KEY,balance);updateBalUI();
+      if(diff>0)showToast(`+₩${fmt(diff)} 충전 완료`);
+      break;}
+    case'AI_PROFILE':{
+      const prof=d.profile||d;
+      if(gameStarted){
+        // 게임 진행 중: tier만 보류, atmosphereScore/mood/threat 즉시 반영
+        aiProfile._pendingTier=prof.tier;
+        aiProfile.atmosphereScore=prof.atmosphereScore??aiProfile.atmosphereScore;
+        aiProfile.mood=prof.mood??aiProfile.mood;
+        aiProfile.threat=prof.threat??aiProfile.threat;
+      } else {
+        aiProfile=prof;
+      }
+      localStorage.setItem(AI_KEY,JSON.stringify(aiProfile));updateAiUI();
+      break;}
+    case'BALANCE_UPDATE':
+      if(!gameStarted){ // 게임 중엔 외부 balance 덮어씀 방지
+        balance=Math.max(0,parseInt(d.balance||0));
+        localStorage.setItem(BAL_KEY,balance);updateBalUI();
+      }
+      break;
+  }
+});
+
+function requestCharge(){try{window.parent.postMessage({type:'REQUEST_CHARGE'},window.location.origin);}catch(e){}}
+function goHome(){if(gameStarted){stopTimer();gameStarted=false;btnLock=false;awaitingChoice=false;}try{window.parent.postMessage({type:'GO_HOME'},window.location.origin);}catch(e){}}
+
+let _tt=null;
+function showToast(msg,dur=2500){
+  const t=document.getElementById('toast');
+  if(_tt)clearTimeout(_tt);t.textContent=msg;t.classList.add('show');
+  _tt=setTimeout(()=>{t.classList.remove('show');_tt=null;},dur);
+}
+
+// ─────────────────────────────────────────────────────────────────
+// BOOT — in-iframe 감지를 가장 먼저 실행
+// ─────────────────────────────────────────────────────────────────
+if(window.self!==window.top){ document.body.classList.add('in-iframe'); }
+
+// ─────────────────────────────────────────────────────────────────
+// SAFE AREA / 상태바 보정 — topBar 실제 높이를 읽어 main padding-top 직접 설정
+// ─────────────────────────────────────────────────────────────────
+(function(){
+  function fixLayout(){
+    const main=document.querySelector('.main');
+    if(!main)return;
+    // iframe 안이면 topBar 숨김 → padding 최소화
+    if(document.body.classList.contains('in-iframe')){
+      main.style.paddingTop='12px';
+      return;
+    }
+    const topBar=document.getElementById('topBar');
+    if(!topBar)return;
+    const barH=topBar.getBoundingClientRect().height||topBar.offsetHeight||64;
+    main.style.paddingTop=(barH+12)+'px';
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',fixLayout);
+  } else {
+    fixLayout();
+  }
+  window.addEventListener('resize',fixLayout);
+})();
+
+loadBal();loadAI();loadAll();renderPayoutTable();selectBet(100000,true);updatePlayerCard();
+</script>
+</body>
+</html>
