@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사주명리 — 장기운 분석</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-light: #f0d080;
+  --gold-dim: rgba(201,168,76,0.15);
+  --gold-border: rgba(201,168,76,0.2);
+  --bg: #08080e;
+  --bg2: #0e0e18;
+  --bg3: rgba(255,255,255,0.03);
+  --text: #ddd8cc;
+  --text-dim: #888;
+  --text-muted: #555;
+  --wood: #6db87a; --fire: #e07850; --earth: #c8a050; --metal: #8ab0c8; --water: #5898d8;
+  --radius: 16px; --radius-sm: 10px;
+  --serif: 'Noto Serif KR', serif; --sans: 'Noto Sans KR', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 40% at 15% 10%,rgba(201,168,76,0.05) 0%,transparent 60%),radial-gradient(ellipse 50% 60% at 85% 90%,rgba(80,40,160,0.07) 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 50% 50%,rgba(20,60,120,0.05) 0%,transparent 60%);pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,0.3) 0%,transparent 100%),radial-gradient(1px 1px at 30% 5%,rgba(255,255,255,0.2) 0%,transparent 100%),radial-gradient(1px 1px at 60% 20%,rgba(255,255,255,0.25) 0%,transparent 100%),radial-gradient(1px 1px at 80% 8%,rgba(255,255,255,0.2) 0%,transparent 100%),radial-gradient(1px 1px at 95% 25%,rgba(255,255,255,0.15) 0%,transparent 100%),radial-gradient(1px 1px at 45% 80%,rgba(255,255,255,0.1) 0%,transparent 100%),radial-gradient(1px 1px at 90% 75%,rgba(255,255,255,0.2) 0%,transparent 100%);pointer-events:none;z-index:0;}
+#app{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:48px 20px 100px;}
+
+/* Header */
+.site-header{text-align:center;margin-bottom:40px;animation:fadeDown 0.7s ease;}
+.header-emblem{display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.12),rgba(201,168,76,0.03));border:1px solid var(--gold-border);font-size:32px;margin-bottom:16px;box-shadow:0 0 30px rgba(201,168,76,0.08);}
+.site-title{font-family:var(--serif);font-size:28px;font-weight:700;background:linear-gradient(135deg,#a07830,#f0d080,#c9a84c,#e8c060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;letter-spacing:2px;}
+.site-sub{font-size:13px;color:var(--text-muted);letter-spacing:2px;}
+.today-badge{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:6px 16px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:20px;font-size:12px;color:var(--gold);letter-spacing:1px;}
+
+/* Main tabs (TOP) */
+.main-tabs{display:flex;gap:0;margin-bottom:28px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;padding:5px;overflow:hidden;}
+.main-tab{flex:1;padding:13px 8px;background:transparent;border:1px solid transparent;border-radius:10px;color:var(--text-muted);font-size:13px;cursor:pointer;text-align:center;transition:all 0.22s;font-family:var(--sans);line-height:1.35;font-weight:400;}
+.main-tab.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);font-weight:500;}
+.main-tab:hover:not(.active){border-color:rgba(255,255,255,0.1);color:var(--text);}
+
+/* Cards */
+.card{background:var(--bg3);border:1px solid var(--gold-border);border-radius:var(--radius);padding:28px;margin-bottom:16px;backdrop-filter:blur(8px);position:relative;overflow:hidden;}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold-border),transparent);}
+.card-title{font-size:15px;font-weight:600;color:var(--gold);margin-bottom:20px;display:flex;align-items:center;gap:8px;font-family:var(--serif);}
+
+/* Form */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.form-field{display:flex;flex-direction:column;gap:6px;}
+.form-field.full{grid-column:1/-1;}
+.field-label{font-size:11px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.field-hint{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:10px;color:var(--text-muted);cursor:help;position:relative;}
+.field-hint:hover .hint-popup{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0);}
+.hint-popup{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);background:#1a1a28;border:1px solid var(--gold-border);border-radius:8px;padding:10px 14px;width:220px;font-size:12px;color:var(--text);line-height:1.7;opacity:0;pointer-events:none;transition:all 0.2s;z-index:100;white-space:normal;}
+.hint-popup::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--gold-border);}
+input,select{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:var(--radius-sm);color:var(--text);font-family:var(--sans);font-size:15px;padding:12px 14px;outline:none;transition:border-color 0.2s;width:100%;-webkit-appearance:none;}
+input:focus,select:focus{border-color:rgba(201,168,76,0.4);}
+input::placeholder{color:var(--text-muted);}
+select option{background:#1a1a28;}
+.field-note{font-size:11px;color:var(--text-muted);line-height:1.6;margin-top:2px;}
+.gender-btns{display:flex;gap:8px;}
+.gender-btn{flex:1;padding:11px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);color:var(--text-dim);font-size:14px;cursor:pointer;transition:all 0.2s;font-family:var(--sans);}
+.gender-btn.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);}
+.toggle-row{display:flex;align-items:center;gap:10px;padding:12px 14px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-sm);cursor:pointer;}
+.toggle-row:hover{border-color:rgba(255,255,255,0.1);}
+.toggle-switch{width:36px;height:20px;background:rgba(255,255,255,0.1);border-radius:10px;position:relative;transition:background 0.2s;flex-shrink:0;}
+.toggle-switch.on{background:rgba(201,168,76,0.5);}
+.toggle-knob{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:left 0.2s;}
+.toggle-switch.on .toggle-knob{left:19px;}
+.toggle-label{font-size:13px;color:var(--text-dim);}
+.toggle-label span{color:var(--text);}
+.btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7a5a20,#c9a84c,#a07830,#e0c060);border:none;border-radius:12px;color:#080808;font-family:var(--sans);font-size:16px;font-weight:700;letter-spacing:1px;cursor:pointer;position:relative;overflow:hidden;transition:opacity 0.2s,transform 0.1s;margin-top:6px;}
+.btn-main::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,0.15) 50%,transparent 100%);transform:translateX(-100%);transition:transform 0.5s;}
+.btn-main:hover::after{transform:translateX(100%);}
+.btn-main:hover{opacity:0.9;}.btn-main:active{transform:scale(0.99);}
+.btn-secondary{padding:10px 20px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:var(--text-dim);font-family:var(--sans);font-size:13px;cursor:pointer;transition:all 0.2s;}
+.btn-secondary:hover{border-color:rgba(255,255,255,0.2);color:var(--text);}
+
+/* Inner sub-tabs (for gunghap) */
+.sub-tabs{display:flex;gap:5px;margin-bottom:20px;flex-wrap:wrap;}
+.sub-tab{padding:8px 14px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:20px;color:var(--text-muted);font-size:12px;cursor:pointer;transition:all 0.2s;font-family:var(--sans);}
+.sub-tab.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);}
+.sub-tab:hover:not(.active){border-color:rgba(255,255,255,0.13);color:var(--text);}
+
+/* Share bar */
+.share-bar{display:flex;gap:8px;margin-bottom:16px;}
+.share-btn{flex:1;padding:11px 8px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.share-btn:hover{opacity:0.85;transform:translateY(-1px);}
+.share-btn-kakao{background:#FEE500;color:#3C1E1E;border-color:#FEE500;font-weight:600;}
+.share-btn-img{background:rgba(201,168,76,0.1);color:var(--gold);border-color:var(--gold-border);}
+.share-btn-copy{background:rgba(255,255,255,0.04);color:var(--text-dim);}
+#saveOverlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-size:14px;}
+#saveOverlay.show{display:flex;}
+
+/* Pillars */
+.pillars-row{display:flex;gap:8px;}
+.pillar-card{flex:1;background:rgba(255,255,255,0.02);border:1px solid var(--gold-border);border-radius:12px;padding:14px 8px;text-align:center;position:relative;overflow:hidden;opacity:0;transform:translateY(16px);transition:opacity 0.5s,transform 0.5s;}
+.pillar-card.show{opacity:1;transform:translateY(0);}
+.pillar-top-line{position:absolute;top:0;left:0;right:0;height:2px;}
+.pillar-label{font-size:10px;color:var(--text-muted);letter-spacing:1px;margin-bottom:8px;}
+.pillar-char{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;font-weight:700;margin:0 auto 4px;}
+.pillar-meta{font-size:10px;color:var(--text-muted);margin-top:6px;line-height:1.7;}
+
+/* Ohaeng chart */
+.oh-chart{display:flex;gap:6px;margin:16px 0;}
+.oh-item{flex:1;text-align:center;}
+.oh-bar-wrap{height:60px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:4px;}
+.oh-bar{width:24px;border-radius:4px 4px 0 0;transition:height 0.6s cubic-bezier(0.34,1.56,0.64,1);min-height:4px;}
+.oh-label{font-size:11px;color:var(--text-dim);}
+.oh-emoji{font-size:14px;}
+
+/* Analysis body */
+.analysis-body{font-size:14px;line-height:2;color:#ccc8bc;white-space:pre-wrap;font-family:var(--sans);font-weight:300;}
+.cursor-blink{display:inline-block;width:2px;height:1.1em;background:var(--gold);margin-left:2px;vertical-align:middle;animation:blink 0.9s infinite;}
+
+/* Daeun */
+.daeun-timeline{position:relative;padding:10px 0;}
+.daeun-line{position:absolute;top:32px;left:20px;right:20px;height:2px;background:linear-gradient(90deg,var(--gold-border),rgba(201,168,76,0.05));}
+.daeun-items{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin;scrollbar-color:#333 transparent;}
+.daeun-item{flex-shrink:0;width:72px;text-align:center;}
+.daeun-dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--gold-border);background:var(--bg);margin:0 auto 6px;position:relative;z-index:1;transition:all 0.2s;}
+.daeun-item.current .daeun-dot{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(201,168,76,0.5);}
+.daeun-age{font-size:10px;color:var(--text-muted);margin-bottom:4px;}
+.daeun-ganji{font-family:var(--serif);font-size:14px;font-weight:600;color:var(--text-dim);margin-bottom:2px;}
+.daeun-item.current .daeun-ganji{color:var(--gold);}
+.daeun-oh-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;}
+
+/* Gunghap score ring */
+.gunghap-score-ring{width:100px;height:100px;margin:0 auto 16px;position:relative;}
+.gunghap-score-ring svg{transform:rotate(-90deg);}
+.gunghap-score-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--serif);}
+.gunghap-num{font-size:26px;font-weight:700;color:var(--gold);}
+.gunghap-sub{font-size:10px;color:var(--text-muted);}
+
+/* Score bars */
+.score-item{margin-bottom:14px;}
+.score-label-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.score-label{font-size:13px;color:var(--text-dim);}
+.score-val{font-size:12px;color:var(--gold);font-weight:600;}
+.score-track{height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;}
+.score-fill{height:100%;border-radius:3px;transition:width 1s cubic-bezier(0.34,1.56,0.64,1);}
+
+/* 이름풀이 */
+.name-ohaeng-grid{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0;}
+.name-oh-chip{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;}
+.stroke-info{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+.stroke-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+.stroke-char{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--gold);min-width:32px;}
+.stroke-detail{font-size:12px;color:var(--text-muted);line-height:1.8;}
+
+/* Info box */
+.info-box{background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--text-muted);line-height:1.8;margin-top:14px;}
+.info-box b{color:var(--text-dim);}
+
+/* Loading */
+.loading-state{text-align:center;padding:32px 0;color:var(--text-muted);font-size:14px;line-height:2;}
+.loading-spinner{display:inline-block;width:24px;height:24px;border:2px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:12px;}
+
+/* Result tabs */
+.result-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:4px;margin-bottom:16px;}
+.result-tab{flex:1;padding:10px 6px;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--text-muted);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all 0.2s;text-align:center;line-height:1.3;}
+.result-tab.active{background:var(--gold-dim);border-color:var(--gold-border);color:var(--gold);}
+.btn-detail{width:100%;padding:14px;background:rgba(201,168,76,0.06);border:1px solid var(--gold-border);border-radius:10px;color:var(--gold);font-family:var(--sans);font-size:14px;cursor:pointer;transition:all 0.2s;margin-top:16px;}
+.btn-detail:hover{background:rgba(201,168,76,0.1);}
+
+.hidden{display:none!important;}
+
+/* Particles */
+.particle-container{position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden;}
+.particle{position:absolute;font-size:14px;animation:particleFall 2s ease-out forwards;opacity:0;}
+@keyframes particleFall{0%{opacity:1;transform:translateY(0) rotate(0deg) scale(1)}50%{opacity:0.8}100%{opacity:0;transform:translateY(60vh) rotate(360deg) scale(0.3)}}
+
+/* Radar */
+.radar-wrap{text-align:center;margin:16px 0;}
+
+/* Luck cards */
+.luck-cards{display:flex;gap:8px;margin:16px 0;}
+.luck-card{flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 8px;text-align:center;}
+.luck-card-icon{font-size:20px;margin-bottom:4px;}
+.luck-card-label{font-size:10px;color:var(--text-muted);margin-bottom:4px;}
+.luck-card-value{font-size:12px;color:var(--gold);font-weight:500;}
+.luck-color-chip{display:inline-block;width:18px;height:18px;border-radius:50%;border:1px solid rgba(255,255,255,0.15);vertical-align:middle;margin-right:4px;}
+
+@keyframes fadeDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.anim-in{animation:fadeIn 0.4s ease forwards;}
+
+@media(max-width:520px){
+  .form-grid{grid-template-columns:1fr;}
+  .pillars-row{gap:4px;}
+  .pillar-char{width:34px;height:34px;font-size:17px;}
+  .site-title{font-size:22px;}
+  #app{padding:28px 14px 80px;}
+  .main-tabs .main-tab{font-size:12px;padding:11px 5px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="site-header">
+    <div class="header-emblem">☯</div>
+    <h1 class="site-title">사주명리 — 장기운</h1>
+    <p class="site-sub">사주 · 이름풀이 · 통합 궁합</p>
+    <div class="today-badge" id="todayBadge">⚡ 오늘의 기운 로딩중...</div>
+  </header>
+
+  <!-- ══ INPUT SCREEN ══ -->
+  <div id="inputScreen">
+
+    <!-- TOP MAIN TABS -->
+    <div class="main-tabs">
+      <button class="main-tab active" onclick="setMainTab('saju')" id="mtab-saju">🌟<br>사주팔자</button>
+      <button class="main-tab" onclick="setMainTab('name')" id="mtab-name">✍️<br>이름풀이</button>
+      <button class="main-tab" onclick="setMainTab('gunghap')" id="mtab-gunghap">💞<br>통합 궁합</button>
+    </div>
+
+    <!-- ── 사주팔자 입력 ── -->
+    <div id="form-saju">
+      <div class="card">
+        <div class="card-title">🌟 사주팔자 분석</div>
+        <div class="form-field full" style="margin-bottom:14px;">
+          <label class="field-label">📅 달력 기준</label>
+          <div class="gender-btns" style="margin-top:6px;">
+            <button class="gender-btn active" onclick="setCalType('양력')" id="cal-양력">☀️ 양력 (주민등록상)</button>
+            <button class="gender-btn" onclick="setCalType('음력')" id="cal-음력">🌙 음력</button>
+          </div>
+        </div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="field-label">태어난 해 <div class="field-hint">?<div class="hint-popup">📅 서기 연도. 예: 1985, 1993</div></div></label>
+            <input type="number" id="s_year" placeholder="예: 1990" min="1900" max="2024">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 월</label>
+            <select id="s_month"><option value="">월 선택</option>
+              <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+              <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+              <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 일</label>
+            <input type="number" id="s_day" placeholder="1~31" min="1" max="31">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 시간 <div class="field-hint">?<div class="hint-popup">🕐 시간이 달라지면 시주가 바뀌어 성격과 말년운이 달라집니다.<br>모르면 12시(정오)로 두세요.</div></div></label>
+            <select id="s_hour">
+              <option value="12">모름 (12시)</option>
+              <option value="0">0시 (자정)</option><option value="1">1시</option><option value="2">2시</option>
+              <option value="3">3시</option><option value="4">4시</option><option value="5">5시</option>
+              <option value="6">6시</option><option value="7">7시</option><option value="8">8시</option>
+              <option value="9">9시</option><option value="10">10시</option><option value="11">11시</option>
+              <option value="13">13시</option><option value="14">14시</option><option value="15">15시</option>
+              <option value="16">16시</option><option value="17">17시</option><option value="18">18시</option>
+              <option value="19">19시</option><option value="20">20시</option><option value="21">21시</option>
+              <option value="22">22시</option><option value="23">23시</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field full" style="margin-bottom:16px;">
+          <label class="field-label">성별 <div class="field-hint">?<div class="hint-popup">⚖️ 성별은 대운(10년 주기)이 흐르는 방향에 영향을 줍니다.</div></div></label>
+          <div class="gender-btns">
+            <button class="gender-btn active" onclick="setGender('남','saju')" id="gender-남-saju">👨 남성</button>
+            <button class="gender-btn" onclick="setGender('여','saju')" id="gender-여-saju">👩 여성</button>
+          </div>
+        </div>
+        <button class="btn-main" onclick="startSaju()">✨ 사주팔자 분석하기</button>
+        <div class="info-box">💡 <b>정확도 안내</b><br>24절기 기준 월주 계산 · 야자시(밤 11시) 처리 · 대운 절기 기반 정밀 계산</div>
+      </div>
+    </div>
+
+    <!-- ── 이름풀이 입력 ── -->
+    <div id="form-name" class="hidden">
+      <div class="card">
+        <div class="card-title">✍️ 이름 오행 풀이</div>
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="field-label">태어난 해</label>
+            <input type="number" id="n_year" placeholder="예: 1990" min="1900" max="2024">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 월</label>
+            <select id="n_month"><option value="">월</option>
+              <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
+              <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
+              <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
+              <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 일</label>
+            <input type="number" id="n_day" placeholder="1~31" min="1" max="31">
+          </div>
+          <div class="form-field">
+            <label class="field-label">태어난 시간</label>
+            <select id="n_hour">
+              <option value="12">모름 (12시)</option>
+              <option value="0">0시</option><option value="1">1시</option><option value="2">2시</option>
+              <option value="3">3시</option><option value="4">4시</option><option value="5">5시</option>
+              <option value="6">6시</option><option value="7">7시</option><option value="8">8시</option>
+              <option value="9">9시</option><option value="10">10시</option><option value="11">11시</option>
+              <option value="13">13시</option><option value="14">14시</option><option value="15">15시</option>
+              <option value="16">16시</option><option value="17">17시</option><option value="18">18시</option>
+              <option value="19">19시</option><option value="20">20시</option><option value="21">21시</option>
+              <option value="22">22시</option><option value="23">23시</option>
+            </select>
+          </div>
+          <div class="form-field full">
+            <label class="field-label">이름 <div class="field-hint">?<div class="hint-popup">성 포함 전체 이름을 입력해주세요. 예: 홍길동</div></div></label>
+            <input type="text" id="n_name" placeholder="예: 홍길동" maxlength="6" style="font-size:18px;font-family:var(--serif);letter-spacing:4px;">
+          </div>
+          <div class="form-field full">
+            <label class="field-label">성별</label>
+            <div class="gender-btns">
+              <button class="gender-btn active" onclick="setGender('남','name')" id="gender-남-name">👨 남성</button>
+              <button class="gender-btn" onclick="setGender('여','name')" id="gender-여-name">👩 여성</button>
+            </div>
+          </div>
+        </div>
+        <button class="btn-main" onclick="startNameReading()">✍️ 이름풀이 시작</button>
+        <div class="info-box">💡 사주의 오행과 이름의 획수/오행을 함께 분석하여 이름이 가진 에너지와 사주와의 궁합을 풀어드립니다.</div>
+      </div>
+    </div>
+
+    <!-- ── 통합 궁합 입력 ── -->
+    <div id="form-gunghap" class="hidden">
+      <div class="card">
+        <div class="card-title">💞 통합 궁합</div>
+        <!-- 궁합 유형 서브탭 -->
+        <div class="sub-tabs" id="gunghap-type-tabs">
+          <button class="sub-tab active" onclick="setGunghapType('birth')" id="gtype-birth">📅 생년월일</button>
+          <button class="sub-tab" onclick="setGunghapType('mbti')" id="gtype-mbti">🧠 MBTI</button>
+          <button class="sub-tab" onclick="setGunghapType('blood')" id="gtype-blood">🩸 혈액형</button>
+          <button class="sub-tab" onclick="setGunghapType('star')" id="gtype-star">⭐ 별자리</button>
+        </div>
+
+        <!-- 생년월일 궁합 -->
+        <div id="gform-birth">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div style="font-size:12px;color:var(--gold);margin-bottom:12px;letter-spacing:1px;">👤 첫 번째 분</div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">태어난 해</label><input type="number" id="gy1" placeholder="1990" min="1900" max="2024"></div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">태어난 월</label>
+                <select id="gm1"><option value="">월</option><option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
+              </div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">태어난 일</label><input type="number" id="gd1" placeholder="1~31" min="1" max="31"></div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">성별</label><div class="gender-btns"><button class="gender-btn active" onclick="setGender('남','g1')" id="gender-남-g1">👨</button><button class="gender-btn" onclick="setGender('여','g1')" id="gender-여-g1">👩</button></div></div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#4a90d9;margin-bottom:12px;letter-spacing:1px;">👤 두 번째 분</div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">태어난 해</label><input type="number" id="gy2" placeholder="1992" min="1900" max="2024"></div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">태어난 월</label>
+                <select id="gm2"><option value="">월</option><option value="1">1월</option><option value="2">2월</option><option value="3">3월</option><option value="4">4월</option><option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option><option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option></select>
+              </div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">태어난 일</label><input type="number" id="gd2" placeholder="1~31" min="1" max="31"></div>
+              <div class="form-field" style="margin-bottom:10px;"><label class="field-label">성별</label><div class="gender-btns"><button class="gender-btn" onclick="setGender('남','g2')" id="gender-남-g2">👨</button><button class="gender-btn active" onclick="setGender('여','g2')" id="gender-여-g2">👩</button></div></div>
+            </div>
+          </div>
+          <button class="btn-main" onclick="startGunghap('birth')" style="margin-top:16px;">💞 사주 궁합 분석하기</button>
+        </div>
+
+        <!-- MBTI 궁합 -->
+        <div id="gform-mbti" class="hidden">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div style="font-size:12px;color:var(--gold);margin-bottom:12px;">👤 첫 번째 분</div>
+              <div class="form-field"><label class="field-label">MBTI 유형</label>
+                <select id="mbti1">
+                  <option value="">선택</option>
+                  <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+                  <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+                  <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+                  <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#4a90d9;margin-bottom:12px;">👤 두 번째 분</div>
+              <div class="form-field"><label class="field-label">MBTI 유형</label>
+                <select id="mbti2">
+                  <option value="">선택</option>
+                  <option>INTJ</option><option>INTP</option><option>ENTJ</option><option>ENTP</option>
+                  <option>INFJ</option><option>INFP</option><option>ENFJ</option><option>ENFP</option>
+                  <option>ISTJ</option><option>ISFJ</option><option>ESTJ</option><option>ESFJ</option>
+                  <option>ISTP</option><option>ISFP</option><option>ESTP</option><option>ESFP</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button class="btn-main" onclick="startGunghap('mbti')" style="margin-top:16px;">🧠 MBTI 궁합 분석하기</button>
+        </div>
+
+        <!-- 혈액형 궁합 -->
+        <div id="gform-blood" class="hidden">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div style="font-size:12px;color:var(--gold);margin-bottom:12px;">👤 첫 번째 분</div>
+              <div class="form-field"><label class="field-label">혈액형</label>
+                <select id="blood1"><option value="">선택</option><option>A형</option><option>B형</option><option>O형</option><option>AB형</option></select>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#4a90d9;margin-bottom:12px;">👤 두 번째 분</div>
+              <div class="form-field"><label class="field-label">혈액형</label>
+                <select id="blood2"><option value="">선택</option><option>A형</option><option>B형</option><option>O형</option><option>AB형</option></select>
+              </div>
+            </div>
+          </div>
+          <button class="btn-main" onclick="startGunghap('blood')" style="margin-top:16px;">🩸 혈액형 궁합 분석하기</button>
+        </div>
+
+        <!-- 별자리 궁합 -->
+        <div id="gform-star" class="hidden">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div>
+              <div style="font-size:12px;color:var(--gold);margin-bottom:12px;">👤 첫 번째 분</div>
+              <div class="form-field"><label class="field-label">별자리</label>
+                <select id="star1"><option value="">선택</option>
+                  <option>양자리 (3/21~4/19)</option><option>황소자리 (4/20~5/20)</option>
+                  <option>쌍둥이자리 (5/21~6/20)</option><option>게자리 (6/21~7/22)</option>
+                  <option>사자자리 (7/23~8/22)</option><option>처녀자리 (8/23~9/22)</option>
+                  <option>천칭자리 (9/23~10/22)</option><option>전갈자리 (10/23~11/21)</option>
+                  <option>사수자리 (11/22~12/21)</option><option>염소자리 (12/22~1/19)</option>
+                  <option>물병자리 (1/20~2/18)</option><option>물고기자리 (2/19~3/20)</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#4a90d9;margin-bottom:12px;">👤 두 번째 분</div>
+              <div class="form-field"><label class="field-label">별자리</label>
+                <select id="star2"><option value="">선택</option>
+                  <option>양자리 (3/21~4/19)</option><option>황소자리 (4/20~5/20)</option>
+                  <option>쌍둥이자리 (5/21~6/20)</option><option>게자리 (6/21~7/22)</option>
+                  <option>사자자리 (7/23~8/22)</option><option>처녀자리 (8/23~9/22)</option>
+                  <option>천칭자리 (9/23~10/22)</option><option>전갈자리 (10/23~11/21)</option>
+                  <option>사수자리 (11/22~12/21)</option><option>염소자리 (12/22~1/19)</option>
+                  <option>물병자리 (1/20~2/18)</option><option>물고기자리 (2/19~3/20)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <button class="btn-main" onclick="startGunghap('star')" style="margin-top:16px;">⭐ 별자리 궁합 분석하기</button>
+        </div>
+
+      </div><!-- /card -->
+    </div>
+
+  </div><!-- /inputScreen -->
+
+  <!-- ══ RESULT SCREEN ══ -->
+  <div id="resultScreen" class="hidden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <button class="btn-secondary" onclick="goBack()">← 다시 입력</button>
+      <div id="resultTitle" style="font-size:14px;color:var(--text-dim);"></div>
+    </div>
+
+    <div class="share-bar" id="shareBar" style="display:none;">
+      <button class="share-btn share-btn-kakao" onclick="shareNative()"><span style="font-size:16px">💬</span> 공유하기</button>
+      <button class="share-btn share-btn-img" onclick="saveAsImage()"><span style="font-size:16px">📸</span> 이미지 저장</button>
+      <button class="share-btn share-btn-copy" onclick="copyText()"><span style="font-size:16px">📋</span> 텍스트 복사</button>
+    </div>
+    <div id="saveOverlay"><div class="loading-spinner"></div><div>이미지 생성 중...</div></div>
+
+    <!-- Saju specific -->
+    <div class="card" id="pillarsCard" style="display:none;">
+      <div class="card-title">🏛️ 나의 사주 기둥</div>
+      <div class="pillars-row" id="pillarsRow"></div>
+      <div class="info-box" style="margin-top:12px;">💡 각 기둥의 색깔은 에너지 성질을 나타냅니다 · <span style="color:var(--wood)">🌳 나무</span> · <span style="color:var(--fire)">🔥 불</span> · <span style="color:var(--earth)">🌍 흙</span> · <span style="color:var(--metal)">⚙️ 쇠</span> · <span style="color:var(--water)">💧 물</span></div>
+    </div>
+    <div class="card" id="ohCard" style="display:none;">
+      <div class="card-title">⚖️ 나의 에너지 구성</div>
+      <div class="oh-chart" id="ohChart"></div>
+      <div id="ohSummary" style="font-size:13px;color:var(--text-dim);line-height:1.8;"></div>
+    </div>
+
+    <!-- Result sub-tabs (for saju) -->
+    <div class="result-tabs" id="resultTabs" style="display:none;">
+      <button class="result-tab active" onclick="showTab('overview')" id="rtab-overview">📊<br>전체 분석</button>
+      <button class="result-tab" onclick="showTab('daeun')" id="rtab-daeun">🌊<br>대운 흐름</button>
+      <button class="result-tab" onclick="showTab('detail')" id="rtab-detail">🔍<br>심층 분석</button>
+    </div>
+
+    <div id="panel-overview" class="card anim-in"></div>
+    <div id="panel-daeun" class="card anim-in hidden"></div>
+    <div id="panel-detail" class="card anim-in hidden"></div>
+    <div id="panel-gunghap" class="card anim-in hidden"></div>
+    <div id="panel-name" class="card anim-in hidden"></div>
+  </div>
+
+</div><!-- /app -->
+<div class="particle-container" id="particleContainer"></div>
+
+<script src="saju_data.js"></script>
+<script>
+const 천간 = ["갑","을","병","정","무","기","경","신","임","계"];
+const 지지 = ["자","축","인","묘","진","사","오","미","신","유","술","해"];
+const 오행Map = {갑:"나무",을:"나무",병:"불",정:"불",무:"흙",기:"흙",경:"쇠",신:"쇠",임:"물",계:"물"};
+const 지지오행 = {자:"물",축:"흙",인:"나무",묘:"나무",진:"흙",사:"불",오:"불",미:"흙",신:"쇠",유:"쇠",술:"흙",해:"물"};
+const 오행색 = {나무:"#6db87a",불:"#e07850",흙:"#c8a050",쇠:"#8ab0c8",물:"#5898d8"};
+const 오행이모지 = {나무:"🌳",불:"🔥",흙:"🌍",쇠:"⚙️",물:"💧"};
+const 지지동물 = {자:"쥐",축:"소",인:"호랑이",묘:"토끼",진:"용",사:"뱀",오:"말",미:"양",신:"원숭이",유:"닭",술:"개",해:"돼지"};
+
+// ── 사주 핵심 엔진 ──
+function getJeolgiDay(year, month) {
+  const C = [[1,6.11,0.242477],[2,4.84,0.242210],[3,6.22,0.242556],[4,5.07,0.242153],[5,5.52,0.242353],[6,6.18,0.242218],[7,7.01,0.242343],[8,7.14,0.242370],[9,8.01,0.242193],[10,8.06,0.242353],[11,7.18,0.242293],[12,7.09,0.242218]];
+  const [,base,coeff] = C[month-1];
+  const y = year - 1900;
+  return Math.floor(base + coeff * y - Math.floor(y/4));
+}
+function getSajuMonth(year, month, day) {
+  return day < getJeolgiDay(year, month) ? (month===1?12:month-1) : month;
+}
+function getDaysToNextJeolgi(year, month, day, forward) {
+  if (forward) {
+    let tm = month+1, ty = year;
+    if (tm>12){tm=1;ty++;}
+    return Math.round((new Date(ty,tm-1,getJeolgiDay(ty,tm)) - new Date(year,month-1,day))/86400000);
+  } else {
+    const tj = getJeolgiDay(year,month);
+    if (day>=tj) return day-tj;
+    let pm = month-1, py = year;
+    if(pm<1){pm=12;py--;}
+    return Math.round((new Date(year,month-1,day) - new Date(py,pm-1,getJeolgiDay(py,pm)))/86400000);
+  }
+}
+function calcJulianDay(y,m,d){const a=Math.floor((14-m)/12);const yy=y-a;const mm=m+12*a-2;return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)+32045;}
+function getSaju(year,month,day,hour){
+  const yBase=(year-4)%60;
+  const yTG=천간[((yBase%10)+10)%10]; const yEB=지지[((yBase%12)+12)%12];
+  const sajuMonth=getSajuMonth(year,month,day);
+  const mEB=지지[(sajuMonth+1)%12];
+  const yTGIdx=천간.indexOf(yTG);
+  const mTG=천간[((((yTGIdx%5)*2+(sajuMonth-1))%10)+10)%10];
+  const jd=calcJulianDay(year,month,day);
+  const dBase=(jd+49)%60;
+  const dTG=천간[dBase%10]; const dEB=지지[dBase%12];
+  const effectiveHour=hour===23?0:hour;
+  const hIdx=Math.floor((effectiveHour+1)/2)%12;
+  const hEB=지지[hIdx];
+  const dTGIdx=천간.indexOf(dTG);
+  const hTG=천간[((((dTGIdx%5)*2+hIdx)%10)+10)%10];
+  return {연주:{천간:yTG,지지:yEB},월주:{천간:mTG,지지:mEB},일주:{천간:dTG,지지:dEB},시주:{천간:hTG,지지:hEB}};
+}
+function getDaeun(saju,bY,bM,bD,gender){
+  const yTGIdx=천간.indexOf(saju.연주.천간);
+  const isYang=yTGIdx%2===0;
+  const forward=(gender==='남')?isYang:!isYang;
+  const days=getDaysToNextJeolgi(bY,bM,bD,forward);
+  const startAge=Math.max(1,Math.floor(days/3));
+  const mEB=지지.indexOf(saju.월주.지지);
+  const mTG=천간.indexOf(saju.월주.천간);
+  const result=[];
+  for(let i=0;i<10;i++){
+    const s=forward?i+1:-(i+1);
+    result.push({나이:startAge+i*10,천간:천간[((mTG+s)%10+10)%10],지지:지지[((mEB+s)%12+12)%12]});
+  }
+  return {daeuns:result,startAge};
+}
+function analyzeOhaeng(saju){
+  const items=[오행Map[saju.연주.천간],지지오행[saju.연주.지지],오행Map[saju.월주.천간],지지오행[saju.월주.지지],오행Map[saju.일주.천간],지지오행[saju.일주.지지],오행Map[saju.시주.천간],지지오행[saju.시주.지지]];
+  const c={나무:0,불:0,흙:0,쇠:0,물:0};
+  items.forEach(o=>{if(o)c[o]++;});
+  return c;
+}
+const LUNAR_NEW_YEAR={1940:[1,27],1941:[2,15],1942:[2,5],1943:[1,25],1944:[2,13],1945:[2,2],1946:[1,22],1947:[2,10],1948:[1,29],1949:[2,17],1950:[2,17],1951:[2,6],1952:[1,27],1953:[2,14],1954:[2,3],1955:[1,24],1956:[2,12],1957:[1,31],1958:[2,18],1959:[2,8],1960:[1,28],1961:[2,15],1962:[2,5],1963:[1,25],1964:[2,13],1965:[2,2],1966:[1,21],1967:[2,9],1968:[1,30],1969:[2,17],1970:[2,6],1971:[1,27],1972:[2,15],1973:[2,3],1974:[1,23],1975:[2,11],1976:[1,31],1977:[2,18],1978:[2,7],1979:[1,28],1980:[2,16],1981:[2,5],1982:[1,25],1983:[2,13],1984:[2,2],1985:[2,20],1986:[2,9],1987:[1,29],1988:[2,17],1989:[2,6],1990:[1,27],1991:[2,15],1992:[2,4],1993:[1,23],1994:[2,10],1995:[1,31],1996:[2,19],1997:[2,7],1998:[1,28],1999:[2,16],2000:[2,5],2001:[1,24],2002:[2,12],2003:[2,1],2004:[1,22],2005:[2,9],2006:[1,29],2007:[2,18],2008:[2,7],2009:[1,26],2010:[2,14],2011:[2,3],2012:[1,23],2013:[2,10],2014:[1,31],2015:[2,19],2016:[2,8],2017:[1,28],2018:[2,16],2019:[2,5],2020:[1,25],2021:[2,12],2022:[2,1],2023:[1,22],2024:[2,10],2025:[1,29],2026:[2,17],2027:[2,6],2028:[1,26],2029:[2,13],2030:[2,3]};
+const LUNAR_MONTH_DAYS=[30,29,30,29,30,29,30,30,29,30,29,30];
+function lunarToSolar(lY,lM,lD){
+  const base=LUNAR_NEW_YEAR[lY];
+  if(!base){const d=new Date(lY,0,20);d.setDate(d.getDate()+(lM-1)*29.5+lD-1);return{year:d.getFullYear(),month:d.getMonth()+1,day:d.getDate()};}
+  const ny=new Date(lY,base[0]-1,base[1]);
+  let t=lD-1;for(let m=1;m<lM;m++)t+=LUNAR_MONTH_DAYS[m-1];
+  ny.setDate(ny.getDate()+t);
+  return{year:ny.getFullYear(),month:ny.getMonth()+1,day:ny.getDate()};
+}
+function getTodayGanji(){const n=new Date();return getSaju(n.getFullYear(),n.getMonth()+1,n.getDate(),12);}
+
+// ── 이름 획수/오행 데이터 ──
+const 획수오행 = {
+  1:'나무',2:'나무',3:'불',4:'불',5:'흙',6:'흙',7:'쇠',8:'쇠',9:'물',10:'물',
+  11:'나무',12:'나무',13:'불',14:'불',15:'흙',16:'흙',17:'쇠',18:'쇠',19:'물',20:'물',
+  21:'나무',22:'나무',23:'불',24:'불',25:'흙',26:'흙',27:'쇠',28:'쇠',29:'물',30:'물',
+  31:'나무',32:'나무',33:'불',34:'불',35:'흙',36:'흙',37:'쇠',38:'쇠',39:'물',40:'물',
+};
+// 자주 쓰이는 한글 이름 획수 데이터 (대표 글자)
+const 획수DB = {
+  // 성씨
+  '김':8,'이':6,'박':9,'최':12,'정':8,'강':11,'조':14,'윤':4,'장':11,'임':9,'한':12,'오':5,'서':6,'신':10,'권':8,'황':12,'안':6,'송':7,'류':10,'전':6,'홍':10,'고':10,'문':4,'양':12,'손':10,'배':10,'백':5,'허':11,'유':9,'남':9,'심':9,'노':7,'하':10,'곽':11,'성':7,'차':9,'주':6,'우':4,'구':5,'민':4,'나':6,'지':6,'엄':20,'채':14,'원':10,'천':4,'방':4,'공':8,'현':11,'함':11,'변':22,'염':23,'여':6,'추':9,'도':13,'소':10,'석':5,'선':9,'설':17,'마':10,'길':6,'봉':13,'위':12,'표':8,'명':8,'기':10,'반':9,'왕':4,'금':8,'옥':8,
+  // 이름 글자
+  '가':4,'나':6,'다':3,'라':4,'마':10,'바':8,'사':4,'아':4,'자':3,'차':9,'카':4,'타':4,'파':4,'하':10,
+  '민':4,'준':10,'현':11,'지':6,'수':4,'영':5,'진':10,'혜':16,'선':9,'정':8,'연':4,'화':8,'하':10,
+  '재':6,'성':7,'유':9,'은':10,'서':6,'윤':4,'지':6,'아':4,'나':6,'리':7,
+  '승':8,'기':10,'호':13,'원':10,'경':8,'태':5,'형':7,'건':11,'찬':19,'혁':16,'범':15,'인':4,
+  '동':6,'환':17,'구':5,'세':5,'종':8,'우':4,'강':11,'복':9,'덕':15,'순':12,'숙':11,
+  '사':4,'랑':11,'빛':8,'꿈':6,'봄':9,'하':10,'늘':10,
+};
+
+function getCharStrokes(char) {
+  return 획수DB[char] || Math.floor(Math.random() * 15) + 3; // 데이터 없으면 근사치
+}
+
+// ── UI 상태 ──
+let genderState = {saju:'남',name:'남',g1:'남',g2:'여'};
+let isLunar = false;
+let detailLoaded = false;
+let currentSaju = null;
+let currentMainTab = 'saju';
+let currentGunghapType = 'birth';
+const STORAGE_KEY = 'saju_long_info';
+
+function setMainTab(tab) {
+  currentMainTab = tab;
+  ['saju','name','gunghap'].forEach(t => {
+    document.getElementById('mtab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('form-'+t).classList.toggle('hidden',t!==tab);
+  });
+}
+function setGunghapType(type) {
+  currentGunghapType = type;
+  ['birth','mbti','blood','star'].forEach(t => {
+    document.getElementById('gtype-'+t).classList.toggle('active',t===type);
+    document.getElementById('gform-'+t).classList.toggle('hidden',t!==type);
+  });
+}
+function setGender(g, group) {
+  genderState[group] = g;
+  ['남','여'].forEach(x => { const b=document.getElementById(`gender-${x}-${group}`);if(b)b.classList.toggle('active',x===g);});
+}
+function setCalType(type) {
+  isLunar = (type==='음력');
+  ['양력','음력'].forEach(t=>{const b=document.getElementById('cal-'+t);if(b)b.classList.toggle('active',t===type);});
+}
+function showScreen(id) {
+  document.getElementById('inputScreen').classList.toggle('hidden',id==='result');
+  document.getElementById('resultScreen').classList.toggle('hidden',id==='input');
+  window.scrollTo({top:0,behavior:'instant'});
+}
+function goBack() { showScreen('input'); detailLoaded=false; currentSaju=null; }
+function showTab(tab) {
+  ['overview','daeun','detail'].forEach(t => {
+    document.getElementById(`rtab-${t}`)?.classList.toggle('active',t===tab);
+    document.getElementById(`panel-${t}`)?.classList.toggle('hidden',t!==tab);
+  });
+  if(tab==='detail'&&!detailLoaded) loadDetailAnalysis();
+}
+function initTodayBadge() {
+  const n=new Date(); const s=getTodayGanji();
+  const oh=오행Map[s.일주.천간];
+  document.getElementById('todayBadge').textContent=`${오행이모지[oh]||'⚡'} 오늘 ${n.getMonth()+1}/${n.getDate()} · 일진: ${s.일주.천간}${s.일주.지지}(${oh})`;
+}
+
+// ── 로컬 엔진 (saju_data.js) ──
+function vib(ms=20){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
+function showParticles(type) {
+  const c=document.getElementById('particleContainer');
+  if(!c) return; c.innerHTML='';
+  const emojis = type==='great'?['🌟','✨','🔥','💫','⭐','🎉']:['✨','🌟','💛'];
+  const count = type==='great'?20:10;
+  for(let i=0;i<count;i++){
+    const p=document.createElement('div');p.className='particle';
+    p.textContent=emojis[i%emojis.length];
+    p.style.left=Math.random()*100+'%';p.style.top=Math.random()*30+'%';
+    p.style.animationDelay=(Math.random()*1)+'s';p.style.fontSize=(12+Math.random()*14)+'px';
+    c.appendChild(p);
+  }
+  setTimeout(()=>c.innerHTML='',3000);
+}
+
+
+async function typeToPanel(panelId, titleHtml, text, extraHtml='') {
+  const el = document.getElementById(panelId);
+  const chunkSize = 10, delay = 10;
+  let d = 0;
+  while(d < text.length) {
+    d = Math.min(d+chunkSize, text.length);
+    const cursor = d<text.length ? '<span class="cursor-blink"></span>' : '';
+    el.innerHTML = `${titleHtml}<div class="analysis-body">${escHtml(text.slice(0,d))}${cursor}</div>`;
+    if(d<text.length) await new Promise(r=>setTimeout(r,delay));
+  }
+  el.innerHTML = `${titleHtml}<div class="analysis-body">${escHtml(text)}</div>${extraHtml}`;
+}
+
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function loadingHtml(msg){return `<div class="loading-state"><div class="loading-spinner"></div><br>${msg}</div>`;}
+
+async function nextPaint(){return new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));}
+function errorHtml(msg, retryFnName){
+  return `<div class="loading-state" style="padding:28px 0;">`+
+    `<div style=\"font-size:20px;margin-bottom:10px;\">❌</div>`+
+    `<div style=\"line-height:1.9;\">${escHtml(String(msg||'오류가 발생했습니다.'))}</div>`+
+    `<div style=\"margin-top:14px;\">`+
+      `<button class=\"btn-secondary\" onclick=\"${retryFnName}()\">다시 시도</button>`+
+    `</div></div>`;
+}
+
+function buildSajuStr(saju,year,month,day,hour,gender) {
+  return `연주: ${saju.연주.천간}${saju.연주.지지}(${오행Map[saju.연주.천간]}/${지지동물[saju.연주.지지]}띠)\n월주: ${saju.월주.천간}${saju.월주.지지}(${오행Map[saju.월주.천간]})\n일주: ${saju.일주.천간}${saju.일주.지지}(${오행Map[saju.일주.천간]}) — 본인 핵심\n시주: ${saju.시주.천간}${saju.시주.지지}(${오행Map[saju.시주.천간]})\n생년월일: ${year}년 ${month}월 ${day}일 ${hour}시 / 성별: ${gender}`;
+}
+
+// ── 사주 분석 ──
+async function startSaju() {
+  vib(30);
+  const origYear = parseInt(document.getElementById('s_year').value);
+  const origMonth = parseInt(document.getElementById('s_month').value);
+  const origDay = parseInt(document.getElementById('s_day').value);
+  const hour = parseInt(document.getElementById('s_hour').value)||12;
+  const gender = genderState.saju;
+  if(!origYear||!origMonth||!origDay){alert('생년월일을 모두 입력해주세요.');return;}
+  let year=origYear, month=origMonth, day=origDay;
+  if(isLunar){const c=lunarToSolar(year,month,day);year=c.year;month=c.month;day=c.day;}
+
+  const saju = getSaju(year,month,day,hour);
+  currentSaju = {saju,year,month,day,hour,gender};
+  detailLoaded = false;
+
+  showScreen('result');
+  const dateLabel = isLunar ? `음력 ${origMonth}/${origDay} (양력 ${month}/${day})` : `${year}년 ${month}월 ${day}일`;
+  document.getElementById('resultTitle').textContent=`${dateLabel} · ${gender}성`;
+  document.getElementById('pillarsCard').style.display='';
+  document.getElementById('ohCard').style.display='';
+  document.getElementById('resultTabs').style.display='';
+  document.getElementById('panel-gunghap').classList.add('hidden');
+  document.getElementById('panel-name').classList.add('hidden');
+  renderPillars(saju);
+  renderOhaeng(saju);
+  renderDaeun(saju,year,month,day,gender);
+  showTab('overview');
+
+  document.getElementById('panel-overview').innerHTML = loadingHtml('사주팔자를 정밀 분석하고 있습니다...<br>🔮 오행의 기운을 읽는 중...');
+
+  
+  await nextPaint();
+
+  try {
+    const text = SajuEngine.analyzeSaju(saju, year, month, day, hour, gender);
+    const ilganOh = 오행Map[saju.일주.천간];
+    const luck = SajuEngine.행운포인트[ilganOh];
+    const colorMap={빨간색:'#e85d3a',주황색:'#e8933a',초록색:'#6db87a',연두색:'#9dca6a',노란색:'#c9a84c',갈색:'#8b6914',흰색:'#e8e8e8',금색:'#d4a844',은색:'#b8b8b8',검정색:'#333',파란색:'#5898d8',남색:'#3a5da8'};
+    const luckColors = luck.색깔.split(', ');
+    const luckHtml = `<div class="luck-cards"><div class="luck-card"><div class="luck-card-icon">🎨</div><div class="luck-card-label">행운의 색</div><div class="luck-card-value">${luckColors.map(c=>`<span class="luck-color-chip" style="background:${colorMap[c]||'#c9a84c'}"></span>`).join('')}</div></div><div class="luck-card"><div class="luck-card-icon">🔢</div><div class="luck-card-label">행운의 숫자</div><div class="luck-card-value">${luck.숫자}</div></div><div class="luck-card"><div class="luck-card-icon">🧭</div><div class="luck-card-label">행운의 방위</div><div class="luck-card-value">${luck.방위}</div></div><div class="luck-card"><div class="luck-card-icon">⏰</div><div class="luck-card-label">행운의 시간</div><div class="luck-card-value">${luck.시간}</div></div></div>`;
+    await typeToPanel('panel-overview',
+    `<div class="card-title">🌟 사주팔자 분석</div>`,
+    text,
+    luckHtml + `<button class="btn-detail" onclick="showTab('detail')">🔍 더 깊은 심층 분석 보기 →</button>`
+  );
+  showParticles('great'); vib([40,20,40]);
+  } catch(e) {
+    console.error('startSaju error:', e);
+    document.getElementById('panel-overview').innerHTML = errorHtml(e.message || e, 'startSaju');
+  }
+  saveToStorage({year:origYear,month:origMonth,day:origDay,hour,gender,lunar:isLunar});
+  document.getElementById('shareBar').style.display='flex';
+}
+
+async function loadDetailAnalysis() {
+  vib(20);
+  if(!currentSaju) return;
+  detailLoaded = true;
+  document.getElementById('panel-detail').innerHTML = loadingHtml('심층 분석을 진행 중입니다...<br>직업 · 연애 · 건강 · 인생 흐름을 살펴보는 중 🔮');
+  
+  await nextPaint();
+  const {saju,year,month,day,hour,gender} = currentSaju;
+  try {
+  const text = SajuEngine.analyzeDetail(saju, year, month, day, hour, gender);
+  await typeToPanel('panel-detail', `<div class="card-title">🔍 심층 풀이</div>`, text);
+
+  } catch(e) {
+    console.error('loadDetailAnalysis error:', e);
+    document.getElementById('panel-detail').innerHTML = errorHtml(e.message || e, 'loadDetailAnalysis');
+  }}
+
+// ── 이름풀이 ──
+async function startNameReading() {
+  vib(30);
+  let year = parseInt(document.getElementById('n_year').value);
+  let month = parseInt(document.getElementById('n_month').value);
+  let day = parseInt(document.getElementById('n_day').value);
+  const hour = parseInt(document.getElementById('n_hour').value)||12;
+  const name = document.getElementById('n_name').value.trim();
+  const gender = genderState.name;
+  if(!year||!month||!day){alert('생년월일을 입력해주세요.');return;}
+  if(!name||name.length<2){alert('이름을 2글자 이상 입력해주세요.');return;}
+
+  const saju = getSaju(year,month,day,hour);
+  showScreen('result');
+  document.getElementById('resultTitle').textContent=`이름풀이 · ${name}`;
+  document.getElementById('pillarsCard').style.display='none';
+  document.getElementById('ohCard').style.display='none';
+  document.getElementById('resultTabs').style.display='none';
+  document.getElementById('panel-gunghap').classList.add('hidden');
+  ['overview','daeun','detail'].forEach(t=>document.getElementById(`panel-${t}`)?.classList.add('hidden'));
+  const namePanel = document.getElementById('panel-name');
+  namePanel.classList.remove('hidden');
+  namePanel.innerHTML = loadingHtml(`${name}의 이름 기운을 분석 중입니다...<br>✍️ 획수와 오행을 풀어보는 중...`);
+
+  
+  await nextPaint();
+
+  // 이름 획수 분석
+  const nameChars = [...name];
+  const strokeData = nameChars.map(c => ({char:c, strokes:getCharStrokes(c), oh:획수오행[getCharStrokes(c)%10]||'나무'}));
+
+  const titleHtml = `<div class="card-title">✍️ 이름풀이 — ${name}</div>
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-family:var(--serif);font-size:36px;font-weight:700;letter-spacing:8px;color:var(--gold);margin-bottom:12px;">${name}</div>
+      <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
+        ${strokeData.map(s=>`<div style="text-align:center;background:${오행색[s.oh]}18;border:1px solid ${오행색[s.oh]}44;border-radius:12px;padding:10px 16px;min-width:70px;">
+          <div style="font-family:var(--serif);font-size:24px;color:${오행색[s.oh]}">${s.char}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${s.strokes}획</div>
+          <div style="font-size:11px;color:${오행색[s.oh]}">${오행이모지[s.oh]} ${s.oh}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+
+  try {
+    const text = SajuEngine.analyzeName(name, strokeData, saju);
+  await typeToPanel('panel-name', titleHtml, text);
+  showParticles('normal'); vib(20);
+
+  } catch(e) {
+    console.error('startNameReading error:', e);
+    document.getElementById('panel-name').innerHTML = errorHtml(e.message || e, 'startNameReading');
+  }  document.getElementById('shareBar').style.display='flex';
+}
+
+// ── 통합 궁합 ──
+async function startGunghap(type) {
+  vib(30);
+  showScreen('result');
+  document.getElementById('pillarsCard').style.display='none';
+  document.getElementById('ohCard').style.display='none';
+  document.getElementById('resultTabs').style.display='none';
+  ['overview','daeun','detail','name'].forEach(t=>document.getElementById(`panel-${t}`)?.classList.add('hidden'));
+  const gPanel = document.getElementById('panel-gunghap');
+  gPanel.classList.remove('hidden');
+
+  if(type==='birth') {
+    const y1=parseInt(document.getElementById('gy1').value),m1=parseInt(document.getElementById('gm1').value),d1=parseInt(document.getElementById('gd1').value);
+    const y2=parseInt(document.getElementById('gy2').value),m2=parseInt(document.getElementById('gm2').value),d2=parseInt(document.getElementById('gd2').value);
+    if(!y1||!m1||!d1||!y2||!m2||!d2){alert('두 분의 생년월일을 모두 입력해주세요.');return;}
+    const g1=genderState.g1,g2=genderState.g2;
+    document.getElementById('resultTitle').textContent='사주 궁합 분석';
+    gPanel.innerHTML = loadingHtml('두 분의 사주 기운을 비교하고 있습니다...<br>💞 인연의 실을 읽는 중...');
+    
+  await nextPaint();
+  const s1=getSaju(y1,m1,d1,12),s2=getSaju(y2,m2,d2,12);
+    try {
+    const result = SajuEngine.analyzeGunghapBirth(s1, s2, g1, g2);
+    renderGunghapResult(gPanel, result.text, `${y1}년생 ${g1}성 & ${y2}년생 ${g2}성`);
+
+    } catch(e) {
+      console.error('startGunghap error:', e);
+      gPanel.innerHTML = `<div class="loading-state" style="padding:28px 0;">`+
+        `<div style=\"font-size:20px;margin-bottom:10px;\">❌</div>`+
+        `<div style=\"line-height:1.9;\">${escHtml(String(e?.message||e||'오류가 발생했습니다.'))}</div>`+
+        `<div style=\"margin-top:14px;\">`+
+          `<button class=\"btn-secondary\" onclick=\"startGunghap('${type}')\">다시 시도</button>`+
+        `</div></div>`;
+    }
+  } else if(type==='mbti') {
+    const m1=document.getElementById('mbti1').value, m2=document.getElementById('mbti2').value;
+    if(!m1||!m2){alert('두 분의 MBTI를 선택해주세요.');return;}
+    document.getElementById('resultTitle').textContent='MBTI 궁합 분석';
+    gPanel.innerHTML = loadingHtml(`${m1} × ${m2} 궁합을 분석 중입니다...<br>🧠 성격 에너지를 읽는 중...`);
+    try {
+    const result = SajuEngine.analyzeGunghapMBTI(m1, m2);
+    renderGunghapResult(gPanel, result.text, `${m1} × ${m2}`);
+
+    } catch(e) {
+      console.error('startGunghap error:', e);
+      gPanel.innerHTML = `<div class="loading-state" style="padding:28px 0;">`+
+        `<div style=\"font-size:20px;margin-bottom:10px;\">❌</div>`+
+        `<div style=\"line-height:1.9;\">${escHtml(String(e?.message||e||'오류가 발생했습니다.'))}</div>`+
+        `<div style=\"margin-top:14px;\">`+
+          `<button class=\"btn-secondary\" onclick=\"startGunghap('${type}')\">다시 시도</button>`+
+        `</div></div>`;
+    }
+  } else if(type==='blood') {
+    const b1=document.getElementById('blood1').value, b2=document.getElementById('blood2').value;
+    if(!b1||!b2){alert('두 분의 혈액형을 선택해주세요.');return;}
+    document.getElementById('resultTitle').textContent='혈액형 궁합 분석';
+    gPanel.innerHTML = loadingHtml(`${b1} × ${b2} 궁합을 분석 중입니다...<br>🩸 혈액형 에너지를 읽는 중...`);
+    try {
+    const result = SajuEngine.analyzeGunghapBlood(b1, b2);
+    renderGunghapResult(gPanel, result.text, `${b1} × ${b2}`);
+
+    } catch(e) {
+      console.error('startGunghap error:', e);
+      gPanel.innerHTML = `<div class="loading-state" style="padding:28px 0;">`+
+        `<div style=\"font-size:20px;margin-bottom:10px;\">❌</div>`+
+        `<div style=\"line-height:1.9;\">${escHtml(String(e?.message||e||'오류가 발생했습니다.'))}</div>`+
+        `<div style=\"margin-top:14px;\">`+
+          `<button class=\"btn-secondary\" onclick=\"startGunghap('${type}')\">다시 시도</button>`+
+        `</div></div>`;
+    }
+  } else if(type==='star') {
+    const s1=document.getElementById('star1').value, s2=document.getElementById('star2').value;
+    if(!s1||!s2){alert('두 분의 별자리를 선택해주세요.');return;}
+    const s1name=s1.split(' ')[0], s2name=s2.split(' ')[0];
+    document.getElementById('resultTitle').textContent='별자리 궁합 분석';
+    gPanel.innerHTML = loadingHtml(`${s1name} × ${s2name} 궁합을 분석 중입니다...<br>⭐ 별들의 이야기를 읽는 중...`);
+    try {
+    const result = SajuEngine.analyzeGunghapStar(s1name, s2name);
+    renderGunghapResult(gPanel, result.text, `${s1name} × ${s2name}`);
+
+    } catch(e) {
+      console.error('startGunghap error:', e);
+      gPanel.innerHTML = `<div class="loading-state" style="padding:28px 0;">`+
+        `<div style=\"font-size:20px;margin-bottom:10px;\">❌</div>`+
+        `<div style=\"line-height:1.9;\">${escHtml(String(e?.message||e||'오류가 발생했습니다.'))}</div>`+
+        `<div style=\"margin-top:14px;\">`+
+          `<button class=\"btn-secondary\" onclick=\"startGunghap('${type}')\">다시 시도</button>`+
+        `</div></div>`;
+    }  }
+
+  document.getElementById('shareBar').style.display='flex';
+}
+
+function renderGunghapResult(panel, rawText, subtitle) {
+  const scoreMatch = rawText.match(/궁합 점수[:\s]*(\d+)/);
+  const score = scoreMatch ? parseInt(scoreMatch[1]) : 75;
+  const circumference = 2*Math.PI*40;
+  const dashOffset = circumference-(circumference*score/100);
+  const scoreColor = score>=80?'#6db87a':score>=60?'#c9a84c':'#e07850';
+  const ringHtml = `<div style="text-align:center;margin-bottom:16px;">
+    <div class="gunghap-score-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+        <circle cx="50" cy="50" r="40" fill="none" stroke="${scoreColor}" stroke-width="8" stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/>
+      </svg>
+      <div class="gunghap-score-text"><div class="gunghap-num" style="color:${scoreColor}">${score}</div><div class="gunghap-sub">/ 100점</div></div>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${subtitle}</div>
+  </div>`;
+  const cleanText = rawText.replace(/궁합 점수[:\s]*\d+점?/,'').trim();
+  typeToPanel('panel-gunghap',`<div class="card-title">💞 궁합 분석 결과</div>${ringHtml}`,cleanText);
+}
+
+// ── 렌더 함수 ──
+function renderPillars(saju) {
+  const pillars = [{label:'연주',sub:'태어난 해',...saju.연주},{label:'월주',sub:'태어난 달',...saju.월주},{label:'일주',sub:'본인',...saju.일주},{label:'시주',sub:'태어난 시',...saju.시주}];
+  document.getElementById('pillarsRow').innerHTML = pillars.map((p,i) => {
+    const tgOh=오행Map[p.천간]||'나무', ebOh=지지오행[p.지지]||'나무';
+    const tgC=오행색[tgOh], ebC=오행색[ebOh];
+    return `<div class="pillar-card" style="transition-delay:${i*0.08}s" id="pillar-${i}">
+      <div class="pillar-top-line" style="background:linear-gradient(90deg,transparent,${tgC},transparent)"></div>
+      <div class="pillar-label">${p.label}<br><span style="font-size:9px">${p.sub}</span></div>
+      <div class="pillar-char" style="background:${tgC}22;border:1px solid ${tgC}44;color:${tgC}">${p.천간}</div>
+      <div class="pillar-char" style="background:${ebC}22;border:1px solid ${ebC}44;color:${ebC}">${p.지지}</div>
+      <div class="pillar-meta"><span style="color:${tgC}">${오행이모지[tgOh]} ${tgOh}</span><br><span style="color:${ebC}">${지지동물[p.지지]}</span></div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{ pillars.forEach((_,i)=>document.getElementById(`pillar-${i}`)?.classList.add('show')); },80);
+}
+
+function renderOhaeng(saju) {
+  const counts = analyzeOhaeng(saju);
+  const max = Math.max(...Object.values(counts));
+  const total = Object.values(counts).reduce((a,b)=>a+b,0);
+
+  // 레이더 차트
+  const labels = Object.keys(counts);
+  const values = Object.values(counts);
+  const maxVal = Math.max(...values, 1);
+  const cx=80, cy=80, r=60;
+  const angles = labels.map((_,i) => (Math.PI*2*i/5) - Math.PI/2);
+  const points = values.map((v,i) => {
+    const ratio = v/maxVal;
+    return [cx + r*ratio*Math.cos(angles[i]), cy + r*ratio*Math.sin(angles[i])];
+  });
+  const gridLevels = [0.25,0.5,0.75,1];
+  let svgGrid = gridLevels.map(lv => {
+    const pts = angles.map(a => `${cx+r*lv*Math.cos(a)},${cy+r*lv*Math.sin(a)}`).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  }).join('');
+  const axisLines = angles.map(a => `<line x1="${cx}" y1="${cy}" x2="${cx+r*Math.cos(a)}" y2="${cy+r*Math.sin(a)}" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>`).join('');
+  const polyPts = points.map(p => p.join(',')).join(' ');
+  const labelHtml = labels.map((l,i) => {
+    const lx = cx + (r+16)*Math.cos(angles[i]);
+    const ly = cy + (r+16)*Math.sin(angles[i]);
+    return `<text x="${lx}" y="${ly}" fill="${오행색[l]}" font-size="11" text-anchor="middle" dominant-baseline="middle">${오행이모지[l]}${l}</text>`;
+  }).join('');
+  const dotHtml = points.map((p,i) => `<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="${오행색[labels[i]]}"/>`).join('');
+
+  const radarSvg = `<div style="text-align:center;margin:12px 0;"><svg width="180" height="180" viewBox="0 0 160 160">${svgGrid}${axisLines}<polygon points="${polyPts}" fill="rgba(201,168,76,0.15)" stroke="var(--gold)" stroke-width="1.5"/>${dotHtml}${labelHtml}</svg></div>`;
+
+  // 바 차트 (기존)
+  const barHtml = Object.entries(counts).map(([k,v]) => {
+    const h = max>0?Math.round((v/max)*50):0;
+    return `<div class="oh-item"><div class="oh-bar-wrap"><div class="oh-bar" style="height:${h}px;background:${오행색[k]}"></div></div><div class="oh-emoji">${오행이모지[k]}</div><div class="oh-label">${k}<br>${v}개</div></div>`;
+  }).join('');
+
+  document.getElementById('ohChart').innerHTML = radarSvg + `<div style="display:flex;gap:12px;justify-content:center;margin:12px 0;">${barHtml}</div>`;
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const top=sorted[0], weak=sorted[sorted.length-1];
+  document.getElementById('ohSummary').innerHTML = `가장 강한 기운: ${오행이모지[top[0]]} <b style="color:${오행색[top[0]]}">${top[0]}</b>(${Math.round(top[1]/total*100)}%) &nbsp;·&nbsp; 보완이 필요한 기운: ${오행이모지[weak[0]]} <b style="color:${오행색[weak[0]]}">${weak[0]}</b>(${Math.round(weak[1]/total*100)}%)`;
+}
+
+function renderDaeun(saju,year,month,day,gender) {
+  const {daeuns,startAge} = getDaeun(saju,year,month,day,gender);
+  const currentAge = new Date().getFullYear() - year;
+  document.getElementById('panel-daeun').innerHTML = `
+    <div class="card-title">🌊 대운 흐름 <span style="font-size:12px;color:var(--text-muted);font-family:var(--sans)">— 10년 단위 큰 흐름</span></div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;line-height:1.8;">
+      대운은 10년마다 바뀌는 큰 인생 흐름입니다. 현재 나이(${currentAge}세)에 해당하는 구간이 지금 당신의 큰 운입니다.<br>
+      이 분의 대운 시작 나이는 <b style="color:var(--gold)">${startAge}세</b>입니다 (절기 기준 정밀 계산).
+    </div>
+    <div class="daeun-timeline">
+      <div class="daeun-line"></div>
+      <div class="daeun-items">
+        ${daeuns.map(d=>{
+          const oh=오행Map[d.천간]||'나무';
+          const isCurrent=currentAge>=d.나이&&currentAge<d.나이+10;
+          return `<div class="daeun-item ${isCurrent?'current':''}">
+            <div class="daeun-age">${d.나이}세~</div>
+            <div class="daeun-dot"></div>
+            <div class="daeun-ganji">${d.천간}${d.지지}</div>
+            <div class="daeun-oh-badge" style="background:${오행색[oh]}22;color:${오행색[oh]}">${오행이모지[oh]}</div>
+            ${isCurrent?'<div style="font-size:9px;color:var(--gold);margin-top:3px;">▲현재</div>':''}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="info-box" style="margin-top:12px;">💡 <b>대운이란?</b> 10년마다 인생의 큰 바람이 바뀐다고 봅니다. 좋은 대운에는 도전하기 좋고, 힘든 대운에는 준비와 내실을 다지는 시기입니다.</div>`;
+}
+
+// ── localStorage ──
+function saveToStorage(data) { try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(e){} }
+function loadFromStorage() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(!d) return;
+    const fields = [{id:'s_year',key:'year'},{id:'s_month',key:'month'},{id:'s_day',key:'day'},{id:'s_hour',key:'hour'},{id:'n_year',key:'year'},{id:'n_month',key:'month'},{id:'n_day',key:'day'},{id:'n_hour',key:'hour'}];
+    fields.forEach(({id,key})=>{ const el=document.getElementById(id); if(el&&d[key]) el.value=d[key]; });
+    if(d.gender){setGender(d.gender,'saju');setGender(d.gender,'name');}
+    if(d.lunar) setCalType('음력');
+  }catch(e){}
+}
+
+// ── 이미지 저장 / 공유 ──
+async function saveAsImage() {
+  const overlay=document.getElementById('saveOverlay'); overlay.classList.add('show');
+  try {
+    await new Promise(r=>setTimeout(r,500));
+    // 요약 카드만 캡처 (사주기둥 + 에너지구성)
+    const wrap = document.createElement('div');
+    wrap.style.cssText='position:absolute;left:-9999px;top:0;width:760px;background:#08080e;padding:24px;';
+    const title = document.createElement('div');
+    title.style.cssText='text-align:center;font-size:18px;color:#c9a84c;font-weight:700;margin-bottom:16px;font-family:Noto Serif KR,serif;';
+    title.textContent = document.getElementById('resultTitle').textContent;
+    wrap.appendChild(title);
+    const pillars = document.getElementById('pillarsCard');
+    const oh = document.getElementById('ohCard');
+    if(pillars) wrap.appendChild(pillars.cloneNode(true));
+    if(oh) wrap.appendChild(oh.cloneNode(true));
+    document.body.appendChild(wrap);
+    const canvas=await html2canvas(wrap,{backgroundColor:'#08080e',scale:2,useCORS:true,logging:false});
+    document.body.removeChild(wrap);
+    const a=document.createElement('a');
+    a.download=`장기운_${new Date().toLocaleDateString('ko-KR').replace(/\. /g,'-').replace('.','')}.png`;
+    a.href=canvas.toDataURL('image/png'); a.click();
+  }catch(e){alert('이미지 저장에 실패했습니다.');}
+  overlay.classList.remove('show');
+}
+async function copyText(){
+  try {
+    const panel = document.querySelector('#panel-overview:not(.hidden) .analysis-body, #panel-detail:not(.hidden) .analysis-body, #panel-name:not(.hidden) .analysis-body, #panel-gunghap:not(.hidden) .analysis-body');
+    const text = panel ? panel.textContent : '';
+    if(!text){showToast('복사할 내용이 없습니다.');return;}
+    await navigator.clipboard.writeText(text);
+    showToast('분석 결과가 복사되었습니다! 📋');
+  }catch(e){showToast('복사에 실패했습니다.');}
+}
+function showToast(msg){const t=document.createElement('div');t.textContent=msg;Object.assign(t.style,{position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',background:'rgba(201,168,76,0.9)',color:'#000',padding:'10px 20px',borderRadius:'20px',fontSize:'13px',zIndex:'9999',whiteSpace:'nowrap'});document.body.appendChild(t);setTimeout(()=>t.remove(),2500);}
+async function shareNative(){
+  vib(15);
+  const panel = document.querySelector('#panel-overview:not(.hidden) .analysis-body, #panel-detail:not(.hidden) .analysis-body, #panel-name:not(.hidden) .analysis-body, #panel-gunghap:not(.hidden) .analysis-body');
+  const text = panel ? panel.textContent.slice(0,300)+'...' : '사주명리 분석 결과를 확인해보세요!';
+  const shareData = {title:'사주명리 — 장기운 분석', text:'[ORACLE 사주명리]\n'+text};
+  if(navigator.share){try{await navigator.share(shareData);}catch(e){}}
+  else{try{await navigator.clipboard.writeText(shareData.text);showToast('텍스트가 복사되었습니다. 카톡에 붙여넣기 하세요! 💬');}catch(e){showToast('공유에 실패했습니다.');}}
+}
+
+// ── Init ──
+initTodayBadge();
+loadFromStorage();
+</script>
+</body>
+</html>
