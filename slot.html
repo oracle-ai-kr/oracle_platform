@@ -1,0 +1,1758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>슬롯머신</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f;--panel:#0d0f1e;--panel2:#111428;
+  --accent:#a855f7;--accent2:#c084fc;
+  --gold:#f59e0b;--gold2:#fbbf24;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --red:#ef4444;--green:#22c55e;
+  --border:rgba(168,85,247,.25);--radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;overflow-x:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;min-height:100vh;}
+#flashOverlay{position:fixed;inset:0;pointer-events:none;z-index:150;opacity:0;}
+#particleCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;}
+
+/* ── 단독 실행 시 topBar ── */
+#topBar{
+  position:sticky;top:0;left:0;right:0;z-index:200;
+  height:44px;
+  background:rgba(7,8,15,.97);
+  border-bottom:1px solid rgba(168,85,247,.22);
+  display:flex;align-items:center;padding:0 10px;gap:6px;
+  backdrop-filter:blur(12px);
+}
+body.in-iframe #topBar{display:none!important;}
+#topBarHomeBtn{
+  width:34px;height:34px;background:rgba(168,85,247,.15);
+  border:1px solid rgba(168,85,247,.3);border-radius:9px;
+  color:#f1f5f9;font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+#topBarTitle{
+  font-family:'Teko',sans-serif;font-size:18px;letter-spacing:2px;
+  color:#c084fc;
+}
+.tb-spacer{flex:1;}
+#topBarBal{
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);
+  border-radius:8px;padding:4px 8px;
+  font-size:12px;color:#f59e0b;font-weight:700;white-space:nowrap;
+}
+#topBarPoint{
+  background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.35);
+  border-radius:8px;padding:4px 8px;
+  font-size:12px;color:#c084fc;font-weight:700;white-space:nowrap;
+}
+#topBarCharge{
+  background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;
+  border-radius:8px;color:#fff;font-size:12px;font-weight:700;
+  padding:5px 10px;cursor:pointer;white-space:nowrap;
+}
+
+/* ★ topBar 완전 제거 → main padding-top 0 */
+.main{
+  padding-top:16px;
+  padding-bottom:24px;
+  max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:10px;
+  padding-left:10px;padding-right:10px;
+}
+body:not(.in-iframe) .main{padding-top:0;}
+.jackpot-bar{background:var(--panel);border:1px solid rgba(245,158,11,.4);
+  border-radius:var(--radius);padding:8px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;overflow:hidden;}
+.jackpot-bar::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(245,158,11,.07),transparent);
+  animation:jpSweep 3s linear infinite;}
+@keyframes jpSweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.jp-label{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;}
+.jp-amount{font-family:'Teko',sans-serif;font-size:24px;color:var(--gold2);
+  text-shadow:0 0 16px rgba(251,191,36,.6);}
+.jp-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+.jp-badge{background:linear-gradient(135deg,#b45309,#f59e0b);border-radius:6px;
+  padding:2px 7px;font-size:10px;font-weight:700;color:#000;}
+.jp-bonus-hint{font-size:9px;color:var(--text3);}
+.cycle-bar{display:flex;align-items:center;gap:8px;background:var(--panel);
+  border:1px solid var(--border);border-radius:var(--radius);padding:8px 14px;
+  transition:border-color .5s,box-shadow .5s;}
+.cycle-bar.hot-active{border-color:rgba(249,115,22,.6);box-shadow:0 0 16px rgba(249,115,22,.25);}
+.cycle-bar.cold-active{border-color:rgba(96,165,250,.6);box-shadow:0 0 16px rgba(96,165,250,.25);}
+.cycle-icon{font-size:18px;}
+.cycle-info{flex:1;}
+.cycle-name{font-size:12px;font-weight:700;}
+.cycle-name.hot{color:#f97316;}
+.cycle-name.cold{color:#60a5fa;}
+.cycle-name.normal{color:var(--text2);}
+.cycle-desc{font-size:10px;color:var(--text3);}
+.cycle-progress-wrap{width:80px;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.cycle-progress{height:100%;border-radius:3px;transition:width .3s;}
+.cycle-progress.hot{background:linear-gradient(90deg,#f97316,#ef4444);}
+.cycle-progress.cold{background:linear-gradient(90deg,#3b82f6,#60a5fa);}
+.cycle-progress.normal{background:linear-gradient(90deg,#a855f7,#c084fc);}
+.rtp-bar{display:flex;align-items:center;gap:6px;background:var(--panel);
+  border:1px solid var(--border);border-radius:var(--radius);padding:7px 14px;}
+.rtp-label{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;}
+.rtp-val{font-family:'Teko',sans-serif;font-size:16px;color:var(--accent2);}
+.rtp-divider{color:var(--text3);font-size:10px;}
+.rtp-target{font-size:10px;color:var(--text3);}
+.rtp-status{margin-left:auto;font-size:10px;font-weight:700;}
+.rtp-status.over{color:var(--red);}
+.rtp-status.under{color:var(--green);}
+.rtp-status.ok{color:var(--text3);}
+.result-box{background:var(--panel2);border:1px solid var(--border);border-radius:var(--radius);
+  padding:12px 14px;text-align:center;min-height:56px;
+  display:flex;align-items:center;justify-content:center;transition:border-color .3s,box-shadow .3s;}
+.result-box.win-glow{border-color:var(--gold2);animation:resultPulse .6s ease 3;}
+@keyframes resultPulse{0%,100%{box-shadow:0 0 20px rgba(251,191,36,.2);}50%{box-shadow:0 0 50px rgba(251,191,36,.55);}}
+.result-box.lose-glow{border-color:rgba(239,68,68,.3);}
+.result-box.near-miss-glow{border-color:var(--red);box-shadow:0 0 20px rgba(239,68,68,.3);}
+.result-box.freespin-glow{border-color:var(--green);box-shadow:0 0 20px rgba(34,197,94,.3);}
+.result-text{font-size:14px;font-weight:700;line-height:1.5;}
+.result-text.win{color:var(--green);}
+.result-text.big-win{color:var(--gold2);font-size:17px;}
+.result-text.jackpot{color:var(--gold2);font-family:'Teko',sans-serif;font-size:26px;
+  animation:jackpotPulse .4s ease infinite alternate;letter-spacing:2px;}
+@keyframes jackpotPulse{from{text-shadow:0 0 10px var(--gold2);}to{text-shadow:0 0 30px var(--gold2);}}
+.result-text.lose{color:var(--red);}
+.result-text.near{color:#f97316;font-size:13px;}
+.combo-row{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin-top:5px;}
+.combo-chip{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
+  border-radius:20px;padding:2px 9px;font-size:11px;color:var(--gold2);font-weight:700;}
+.combo-chip.mult{background:rgba(251,191,36,.25);border-color:rgba(251,191,36,.6);color:#000;}
+.countup-wrap{font-family:'Teko',sans-serif;font-size:28px;color:var(--gold2);
+  letter-spacing:2px;display:none;}
+.countup-wrap.show{display:block;}
+.ai-box{background:rgba(124,58,237,.08);border:1px solid rgba(168,85,247,.25);
+  border-radius:var(--radius);padding:10px 12px;font-size:12px;color:var(--text2);
+  line-height:1.6;display:none;align-items:center;gap:8px;}
+.ai-box.show{display:flex;}
+.ai-avatar{font-size:20px;flex-shrink:0;}
+.ai-tier-badge{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;
+  background:rgba(168,85,247,.2);color:var(--accent2);margin-right:4px;}
+#cycleOverlay{position:fixed;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:180;
+  opacity:0;pointer-events:none;transition:opacity .4s;background:rgba(0,0,0,.75);}
+#cycleOverlay.show{opacity:1;}
+.cycle-ov-icon{font-size:72px;animation:cycleIconPop .5s ease;}
+.cycle-ov-title{font-family:'Teko',sans-serif;font-size:48px;font-weight:700;letter-spacing:3px;margin-top:8px;}
+.cycle-ov-title.hot{color:#f97316;text-shadow:0 0 30px rgba(249,115,22,.7);}
+.cycle-ov-title.cold{color:#60a5fa;text-shadow:0 0 30px rgba(96,165,250,.7);}
+.cycle-ov-title.normal{color:var(--accent2);}
+.cycle-ov-desc{font-size:14px;color:#fff;margin-top:6px;opacity:.8;}
+@keyframes cycleIconPop{from{transform:scale(0) rotate(-30deg);}to{transform:scale(1) rotate(0deg);}}
+.slot-machine{background:linear-gradient(160deg,#0f1020 0%,#1a1035 50%,#0f1020 100%);
+  border:1px solid var(--border);border-radius:18px;padding:14px 12px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  position:relative;overflow:hidden;
+  box-shadow:0 0 40px rgba(168,85,247,.12),inset 0 1px 0 rgba(255,255,255,.05);
+  transition:border-color .5s,box-shadow .5s;}
+.slot-machine.hot-mode{border-color:rgba(249,115,22,.5);box-shadow:0 0 40px rgba(249,115,22,.2);}
+.slot-machine.cold-mode{border-color:rgba(96,165,250,.5);box-shadow:0 0 40px rgba(96,165,250,.2);}
+.slot-machine.triple-flash{animation:machineFlash .2s ease 4;}
+@keyframes machineFlash{0%,100%{box-shadow:0 0 40px rgba(168,85,247,.12);}
+  50%{box-shadow:0 0 80px rgba(245,158,11,.6),inset 0 0 40px rgba(245,158,11,.15);}}
+.freespin-banner{display:none;width:100%;background:linear-gradient(135deg,#065f46,#059669);
+  border-radius:10px;padding:8px 14px;align-items:center;justify-content:space-between;}
+.freespin-banner.show{display:flex;}
+.fs-label{font-size:12px;color:#fff;font-weight:700;}
+.fs-count{font-family:'Teko',sans-serif;font-size:22px;color:#fff;}
+.fs-bonus{font-size:10px;color:rgba(255,255,255,.7);}
+#tensionBar{width:100%;height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;display:none;}
+#tensionFill{height:100%;width:0%;background:linear-gradient(90deg,#22c55e,#f59e0b,#ef4444);border-radius:2px;}
+.reels-outer{display:flex;gap:6px;background:rgba(0,0,0,.5);
+  border:1px solid rgba(168,85,247,.2);border-radius:14px;padding:8px;}
+.reel-wrap{width:80px;height:240px;border:1.5px solid rgba(168,85,247,.2);
+  border-radius:10px;overflow:hidden;position:relative;transition:border-color .2s,box-shadow .2s;}
+.reel-wrap:nth-child(1){background:linear-gradient(180deg,#0a0514 0%,#110a1f 100%);}
+.reel-wrap:nth-child(2){background:linear-gradient(180deg,#0a0f14 0%,#0a1520 100%);}
+.reel-wrap:nth-child(3){background:linear-gradient(180deg,#100a14 0%,#1a0f20 100%);}
+.reel-wrap.reel-stopped{border-color:rgba(245,158,11,.5);box-shadow:0 0 12px rgba(245,158,11,.3);animation:reelStop .3s ease;}
+@keyframes reelStop{0%{transform:scaleY(1.03);}50%{transform:scaleY(0.98);}100%{transform:scaleY(1);}}
+.reel-wrap.near-miss-pulse{border-color:var(--red)!important;box-shadow:0 0 20px rgba(239,68,68,.5)!important;animation:nearMissPulse .15s ease 6;}
+@keyframes nearMissPulse{0%,100%{border-color:var(--red);}50%{border-color:var(--gold2);box-shadow:0 0 30px var(--gold2);}}
+.reel-wrap.diamond-alert{border-color:rgba(147,197,253,.8)!important;box-shadow:0 0 20px rgba(147,197,253,.5)!important;animation:diamondAlert .4s ease infinite alternate;}
+@keyframes diamondAlert{from{box-shadow:0 0 10px rgba(147,197,253,.4);}to{box-shadow:0 0 30px rgba(147,197,253,.8);}}
+.reel-inner{position:absolute;top:0;left:0;width:100%;}
+.reel-cell{width:80px;height:80px;display:flex;align-items:center;justify-content:center;font-size:38px;user-select:none;}
+.reel-cell.lit{background:radial-gradient(ellipse at center,rgba(245,158,11,.3) 0%,transparent 70%);animation:cellWin .6s ease forwards;}
+@keyframes cellWin{0%{transform:scale(1);}40%{transform:scale(1.35);filter:brightness(1.5);}100%{transform:scale(1.15);filter:brightness(1.2);}}
+.reel-cell.multiplier-cell{font-size:28px;text-shadow:0 0 10px rgba(251,191,36,.8);}
+.reel-cell.multiplier-lit{animation:multWin .6s ease forwards;background:radial-gradient(ellipse at center,rgba(251,191,36,.4) 0%,transparent 70%);}
+@keyframes multWin{0%{transform:scale(1);}50%{transform:scale(1.5);filter:brightness(2);}100%{transform:scale(1.3);filter:brightness(1.5);}}
+.reel-window{position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:linear-gradient(to bottom,rgba(3,4,8,.88) 0%,rgba(3,4,8,.88) calc(33.33% - 2px),transparent calc(33.33%),transparent 66.66%,rgba(3,4,8,.88) calc(66.66% + 2px),rgba(3,4,8,.88) 100%);}
+.reel-center-line{position:absolute;top:50%;left:-1px;right:-1px;height:82px;transform:translateY(-50%);
+  border:1.5px solid rgba(245,158,11,.4);border-radius:8px;pointer-events:none;z-index:4;}
+.reel-wrap.reel-stopped .reel-center-line{border-color:rgba(245,158,11,.7);}
+.mult-badge{display:none;background:linear-gradient(135deg,#b45309,#f59e0b);border-radius:20px;
+  padding:3px 12px;font-family:'Teko',sans-serif;font-size:18px;color:#000;font-weight:700;}
+.mult-badge.show{display:inline-block;animation:multBadge .4s ease;}
+@keyframes multBadge{from{transform:scale(0);}to{transform:scale(1);}}
+.spin-status{font-family:'Teko',sans-serif;font-size:15px;color:var(--text3);letter-spacing:1px;height:18px;}
+.spin-status.active{color:var(--accent2);}
+.spin-status.near{color:var(--gold2);}
+.spin-status.diamond{color:#93c5fd;animation:diamondBlink .5s ease infinite alternate;}
+@keyframes diamondBlink{from{opacity:.7;}to{opacity:1;}}
+.spin-status.freespin{color:var(--green);}
+.stats-row{display:flex;gap:6px;width:100%;}
+.stat-chip{flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:8px;padding:5px 4px;display:flex;flex-direction:column;gap:1px;align-items:center;}
+.stat-label{font-size:9px;color:var(--text3);}
+.stat-val{font-family:'Teko',sans-serif;font-size:16px;color:var(--text2);}
+.stat-val.green{color:var(--green);}
+.stat-val.red{color:var(--red);}
+.stat-val.gold{color:var(--gold);}
+.bet-panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:8px;}
+.panel-label{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;}
+.preset-row{display:flex;gap:5px;flex-wrap:wrap;}
+.preset-btn{flex:1;min-width:44px;background:rgba(168,85,247,.1);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:11px;font-weight:700;padding:7px 2px;cursor:pointer;transition:.2s;white-space:nowrap;}
+.preset-btn:hover{background:rgba(168,85,247,.28);border-color:var(--accent);}
+.preset-btn.active{background:rgba(168,85,247,.35);border-color:var(--accent2);}
+.bet-row{display:flex;gap:8px;align-items:center;}
+.bet-input{flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);font-size:15px;font-weight:700;padding:8px 12px;text-align:right;}
+.bet-input:focus{outline:none;border-color:var(--accent);}
+.bet-display{font-size:11px;color:var(--gold2);text-align:right;font-weight:700;}
+.max-btn{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);
+  border-radius:8px;color:var(--gold);font-size:12px;font-weight:700;padding:8px 10px;cursor:pointer;}
+.spin-btn{width:100%;padding:13px;background:linear-gradient(135deg,#6d28d9,#a855f7,#7c3aed);
+  border:none;border-radius:12px;color:#fff;font-size:20px;font-family:'Teko',sans-serif;
+  font-weight:700;letter-spacing:3px;cursor:pointer;transition:.2s;
+  box-shadow:0 4px 20px rgba(168,85,247,.4);animation:btnGlow 3s ease infinite;position:relative;overflow:hidden;}
+@keyframes btnGlow{0%,100%{box-shadow:0 4px 20px rgba(168,85,247,.4);}50%{box-shadow:0 4px 32px rgba(168,85,247,.7);}}
+.spin-btn::after{content:'';position:absolute;top:-50%;left:-60%;width:40%;height:200%;
+  background:rgba(255,255,255,.12);transform:skewX(-20deg);animation:btnShine 3s ease infinite;}
+@keyframes btnShine{0%{left:-60%}60%,100%{left:120%}}
+.spin-btn:disabled{opacity:.35;cursor:not-allowed;animation:none;box-shadow:none;}
+.spin-btn:disabled::after{display:none;}
+.spin-btn:hover:not(:disabled){filter:brightness(1.15);}
+.spin-btn.spinning{background:linear-gradient(135deg,#374151,#4b5563);animation:none;box-shadow:none;}
+.spin-btn.freespin-active{background:linear-gradient(135deg,#065f46,#059669);box-shadow:0 4px 20px rgba(5,150,105,.5);}
+.sym-panel{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.sym-panel-head{display:flex;align-items:center;justify-content:space-between;}
+.sym-panel-label{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;}
+.sym-panel-info{font-size:10px;color:var(--accent2);}
+.strategy-bar{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.03);border-radius:8px;padding:6px 10px;}
+.strategy-icon{font-size:14px;}
+.strategy-info{display:flex;flex-direction:column;gap:1px;flex:1;}
+.strategy-name{font-size:11px;font-weight:700;}
+.strategy-name.safe{color:var(--green);}
+.strategy-name.mid{color:var(--gold2);}
+.strategy-name.risk{color:var(--red);}
+.strategy-desc{font-size:9px;color:var(--text3);}
+.strategy-bonus{font-family:'Teko',sans-serif;font-size:16px;font-weight:700;text-align:right;}
+.strategy-bonus.safe{color:var(--green);}
+.strategy-bonus.mid{color:var(--gold2);}
+.strategy-bonus.risk{color:var(--red);}
+.sym-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;}
+.sym-btn{display:flex;flex-direction:column;align-items:center;gap:1px;
+  background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);
+  border-radius:8px;padding:5px 2px;cursor:pointer;transition:.18s;position:relative;user-select:none;}
+.sym-btn:hover{background:rgba(168,85,247,.15);border-color:var(--accent);}
+.sym-btn.active{background:rgba(168,85,247,.22);border-color:var(--accent2);box-shadow:0 0 8px rgba(168,85,247,.3);}
+.sym-btn.inactive{opacity:.32;filter:grayscale(.8);}
+.sym-btn.mult-sym.active{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.6);}
+.sym-icon{font-size:20px;line-height:1;}
+.sym-name{font-size:7px;color:var(--text3);font-weight:700;}
+.sym-mul{font-size:9px;color:var(--gold);font-weight:700;}
+.sym-btn.active::after{content:'✓';position:absolute;top:2px;right:3px;font-size:8px;color:var(--green);font-weight:700;}
+.sym-btn.mult-sym.active::after{color:var(--gold2);}
+.bonus-preview{display:flex;gap:6px;align-items:center;justify-content:center;
+  background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:8px;padding:5px 8px;}
+.bp-label{font-size:10px;color:var(--text3);}
+.bp-val{font-family:'Teko',sans-serif;font-size:15px;color:var(--gold2);font-weight:700;}
+.bp-arrow{font-size:10px;color:var(--text3);}
+.bp-jp{font-size:10px;color:var(--accent2);}
+.sym-select-hint{font-size:10px;color:var(--text3);text-align:center;}
+.sym-select-hint span{color:var(--accent2);font-weight:700;}
+.streak-badge{display:none;align-items:center;gap:6px;
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);
+  border-radius:8px;padding:5px 12px;font-size:12px;color:var(--gold2);font-weight:700;}
+.streak-badge.show{display:flex;}
+.history-wrap{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+.hist-title{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-bottom:6px;}
+.hist-list{display:flex;gap:4px;flex-wrap:wrap;}
+.hist-chip{border-radius:5px;padding:3px 7px;font-size:10px;font-weight:700;border:1px solid;}
+.hist-chip.w{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:var(--green);}
+.hist-chip.l{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.2);color:var(--red);}
+.hist-chip.j{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:var(--gold2);}
+.hist-chip.n{background:rgba(249,115,22,.08);border-color:rgba(249,115,22,.3);color:#f97316;}
+.hist-chip.f{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:var(--green);}
+.paytable{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+.pt-title{font-size:10px;color:var(--text3);font-weight:700;letter-spacing:1px;margin-bottom:8px;}
+.pt-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
+.pt-row{display:flex;justify-content:space-between;align-items:center;
+  padding:4px 7px;border-radius:6px;background:rgba(255,255,255,.03);}
+.pt-row:hover{background:rgba(168,85,247,.1);}
+.pt-row.highlight{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);}
+.pt-row.mult-row{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);}
+.pt-sym{font-size:13px;letter-spacing:1px;}
+.pt-mul{font-size:10px;color:var(--gold);font-weight:700;text-align:right;}
+#bigWinOverlay{position:fixed;inset:0;background:rgba(0,0,0,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:200;opacity:0;pointer-events:none;transition:opacity .4s;}
+#bigWinOverlay.show{opacity:1;pointer-events:all;}
+.bw-title{font-family:'Teko',sans-serif;font-size:68px;font-weight:700;color:var(--gold2);
+  letter-spacing:4px;text-shadow:0 0 40px rgba(251,191,36,.8);animation:bwPulse .5s ease infinite alternate;}
+@keyframes bwPulse{from{transform:scale(1);}to{transform:scale(1.06);}}
+.bw-amount{font-family:'Teko',sans-serif;font-size:44px;color:#fff;margin-top:8px;}
+.bw-sub{font-size:13px;color:var(--text2);margin-top:10px;}
+.bw-close{margin-top:20px;background:linear-gradient(135deg,#7c3aed,#a855f7);
+  border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;padding:11px 32px;cursor:pointer;}
+#freeSpinOverlay{position:fixed;inset:0;background:rgba(0,0,0,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:200;opacity:0;pointer-events:none;transition:opacity .4s;}
+#freeSpinOverlay.show{opacity:1;pointer-events:all;}
+.fs-overlay-title{font-family:'Teko',sans-serif;font-size:56px;font-weight:700;color:var(--green);
+  letter-spacing:4px;animation:bwPulse .5s ease infinite alternate;}
+.fs-overlay-count{font-family:'Teko',sans-serif;font-size:36px;color:#fff;margin-top:8px;}
+.fs-overlay-sub{font-size:13px;color:var(--text2);margin-top:10px;}
+.fs-overlay-btn{margin-top:20px;background:linear-gradient(135deg,#065f46,#059669);
+  border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:700;padding:11px 32px;cursor:pointer;}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:rgba(20,22,45,.97);border:1px solid var(--border);border-radius:20px;
+  padding:9px 20px;font-size:13px;color:var(--text);z-index:999;
+  opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+
+/* ── 니어미스 슬로모션 하트비트 ── */
+.reel-wrap.heartbeat{animation:heartbeat .4s ease infinite;}
+@keyframes heartbeat{0%,100%{transform:scale(1);}30%{transform:scale(1.06);}50%{transform:scale(1);}70%{transform:scale(1.04);}}
+
+/* ── 연승 ON FIRE 글로우 ── */
+.slot-machine.on-fire{border-color:rgba(245,158,11,.7)!important;
+  box-shadow:0 0 60px rgba(245,158,11,.4),0 0 120px rgba(239,68,68,.15)!important;
+  animation:fireGlow 1.5s ease infinite alternate!important;}
+@keyframes fireGlow{from{box-shadow:0 0 40px rgba(245,158,11,.3);}to{box-shadow:0 0 80px rgba(245,158,11,.5),0 0 120px rgba(239,68,68,.2);}}
+.fire-banner{position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#dc2626,#f59e0b);
+  border-radius:20px;padding:4px 14px;font-family:'Teko',sans-serif;font-size:18px;
+  font-weight:700;color:#fff;letter-spacing:2px;z-index:10;
+  animation:fireBannerPop .4s ease;text-shadow:0 1px 4px rgba(0,0,0,.5);}
+@keyframes fireBannerPop{from{transform:scale(0) rotate(-15deg);opacity:0;}to{transform:scale(1) rotate(0);opacity:1;}}
+
+/* ── 연패 위로 배너 ── */
+.comfort-banner{position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#1e40af,#3b82f6);
+  border-radius:20px;padding:4px 14px;font-size:12px;
+  font-weight:700;color:#93c5fd;z-index:10;
+  animation:fireBannerPop .4s ease;}
+
+/* ── 더블업 오버레이 ── */
+#doubleUpOverlay{position:fixed;inset:0;background:rgba(0,0,0,.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:250;opacity:0;pointer-events:none;transition:opacity .4s;gap:16px;}
+#doubleUpOverlay.show{opacity:1;pointer-events:all;}
+.du-title{font-family:'Teko',sans-serif;font-size:48px;font-weight:700;color:#fbbf24;
+  letter-spacing:3px;text-shadow:0 0 30px rgba(251,191,36,.6);animation:bwPulse .5s ease infinite alternate;}
+.du-subtitle{font-size:14px;color:var(--text2);text-align:center;line-height:1.6;}
+.du-amount{font-family:'Teko',sans-serif;font-size:38px;color:#fff;margin:4px 0;}
+.du-arrow{font-size:28px;color:var(--gold2);animation:duArrow .8s ease infinite alternate;}
+@keyframes duArrow{from{transform:translateY(0);}to{transform:translateY(-6px);}}
+.du-bet-label{font-size:13px;color:var(--accent2);margin-top:8px;font-weight:700;}
+.du-multiplier-hint{font-size:12px;color:var(--text3);margin-top:2px;}
+.du-risk{font-size:12px;color:var(--red);margin-top:6px;}
+.du-btns{display:flex;gap:14px;margin-top:16px;}
+.du-btn{padding:14px 32px;border:none;border-radius:12px;font-size:17px;
+  font-family:'Teko',sans-serif;font-weight:700;letter-spacing:2px;cursor:pointer;
+  transition:.2s;min-width:120px;}
+.du-btn.accept{background:linear-gradient(135deg,#059669,#22c55e);color:#fff;
+  box-shadow:0 4px 20px rgba(34,197,94,.4);}
+.du-btn.accept:hover{filter:brightness(1.15);}
+.du-btn.decline{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--text2);}
+.du-btn.decline:hover{background:rgba(255,255,255,.15);}
+.du-result{font-family:'Teko',sans-serif;font-size:52px;font-weight:700;letter-spacing:3px;
+  animation:bwPulse .4s ease infinite alternate;}
+.du-result.win{color:var(--green);text-shadow:0 0 30px rgba(34,197,94,.7);}
+.du-result.lose{color:var(--red);text-shadow:0 0 30px rgba(239,68,68,.7);}
+.du-result-amount{font-family:'Teko',sans-serif;font-size:36px;color:#fff;margin-top:4px;}
+.du-result-btn{margin-top:16px;padding:12px 40px;background:linear-gradient(135deg,#6d28d9,#a855f7);
+  border:none;border-radius:12px;color:#fff;font-size:16px;font-family:'Teko',sans-serif;
+  font-weight:700;letter-spacing:2px;cursor:pointer;}
+/* 긴장감 연출 — 심박수 테두리, 카운트다운 */
+.du-tension-ring{position:absolute;inset:0;border:3px solid transparent;border-radius:0;pointer-events:none;
+  animation:duTensionRing 1.2s ease infinite;}
+@keyframes duTensionRing{
+  0%,100%{border-color:rgba(239,68,68,0);}
+  15%{border-color:rgba(239,68,68,.6);}
+  30%{border-color:rgba(239,68,68,0);}
+  45%{border-color:rgba(239,68,68,.4);}
+  60%{border-color:rgba(239,68,68,0);}
+}
+.du-countdown{font-family:'Teko',sans-serif;font-size:20px;color:var(--red);
+  margin-top:8px;letter-spacing:2px;animation:duCountPulse .5s ease infinite alternate;}
+@keyframes duCountPulse{from{opacity:.6;transform:scale(1);}to{opacity:1;transform:scale(1.08);}}
+</style>
+</head>
+<body>
+<div id="flashOverlay"></div>
+<canvas id="particleCanvas"></canvas>
+
+<div id="cycleOverlay">
+  <div class="cycle-ov-icon" id="cycleOvIcon">🔥</div>
+  <div class="cycle-ov-title" id="cycleOvTitle">HOT ZONE!</div>
+  <div class="cycle-ov-desc" id="cycleOvDesc">당첨 확률 대폭 상승!</div>
+</div>
+
+<!-- ★ 단독 실행 시 topBar (iframe 연동 시 자동 숨김) -->
+<div id="topBar">
+  <button id="topBarHomeBtn" onclick="goHome()">🏠</button>
+  <span id="topBarTitle">🎰 SLOT</span>
+  <div class="tb-spacer"></div>
+  <div id="topBarBal">💰 <span id="topBarBalNum">0</span></div>
+  <div id="topBarPoint">🪙 <span id="topBarPointNum">0</span>P</div>
+  <button id="topBarCharge" onclick="requestCharge()">충전</button>
+</div>
+
+<div id="bigWinOverlay" onclick="closeBigWin()">
+  <div class="bw-title" id="bwTitle">BIG WIN!</div>
+  <div class="bw-amount" id="bwAmount"></div>
+  <div class="bw-sub">탭하여 계속하기</div>
+  <button class="bw-close" onclick="closeBigWin()">계속하기</button>
+</div>
+
+<div id="freeSpinOverlay">
+  <div class="fs-overlay-title">FREE SPIN!</div>
+  <div class="fs-overlay-count" id="fsOverlayCount">×5 획득!</div>
+  <div class="fs-overlay-sub">배당 ×1.5 보너스 적용!</div>
+  <button class="fs-overlay-btn" onclick="closeFreeSpinOverlay()">시작하기!</button>
+</div>
+
+<div id="doubleUpOverlay">
+  <div class="du-tension-ring" id="duTensionRing"></div>
+  <div id="duPhaseAsk" style="text-align:center;">
+    <div class="du-title">🎲 DOUBLE UP!</div>
+    <div class="du-subtitle">당첨금을 베팅금으로 다시 한 판!</div>
+    <div class="du-amount" id="duCurrentAmount">₩0</div>
+    <div class="du-arrow">⬇️</div>
+    <div class="du-bet-label">이 금액으로 리스핀!</div>
+    <div class="du-multiplier-hint">×2 ~ ×15 배당 가능! 꽝이면 전액 몰수</div>
+    <div class="du-risk">⚠ 실패 시 당첨금 전액 몰수</div>
+    <div class="du-countdown" id="duCountdown">⏱ 10초 내에 결정!</div>
+    <div class="du-btns">
+      <button class="du-btn accept" onclick="acceptDoubleUp()">도전! 🔥</button>
+      <button class="du-btn decline" onclick="declineDoubleUp()">아니오</button>
+    </div>
+  </div>
+  <div id="duPhaseResult" style="display:none;text-align:center;">
+    <div class="du-result" id="duResultTitle">WIN!</div>
+    <div class="du-result-amount" id="duResultAmount">₩0</div>
+    <button class="du-result-btn" onclick="closeDoubleUp()">확인</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="jackpot-bar">
+    <div>
+      <div class="jp-label">💎 JACKPOT POOL</div>
+      <div class="jp-amount" id="jpAmount">₩5,000,000</div>
+    </div>
+    <div class="jp-right">
+      <div class="jp-badge">PROGRESSIVE</div>
+      <div class="jp-bonus-hint" id="jpBonusHint">적립 100%</div>
+    </div>
+  </div>
+
+  <div class="cycle-bar" id="cycleBar">
+    <span class="cycle-icon" id="cycleIcon">⚖️</span>
+    <div class="cycle-info">
+      <div class="cycle-name normal" id="cycleName">일반 구간</div>
+      <div class="cycle-desc" id="cycleDesc">보통 확률</div>
+    </div>
+    <div class="cycle-progress-wrap">
+      <div class="cycle-progress normal" id="cycleProgress" style="width:50%"></div>
+    </div>
+  </div>
+
+  <div class="rtp-bar">
+    <span class="rtp-label">📊 RTP</span>
+    <span class="rtp-val" id="rtpVal">--%</span>
+    <span class="rtp-divider">·</span>
+    <span class="rtp-target">목표 85%</span>
+    <span class="rtp-status ok" id="rtpStatus">데이터 없음</span>
+  </div>
+
+  <div class="result-box" id="resultBox">
+    <div style="width:100%">
+      <div class="result-text" id="resultText">베팅 후 SPIN을 눌러주세요 🎰</div>
+      <div class="countup-wrap" id="countupWrap"></div>
+      <div class="combo-row" id="comboRow"></div>
+    </div>
+  </div>
+
+  <div class="ai-box" id="aiBox">
+    <span class="ai-avatar">🤖</span>
+    <div>
+      <span class="ai-tier-badge" id="aiTierBadge">NORMAL</span>
+      <span id="aiText"></span>
+    </div>
+  </div>
+
+  <div class="slot-machine" id="slotMachine">
+    <div class="freespin-banner" id="freeSpinBanner">
+      <div>
+        <div class="fs-label">🆓 FREE SPIN</div>
+        <div class="fs-bonus">배당 ×1.5 보너스</div>
+      </div>
+      <div class="fs-count" id="fsCount">0</div>
+    </div>
+    <div id="tensionBar"><div id="tensionFill"></div></div>
+    <div class="reels-outer" aria-live="polite" aria-label="슬롯 릴">
+      <div class="reel-wrap" id="reel0" role="img" aria-label="첫번째 릴"><div class="reel-inner" id="ri0"></div><div class="reel-window"></div><div class="reel-center-line"></div></div>
+      <div class="reel-wrap" id="reel1" role="img" aria-label="두번째 릴"><div class="reel-inner" id="ri1"></div><div class="reel-window"></div><div class="reel-center-line"></div></div>
+      <div class="reel-wrap" id="reel2" role="img" aria-label="세번째 릴"><div class="reel-inner" id="ri2"></div><div class="reel-window"></div><div class="reel-center-line"></div></div>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;min-height:24px;">
+      <span class="mult-badge" id="multBadge">×2</span>
+      <span style="font-size:10px;color:var(--text3)" id="multHint"></span>
+    </div>
+    <div class="spin-status" id="spinStatus">베팅 후 SPIN!</div>
+    <div class="stats-row">
+      <div class="stat-chip"><span class="stat-label">총 스핀</span><span class="stat-val" id="statSpins">0</span></div>
+      <div class="stat-chip"><span class="stat-label">승률</span><span class="stat-val" id="statWinRate">0%</span></div>
+      <div class="stat-chip"><span class="stat-label">최대 당첨</span><span class="stat-val gold" id="statMaxWin">₩0</span></div>
+      <div class="stat-chip"><span class="stat-label">수익</span><span class="stat-val" id="statProfit">₩0</span></div>
+    </div>
+  </div>
+
+  <div class="streak-badge" id="streakBadge">🔥 <span id="streakText">3연승!</span></div>
+
+  <div class="bet-panel">
+    <div class="panel-label">💰 베팅 금액</div>
+    <div class="preset-row">
+      <button class="preset-btn" onclick="setBetFixed(50000,this)">5만원</button>
+      <button class="preset-btn" onclick="setBetFixed(100000,this)">10만원</button>
+      <button class="preset-btn" onclick="setBetFixed(200000,this)">20만원</button>
+      <button class="preset-btn" onclick="setBetPct(20,this)">20%</button>
+      <button class="preset-btn" onclick="setBetPct(30,this)">30%</button>
+    </div>
+    <div class="bet-row">
+      <input id="betInput" class="bet-input" type="number" min="1000" step="1000"
+        placeholder="베팅액 (원)" oninput="onBetInput()">
+      <button class="max-btn" onclick="setBetMax()">MAX</button>
+    </div>
+    <div class="bet-display" id="betDisplay">베팅: ₩0</div>
+    <div class="bet-display" id="balDisplay" style="color:var(--accent2)">잔액: ₩0</div>
+    <button id="spinBtn" class="spin-btn" onclick="doSpin()" aria-label="슬롯 스핀 버튼">🎰 SPIN</button>
+    <button id="chargeBtnInline" onclick="requestCharge()" style="display:none;width:100%;margin-top:8px;padding:11px;background:linear-gradient(135deg,#b45309,#f59e0b);border:none;border-radius:12px;color:#000;font-size:16px;font-family:'Teko',sans-serif;font-weight:700;letter-spacing:2px;cursor:pointer;">💳 충전하기</button>
+  </div>
+
+  <div class="sym-panel">
+    <div class="sym-panel-head">
+      <span class="sym-panel-label">🎯 심볼 선택</span>
+      <span class="sym-panel-info" id="symCount">12 / 12 활성</span>
+    </div>
+    <div class="strategy-bar">
+      <span class="strategy-icon" id="stratIcon">⚖️</span>
+      <div class="strategy-info">
+        <span class="strategy-name mid" id="stratName">균형형</span>
+        <span class="strategy-desc" id="stratDesc">당첨 확률과 배당의 균형</span>
+      </div>
+      <div class="strategy-bonus mid" id="stratBonus">배당 ×1.25</div>
+    </div>
+    <div class="sym-grid" id="symGrid"></div>
+    <div class="bonus-preview">
+      <span class="bp-label">배당 보너스</span>
+      <span class="bp-val" id="bpVal">×1.25</span>
+      <span class="bp-arrow">·</span>
+      <span class="bp-jp">잭팟 적립 <span id="bpJp">75%</span></span>
+      <span class="bp-arrow">·</span>
+      <span class="bp-label">심볼 <span id="bpSymCnt" style="color:var(--accent2);font-weight:700">12</span>개</span>
+    </div>
+    <div class="sym-select-hint">최소 <span>3개</span> · 적을수록 확률↑ 많을수록 배당↑</div>
+  </div>
+
+  <div class="history-wrap">
+    <div class="hist-title">📊 최근 결과</div>
+    <div class="hist-list" id="histList"><span style="font-size:11px;color:var(--text3)">아직 없음</span></div>
+  </div>
+
+  <div class="paytable">
+    <div class="pt-title">📋 페이테이블</div>
+    <div class="pt-grid" id="ptGrid"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ========== 상수 ========== */
+// 로컬스토리지 키
+const BAL_KEY     = 'MG_BAL_SLOT';
+const AI_KEY      = 'MG_AI_PROFILE';
+const STAT_KEY    = 'MG_SLOT_STATS';
+const JP_KEY      = 'MG_SLOT_JP';
+const SYM_KEY     = 'MG_SLOT_SYMS';
+// 게임 기본값
+const DEFAULT_BAL = 1000000;
+const MIN_BET     = 1000;
+const JP_SEED     = 5000000;
+const JP_RAKE     = 0.02;
+const RTP_TARGET  = 0.85;
+// 릴 설정
+const REEL_COUNT  = 3;
+const CELL_H      = 80;
+const STRIP_LEN   = 40;
+// 타이밍(ms)
+const STOP_TIMES  = [3500, 7500, 12000];
+const SLOWDOWN    = 1500;
+// 기타
+const P_TO_WON    = 100000;
+
+const ALL_SYMBOLS = [
+  {em:'💎',name:'다이아',  w:1,  pay3:null,pay2:3.0,  isMult:false,multVal:0},
+  {em:'7️⃣',name:'세븐',   w:3,  pay3:15.0,pay2:2.0,  isMult:false,multVal:0},
+  {em:'🍒',name:'체리',   w:7,  pay3:8.0, pay2:1.5,  isMult:false,multVal:0},
+  {em:'🍊',name:'오렌지', w:9,  pay3:6.0, pay2:1.2,  isMult:false,multVal:0},
+  {em:'🍋',name:'레몬',   w:11, pay3:4.0, pay2:1.0,  isMult:false,multVal:0},
+  {em:'⭐',name:'별',     w:13, pay3:3.0, pay2:0.8,  isMult:false,multVal:0},
+  {em:'🍇',name:'포도',   w:14, pay3:2.5, pay2:0.7,  isMult:false,multVal:0},
+  {em:'🔔',name:'벨',     w:14, pay3:2.0, pay2:0.6,  isMult:false,multVal:0},
+  {em:'🍀',name:'클로버', w:14, pay3:1.8, pay2:0.5,  isMult:false,multVal:0},
+  {em:'🎲',name:'주사위', w:14, pay3:1.5, pay2:0.4,  isMult:false,multVal:0},
+  {em:'✖2',name:'x2배',  w:4,  pay3:null,pay2:null, isMult:true, multVal:2},
+  {em:'✖3',name:'x3배',  w:2,  pay3:null,pay2:null, isMult:true, multVal:3},
+];
+const FREESPIN_SYM_IDX    = 8;
+const FREESPIN_BONUS_MULT = 1.5;
+const CYCLE_DEFS = [
+  {type:'hot',   icon:'🔥',name:'핫 구간',  desc:'당첨 확률 대폭 상승!',    winBoost:0.25, minSpins:8, maxSpins:14},
+  {type:'normal',icon:'⚖️',name:'일반 구간',desc:'보통 확률',                winBoost:0,    minSpins:10,maxSpins:18},
+  {type:'cold',  icon:'❄️',name:'콜드 구간',desc:'당첨 확률 하락... 버텨봐', winBoost:-0.2, minSpins:8, maxSpins:14},
+];
+
+let balance        = DEFAULT_BAL;
+let pointBalance   = 0;
+let betAmount      = 0;
+let lastBetAmount  = 0;
+let spinning       = false;
+let jackpot        = JP_SEED;
+let stats          = {spins:0,wins:0,maxWin:0,totalBet:0,totalWin:0};
+let history        = [];
+let winStreak      = 0;
+let loseStreak     = 0;
+let aiProfile      = {tier:'NORMAL',mood:50,threat:30};
+let activeSymIdxs  = [];
+let reelStrips     = [];
+let finalSymIdxs   = [];
+let stopOrder      = [];
+let stoppedCount   = 0;
+let tensionAnimId  = null;
+let freeSpinsLeft  = 0;
+let diamondAlert   = false;
+let rtpTracker     = {totalBet:0,totalReturn:0};
+let cycle          = {type:'normal',spinsLeft:12,idx:1};
+let doubleUpPending = 0; // 더블업 대기 중인 당첨금
+let doubleUpBet     = 0; // 더블업 시 베팅액 (표시용)
+let isDoubleUpSpin  = false; // 더블업 리스핀 진행 중
+
+function fmtWon(n){ return '₩' + Math.floor(n).toLocaleString('ko-KR'); }
+
+function requestCharge(){
+  // 포인트 정보를 먼저 요청한 뒤 충전 모달 오픈 요청 (타이밍 역전 방지)
+  try{window.parent?.postMessage({type:'REQUEST_POINT_INFO'}, window.location.origin);}catch(e){}
+  try{window.parent?.postMessage({type:'REQUEST_CHARGE', gameId:'slot'}, window.location.origin);}catch(e){}
+}
+
+function calcStrategy(){
+  const nc    = activeSymIdxs.filter(i=>!ALL_SYMBOLS[i].isMult).length;
+  const totalNormal = ALL_SYMBOLS.filter(s=>!s.isMult).length; // 하드코딩 방지
+  const ratio = nc / totalNormal;
+  const bonus = 1.0 + ratio*0.5;
+  const jpRate= 0.3 + ratio*0.7;
+  let type,icon,name,desc;
+  if(nc<=4)      {type='safe';icon='🛡️';name='안전형';  desc='당첨 확률↑  배당 보너스 낮음';}
+  else if(nc<=7) {type='mid'; icon='⚖️';name='균형형';  desc='당첨 확률과 배당의 균형';}
+  else           {type='risk';icon='🎯';name='고위험형';desc='당첨 확률↓  배당 보너스 최대';}
+  return {payBonus:bonus,jpRate,type,icon,name,desc};
+}
+
+function init(){
+  loadState();
+  buildSymbolPanel();
+  buildPaytable();
+  buildAllReels();
+  updateBalUI();
+  updateJpUI();
+  updateStats();
+  updateSpinBtn();
+  renderHistory();
+  updateCycleUI();
+  updateRtpUI();
+}
+
+function loadState(){
+  const raw = localStorage.getItem(BAL_KEY);
+  balance = raw!==null ? parseInt(raw) : DEFAULT_BAL;
+  if(isNaN(balance)||balance<0) balance=DEFAULT_BAL;
+  jackpot = parseInt(localStorage.getItem(JP_KEY) || JP_SEED);
+  if(isNaN(jackpot)||jackpot<JP_SEED) jackpot=JP_SEED;
+  try{
+    const s=localStorage.getItem(STAT_KEY);
+    if(s){
+      const loaded=JSON.parse(s);
+      // [버그수정] 구버전 저장 데이터에 필드 누락 시 NaN 방지 - 기본값과 병합
+      stats={spins:0,wins:0,maxWin:0,totalBet:0,totalWin:0,...loaded};
+      // 각 필드 NaN/음수 방어
+      Object.keys(stats).forEach(k=>{ if(isNaN(stats[k])||stats[k]<0) stats[k]=0; });
+    }
+  }catch(e){}
+  try{const s=localStorage.getItem(AI_KEY);  if(s)aiProfile=JSON.parse(s);}catch(e){}
+  try{
+    const s=localStorage.getItem(SYM_KEY);
+    activeSymIdxs=s?JSON.parse(s):ALL_SYMBOLS.map((_,i)=>i);
+    // 범위 초과 인덱스 필터링 (ALL_SYMBOLS 버전 변경 시 방어)
+    activeSymIdxs=activeSymIdxs.filter(i=>Number.isInteger(i)&&i>=0&&i<ALL_SYMBOLS.length);
+  }catch(e){activeSymIdxs=ALL_SYMBOLS.map((_,i)=>i);}
+  if(activeSymIdxs.length<3) activeSymIdxs=ALL_SYMBOLS.map((_,i)=>i);
+  rtpTracker={totalBet:0,totalReturn:0};
+}
+function saveBalance(){localStorage.setItem(BAL_KEY,balance);try{window.parent?.postMessage({type:'SAVE_BALANCE',balance},window.location.origin);}catch(e){}}
+function saveJp()    {localStorage.setItem(JP_KEY,jackpot);}
+function saveStats() {localStorage.setItem(STAT_KEY,JSON.stringify(stats));}
+function saveSyms()  {localStorage.setItem(SYM_KEY,JSON.stringify(activeSymIdxs));}
+
+function buildSymbolPanel(){
+  const grid=document.getElementById('symGrid');
+  grid.innerHTML='';
+  ALL_SYMBOLS.forEach((s,i)=>{
+    const btn=document.createElement('button');
+    const isActive=activeSymIdxs.includes(i);
+    btn.className='sym-btn'+(s.isMult?' mult-sym':'')+(isActive?' active':' inactive');
+    const ml=s.isMult?'MULT':s.pay3?'×'+s.pay3:'JP';
+    btn.innerHTML=`<span class="sym-icon">${s.em}</span><span class="sym-name">${s.name}</span><span class="sym-mul">${ml}</span>`;
+    btn.onclick=()=>toggleSym(i,btn);
+    grid.appendChild(btn);
+  });
+  updateStrategyUI();
+}
+function toggleSym(idx,btn){
+  if(spinning)return;
+  const s=ALL_SYMBOLS[idx];
+  const pos=activeSymIdxs.indexOf(idx);
+  const na=activeSymIdxs.filter(i=>!ALL_SYMBOLS[i].isMult);
+  if(pos>=0){
+    if(!s.isMult&&na.length<=3){showToast('일반 심볼은 최소 3개 이상!');btn.style.animation='shake .3s ease';setTimeout(()=>btn.style.animation='',300);return;}
+    activeSymIdxs.splice(pos,1);btn.classList.remove('active');btn.classList.add('inactive');
+  }else{
+    activeSymIdxs.push(idx);activeSymIdxs.sort((a,b)=>a-b);btn.classList.add('active');btn.classList.remove('inactive');
+  }
+  saveSyms();updateStrategyUI();buildPaytable();updateReelStrips();
+}
+function updateStrategyUI(){
+  const cnt=activeSymIdxs.length;
+  const st=calcStrategy();
+  document.getElementById('symCount').textContent=`${cnt} / ${ALL_SYMBOLS.length} 활성`;
+  document.getElementById('stratIcon').textContent=st.icon;
+  const ne=document.getElementById('stratName');ne.textContent=st.name;ne.className='strategy-name '+st.type;
+  document.getElementById('stratDesc').textContent=st.desc;
+  const be=document.getElementById('stratBonus');be.textContent='배당 ×'+st.payBonus.toFixed(2);be.className='strategy-bonus '+st.type;
+  document.getElementById('bpVal').textContent='×'+st.payBonus.toFixed(2);
+  document.getElementById('bpJp').textContent=Math.round(st.jpRate*100)+'%';
+  document.getElementById('bpSymCnt').textContent=cnt;
+  document.getElementById('jpBonusHint').textContent='적립 '+Math.round(st.jpRate*100)+'%';
+}
+
+function buildPaytable(){
+  const grid=document.getElementById('ptGrid');
+  const bonus=calcStrategy().payBonus;
+  grid.innerHTML='';
+  activeSymIdxs.forEach(i=>{
+    const s=ALL_SYMBOLS[i];
+    const row=document.createElement('div');
+    if(s.isMult){
+      row.className='pt-row mult-row';
+      row.innerHTML=`<span class="pt-sym">${s.em}</span><span class="pt-mul">배당 ×${s.multVal}<br><span style="color:var(--text3);font-size:9px">착지 시 곱하기</span></span>`;
+    }else{
+      row.className='pt-row'+(i===0?' highlight':'');
+      const p3=s.pay3?'×'+(s.pay3*bonus).toFixed(1):'JACKPOT';
+      const p2='×'+(s.pay2*bonus).toFixed(2);
+      row.innerHTML=`<span class="pt-sym">${s.em}${s.em}${s.em}</span><span class="pt-mul">${p3}<br><span style="color:var(--text3);font-size:9px">2개 ${p2}</span></span>`;
+    }
+    grid.appendChild(row);
+  });
+}
+
+function updateCycleUI(){
+  const c=CYCLE_DEFS[cycle.idx];
+  const prog=Math.max(0,cycle.spinsLeft/c.maxSpins);
+  document.getElementById('cycleIcon').textContent=c.icon;
+  const ne=document.getElementById('cycleName');ne.textContent=c.name;ne.className='cycle-name '+c.type;
+  document.getElementById('cycleDesc').textContent=c.desc;
+  const pe=document.getElementById('cycleProgress');pe.style.width=(prog*100)+'%';pe.className='cycle-progress '+c.type;
+  document.getElementById('cycleBar').className='cycle-bar'+(c.type==='hot'?' hot-active':c.type==='cold'?' cold-active':'');
+  document.getElementById('slotMachine').className='slot-machine'+(c.type==='hot'?' hot-mode':c.type==='cold'?' cold-mode':'');
+}
+function tickCycle(){cycle.spinsLeft--;if(cycle.spinsLeft<=0)advanceCycle();else updateCycleUI();}
+function advanceCycle(){
+  cycle.idx=(cycle.idx+1)%CYCLE_DEFS.length;
+  const c=CYCLE_DEFS[cycle.idx];
+  cycle.spinsLeft=c.minSpins+Math.floor(Math.random()*(c.maxSpins-c.minSpins));
+  cycle.type=c.type;updateCycleUI();showCycleOverlay(c);
+}
+function showCycleOverlay(c){
+  const ov=document.getElementById('cycleOverlay');
+  const te=document.getElementById('cycleOvTitle');
+  const map={hot:'HOT ZONE!',cold:'COLD ZONE',normal:'NORMAL ZONE'};
+  document.getElementById('cycleOvIcon').textContent=c.icon;
+  te.textContent=map[c.type]||c.name;te.className='cycle-ov-title '+c.type;
+  document.getElementById('cycleOvDesc').textContent=c.desc;
+  ov.classList.add('show');setTimeout(()=>ov.classList.remove('show'),2200);
+}
+function getCycleBoost(){return CYCLE_DEFS[cycle.idx].winBoost;}
+
+function updateRtpUI(){
+  if(rtpTracker.totalBet<10000){
+    document.getElementById('rtpVal').textContent='--% ';
+    document.getElementById('rtpStatus').textContent='데이터 없음';
+    document.getElementById('rtpStatus').className='rtp-status ok';
+    return;
+  }
+  const rtp=rtpTracker.totalReturn/rtpTracker.totalBet;
+  const diff=rtp-RTP_TARGET;
+  const se=document.getElementById('rtpStatus');
+  document.getElementById('rtpVal').textContent=(rtp*100).toFixed(1)+'%';
+  if(diff>0.05){se.textContent='환급 과다';se.className='rtp-status over';}
+  else if(diff<-0.1){se.textContent='환급 부족';se.className='rtp-status under';}
+  else{se.textContent='정상 범위';se.className='rtp-status ok';}
+}
+function getRtpBoost(){
+  if(rtpTracker.totalBet<10000)return 0;
+  const rtp=rtpTracker.totalReturn/rtpTracker.totalBet;
+  const diff=RTP_TARGET-rtp;
+  if(diff>0.15)return 0.35;if(diff>0.08)return 0.20;if(diff<-0.08)return -0.15;return 0;
+}
+
+function weightedRandom(){
+  const pool=activeSymIdxs.map(i=>({idx:i,w:ALL_SYMBOLS[i].w}));
+  const total=pool.reduce((a,b)=>a+b.w,0);
+  let r=Math.random()*total;
+  for(const p of pool){r-=p.w;if(r<=0)return p.idx;}
+  return pool[pool.length-1].idx;
+}
+function buildStrip(){const a=[];for(let i=0;i<STRIP_LEN;i++)a.push(weightedRandom());return a;}
+function buildAllReels(){reelStrips=[];for(let r=0;r<REEL_COUNT;r++){const s=buildStrip();reelStrips.push(s);renderReelDOM(r,s);}}
+function updateReelStrips(){for(let r=0;r<REEL_COUNT;r++)reelStrips[r]=buildStrip();}
+function renderReelDOM(r,strip){
+  const inner=document.getElementById('ri'+r);
+  inner.innerHTML='';inner.style.height=(strip.length*5*CELL_H)+'px';
+  for(let rep=0;rep<5;rep++){
+    for(let i=0;i<strip.length;i++){
+      const cell=document.createElement('div');
+      const sym=ALL_SYMBOLS[strip[i]];
+      cell.className='reel-cell'+(sym.isMult?' multiplier-cell':'');
+      cell.textContent=sym.em;inner.appendChild(cell);
+    }
+  }
+  // ★ 디버그: top=0 강제 (첫 3셀이 보여야 함)
+  inner.style.top='0px';
+}
+
+function updateBalUI(){
+  document.getElementById('betDisplay').textContent = '베팅: '+fmtWon(betAmount);
+  const balEl = document.getElementById('balDisplay');
+  if(balEl) balEl.textContent = '잔액: '+fmtWon(balance);
+  /* 단독 실행 탑바 동기화 */
+  const tb = document.getElementById('topBarBalNum');
+  const tp = document.getElementById('topBarPointNum');
+  if(tb) tb.textContent = Math.floor(balance).toLocaleString('ko-KR');
+  if(tp) tp.textContent = Math.floor(pointBalance).toLocaleString('ko-KR');
+}
+function updateJpUI(){document.getElementById('jpAmount').textContent=fmtWon(jackpot);}
+function updateStats(){
+  document.getElementById('statSpins').textContent=stats.spins;
+  const wr=stats.spins?Math.round(stats.wins/stats.spins*100):0;
+  const we=document.getElementById('statWinRate');we.textContent=wr+'%';we.className='stat-val '+(wr>=50?'green':'red');
+  document.getElementById('statMaxWin').textContent=fmtWon(stats.maxWin);
+  const profit=stats.totalWin-stats.totalBet;
+  const pe=document.getElementById('statProfit');
+  pe.textContent=(profit>=0?'+':'')+fmtWon(profit);pe.className='stat-val '+(profit>=0?'green':'red');
+}
+let _zeroBalToastShown = false;
+function updateSpinBtn(){
+  const isFree=freeSpinsLeft>0;
+  const btn=document.getElementById('spinBtn');
+  const ok=!spinning&&(isFree||(betAmount>=MIN_BET&&balance>=betAmount&&balance>0));
+  btn.disabled=!ok;
+  if(isFree){btn.classList.add('freespin-active');btn.textContent=`🆓 FREE SPIN (${freeSpinsLeft})`;}
+  else{btn.classList.remove('freespin-active');btn.textContent='🎰 SPIN';}
+  const chargeBtn=document.getElementById('chargeBtnInline');
+  if(balance<=0&&!isFree){
+    if(!_zeroBalToastShown){showToast('💸 잔액이 없습니다! 충전이 필요합니다.');_zeroBalToastShown=true;}
+    if(chargeBtn)chargeBtn.style.display='block';
+  }else{
+    _zeroBalToastShown=false;
+    if(chargeBtn)chargeBtn.style.display='none';
+  }
+}
+function setSpinStatus(m,c=''){const e=document.getElementById('spinStatus');e.textContent=m;e.className='spin-status '+(c||'');}
+function renderHistory(){
+  const el=document.getElementById('histList');
+  if(!history.length){el.innerHTML='<span style="font-size:11px;color:var(--text3)">아직 없음</span>';return;}
+  el.innerHTML=history.slice(-30).reverse().map(h=>{
+    const m={w:'WIN',l:'LOSE',j:'🏆JP',n:'아깝',f:'🆓FS'};
+    const c={w:'w',l:'l',j:'j',n:'n',f:'f'};
+    return`<span class="hist-chip ${c[h]||'l'}">${m[h]||h}</span>`;
+  }).join('');
+}
+function showStreak(){
+  const b=document.getElementById('streakBadge');
+  const sm=document.getElementById('slotMachine');
+  // 기존 배너 제거
+  sm.querySelectorAll('.fire-banner,.comfort-banner').forEach(el=>el.remove());
+  if(winStreak>=3){
+    document.getElementById('streakText').textContent=winStreak+'연승! 🔥';
+    b.classList.add('show');
+    sm.classList.add('on-fire');
+    // ON FIRE 배너
+    const fb=document.createElement('div');fb.className='fire-banner';
+    fb.textContent='🔥 ON FIRE!';sm.appendChild(fb);
+    setTimeout(()=>fb.remove(),4000);
+    if(navigator.vibrate)navigator.vibrate([30,20,30,20,50]);
+  }else{
+    b.classList.remove('show');
+    sm.classList.remove('on-fire');
+  }
+  if(loseStreak>=5){
+    const cb=document.createElement('div');cb.className='comfort-banner';
+    cb.textContent='⚡ 행운 충전 중...';sm.appendChild(cb);
+    setTimeout(()=>cb.remove(),4000);
+    if(navigator.vibrate)navigator.vibrate([15,40,15]);
+  }
+}
+function updateFsBanner(){
+  const b=document.getElementById('freeSpinBanner');
+  if(freeSpinsLeft>0){b.classList.add('show');document.getElementById('fsCount').textContent=freeSpinsLeft+'회';}
+  else b.classList.remove('show');
+}
+
+function setBetFixed(won,btn){
+  betAmount=Math.min(won,balance);
+  document.getElementById('betInput').value=betAmount;
+  highlightPreset(btn);updateBalUI();updateSpinBtn();
+}
+function setBetPct(p,btn){
+  if(balance<=0){betAmount=0;document.getElementById('betInput').value=0;highlightPreset(btn);updateBalUI();updateSpinBtn();return;}
+  betAmount=Math.min(balance, Math.max(MIN_BET,Math.floor(balance*p/100/1000)*1000));
+  document.getElementById('betInput').value=betAmount;
+  highlightPreset(btn);updateBalUI();updateSpinBtn();
+}
+function setBetMax(){
+  betAmount=balance;document.getElementById('betInput').value=betAmount;
+  clearPresetHL();updateBalUI();updateSpinBtn();
+}
+function onBetInput(){
+  const raw=parseInt(document.getElementById('betInput').value)||0;
+  betAmount=Math.max(0, Math.min(raw, balance)); // 음수 및 잔액 초과 방지
+  clearPresetHL();updateBalUI();updateSpinBtn();
+}
+function highlightPreset(btn){clearPresetHL();if(btn)btn.classList.add('active');}
+function clearPresetHL(){document.querySelectorAll('.preset-btn').forEach(b=>b.classList.remove('active'));}
+
+function doSpin(){
+  if(spinning)return;
+  const isFree=freeSpinsLeft>0;
+  if(!isFree){
+    if(balance<=0){showToast('💸 잔액이 없습니다!');return;}
+    if(betAmount<MIN_BET){showToast('최소 베팅: '+fmtWon(MIN_BET));return;}
+    if(betAmount>balance){showToast('잔액 부족');return;}
+  }
+  spinning=true;stoppedCount=0;diamondAlert=false;
+  if(navigator.vibrate)navigator.vibrate(30);
+  if(!isFree)lastBetAmount=betAmount;
+  const btn=document.getElementById('spinBtn');
+  btn.classList.add('spinning');btn.textContent='⏳ SPINNING...';btn.classList.remove('freespin-active');btn.disabled=true;
+  const st=calcStrategy();
+  if(!isFree){
+    balance-=betAmount;jackpot+=betAmount*JP_RAKE*(st.jpRate/0.3);
+    stats.totalBet+=betAmount;rtpTracker.totalBet+=betAmount;
+  }
+  stats.spins++;saveBalance();saveJp();updateBalUI();updateJpUI();
+  clearResult();clearAllLit();clearMultBadge();
+  document.getElementById('aiBox').classList.remove('show');
+  document.getElementById('streakBadge').classList.remove('show');
+  tickCycle();
+  for(let r=0;r<REEL_COUNT;r++)renderReelDOM(r,reelStrips[r]);
+  finalSymIdxs=determineResults(isFree);
+  const times=shuffleArr([...STOP_TIMES]);
+  stopOrder=[{reel:0,stopAt:times[0]},{reel:1,stopAt:times[1]},{reel:2,stopAt:times[2]}];
+  stopOrder.sort((a,b)=>a.stopAt-b.stopAt);
+  startTensionBar(stopOrder[2].stopAt);
+  setSpinStatus(isFree?'🆓 프리스핀!...':'🎰 스피닝...',isFree?'freespin':'active');
+  for(let r=0;r<REEL_COUNT;r++){
+    const e=stopOrder.find(x=>x.reel===r);
+    const isLast=e.stopAt===stopOrder[2].stopAt;
+    spinReel(r,e.stopAt,isLast,()=>onReelStopped(r,isLast));
+  }
+}
+
+function determineResults(isFree){
+  const boost=getRtpBoost()+getCycleBoost();
+  const base=0.33;
+  const chance=loseStreak>=5?1.0:Math.max(0.05,Math.min(0.75,base+boost+(isFree?0.15:0)));
+  if(Math.random()<chance){
+    // 일반 심볼만 당첨 심볼로 사용 (멀티플라이어 트리플 방지)
+    const normalIdxs=activeSymIdxs.filter(i=>!ALL_SYMBOLS[i].isMult);
+    if(normalIdxs.length===0)return forceNonWin();
+    const pickNormal=()=>normalIdxs[Math.floor(Math.random()*normalIdxs.length)];
+    // 멀티플라이어는 별도로 추가 가능
+    const multIdxs=activeSymIdxs.filter(i=>ALL_SYMBOLS[i].isMult);
+    const maybeAddMult=()=>multIdxs.length>0&&Math.random()<0.25?multIdxs[Math.floor(Math.random()*multIdxs.length)]:null;
+    if(Math.random()<0.25){
+      // 트리플: 일반 심볼 3개
+      const s=pickNormal();return[s,s,s];
+    }else{
+      // 2개 매칭: 일반 심볼 2개 + 나머지 1개(멀티플라이어 or 다른 심볼)
+      const s=pickNormal();
+      let extra=maybeAddMult();
+      if(extra===null){
+        extra=wRandExcept(s);
+        // wRandExcept가 같은 값을 반환하면(활성 심볼 1개 등) 멀티플라이어로 fallback
+        if(extra===s){
+          const mIdxs=activeSymIdxs.filter(i=>ALL_SYMBOLS[i].isMult);
+          extra=mIdxs.length>0?mIdxs[Math.floor(Math.random()*mIdxs.length)]:wRandExcept(s);
+        }
+      }
+      return shuffleArr([s,s,extra]);
+    }
+  }
+  return forceNonWin();
+}
+function wRandExcept(ex){
+  // 활성 심볼이 1개뿐이면 다른 값을 찾을 수 없으므로 즉시 반환 방지
+  const pool=activeSymIdxs.filter(i=>i!==ex);
+  if(pool.length===0)return ex; // 어쩔 수 없이 같은 값 (호출부에서 처리)
+  let i,t=0;
+  do{i=weightedRandom();t++;}while(i===ex&&t<20);
+  return i!==ex?i:pool[Math.floor(Math.random()*pool.length)];
+}
+function forceNonWin(){
+  const pool=activeSymIdxs.filter(i=>!ALL_SYMBOLS[i].isMult);
+  if(pool.length>=3){
+    let t=0;
+    while(t<100){
+      const a=[weightedRandom(),weightedRandom(),weightedRandom()];
+      // 멀티플라이어 포함 시 일반 심볼끼리만 비교
+      const nm=a.filter(i=>!ALL_SYMBOLS[i].isMult);
+      if(nm.length<2)return a; // 일반 심볼 1개 이하면 매칭 없음
+      const allDiff=nm.every((v,i,arr)=>arr.indexOf(v)===i);
+      if(allDiff)return a;
+      t++;
+    }
+    // [버그수정] fallback: pool.length>=3 보장이므로 shuffled[2] 항상 존재, 명시적 length 체크 추가
+    const shuffled=[...pool].sort(()=>Math.random()-0.5);
+    return shuffled.length>=3?[shuffled[0],shuffled[1],shuffled[2]]:[shuffled[0],shuffled[0]||0,shuffled[1]||0];
+  }
+  const all=[...activeSymIdxs];if(all.length>=3)return[all[0],all[1],all[2]];return[0,1,2];
+}
+function shuffleArr(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function spinReel(r,stopAt,isLast,cb){
+  const inner=document.getElementById('ri'+r);
+  const strip=reelStrips[r];
+  const tSym=finalSymIdxs[r];
+  const isWin=checkIsWin(finalSymIdxs);
+  let tp=strip.indexOf(tSym);
+  if(tp<0){strip[0]=tSym;renderReelDOM(r,strip);tp=0;}
+  let dp;
+  if(isLast&&!isWin){const off=Math.random()<0.5?1:-1;dp=(tp+off+strip.length)%strip.length;}
+  else dp=tp;
+  const base=strip.length*2*CELL_H;
+  const targetTop=-(base+dp*CELL_H)+CELL_H;
+  const fastDur=Math.max(stopAt-SLOWDOWN,stopAt*0.6);
+  const slowDur=Math.min(SLOWDOWN,stopAt-fastDur);
+  const spinStart=performance.now();
+  const spd=CELL_H*2.5;
+  function fast(now){
+    const el=now-spinStart;
+    const mv=spd*(el/16);
+    const sh=strip.length*CELL_H;
+    inner.style.top=(-((mv%(sh*2))+strip.length*CELL_H))+'px';
+    if(el<fastDur)requestAnimationFrame(fast);else startSlow();
+  }
+  function startSlow(){
+    const from=parseFloat(inner.style.top)||0;
+    const full=targetTop-(strip.length*CELL_H);
+    const ss=performance.now();
+    if(isLast){
+      setSpinStatus('🎯 마지막 릴...','near');
+      // 심장박동 진동 + 시각 이펙트
+      const wrap=document.getElementById('reel'+r);
+      wrap.classList.add('heartbeat');
+      if(navigator.vibrate)navigator.vibrate([60,80,60,80,60,80,60,80,60,80,60,80,60]);
+    }
+    function slow(now){
+      const el=now-ss;const p=Math.min(el/slowDur,1);
+      inner.style.top=(from+(full-from)*easeOut(p))+'px';
+      if(p<1)requestAnimationFrame(slow);else{
+        inner.style.top=targetTop+'px';
+        if(isLast)document.getElementById('reel'+r).classList.remove('heartbeat');
+        cb();
+      }
+    }
+    requestAnimationFrame(slow);
+  }
+  requestAnimationFrame(fast);
+}
+function easeOut(t){return t===1?1:1-Math.pow(2,-10*t);}
+
+function onReelStopped(r,isLast){
+  if(navigator.vibrate)navigator.vibrate(isLast?[40,30,60]:20);
+  const wrap=document.getElementById('reel'+r);
+  wrap.classList.add('reel-stopped');setTimeout(()=>wrap.classList.remove('reel-stopped'),500);
+  const sym=ALL_SYMBOLS[finalSymIdxs[r]];
+  if(!isLast&&sym.em==='💎'&&!diamondAlert){
+    diamondAlert=true;setSpinStatus('💎 다이아몬드 예고! 두근두근...','diamond');
+    for(let i=0;i<REEL_COUNT;i++){if(i!==r)document.getElementById('reel'+i).classList.add('diamond-alert');}
+  }
+  const idx=stopOrder.findIndex(e=>e.reel===r);
+  const rank=['첫','두','세'];
+  if(!isLast&&!diamondAlert)setSpinStatus(`${rank[idx]}번째 릴 정지! ⏸`,'active');
+  wrap.classList.remove('diamond-alert');
+  stoppedCount++;
+  if(stoppedCount===REEL_COUNT){
+    diamondAlert=false;stopTensionBar();
+    if(isDoubleUpSpin){
+      isDoubleUpSpin=false;
+      setTimeout(()=>finishDoubleUp(doubleUpBet),150);
+    }else{
+      setTimeout(()=>finishSpin(),150);
+    }
+  }
+}
+
+function startTensionBar(dur){
+  const bar=document.getElementById('tensionBar');
+  const fill=document.getElementById('tensionFill');
+  bar.style.display='block';fill.style.width='0%';
+  const start=performance.now();
+  function step(now){
+    const p=Math.min((now-start)/dur,1);fill.style.width=(p*100)+'%';
+    if(p<1)tensionAnimId=requestAnimationFrame(step);
+  }
+  tensionAnimId=requestAnimationFrame(step);
+}
+function stopTensionBar(){
+  cancelAnimationFrame(tensionAnimId);
+  document.getElementById('tensionFill').style.width='100%';
+  setTimeout(()=>{document.getElementById('tensionBar').style.display='none';document.getElementById('tensionFill').style.width='0%';},400);
+}
+
+function checkIsWin(idxs){
+  // 멀티플라이어는 승리 판정에서 제외
+  const nonM=idxs.filter(i=>!ALL_SYMBOLS[i].isMult);
+  if(nonM.length<2)return false;
+  if(nonM.length===3)return nonM[0]===nonM[1]||nonM[1]===nonM[2]||nonM[0]===nonM[2];
+  return nonM[0]===nonM[1]; // 2개일 때
+}
+function finishSpin(){
+  const isFree=freeSpinsLeft>0;
+  const[i0,i1,i2]=finalSymIdxs;
+  const[s0,s1,s2]=[ALL_SYMBOLS[i0],ALL_SYMBOLS[i1],ALL_SYMBOLS[i2]];
+  const st=calcStrategy();
+  let bonus=st.payBonus;if(isFree)bonus*=FREESPIN_BONUS_MULT;
+  // 프리스핀은 항상 직전 실제 베팅액 기준 (betAmount가 잔액 초과 상태일 수 있으므로)
+  const eBet=isFree?Math.max(lastBetAmount, MIN_BET):betAmount;
+  let mVal=1;[s0,s1,s2].forEach(s=>{if(s.isMult)mVal*=s.multVal;});
+  let payout=0,rType='lose',mainMsg='',combos=[],nearMiss=false,trigFS=0;
+  const nonM=[i0,i1,i2].filter(i=>!ALL_SYMBOLS[i].isMult);
+  if(nonM.length===3&&nonM[0]===nonM[1]&&nonM[1]===nonM[2]){
+    const triSym=ALL_SYMBOLS[nonM[0]]; // 멀티플라이어 무관하게 실제 트리플 심볼
+    if(nonM[0]===0){
+      payout=Math.floor(jackpot*mVal);jackpot=JP_SEED;saveJp();updateJpUI();
+      rType='jackpot';mainMsg='🏆 JACKPOT!!';combos=['💎💎💎 JACKPOT'+(mVal>1?` ×${mVal}배!`:'')];
+      triggerFlash('rgba(147,197,253,.3)',6);showBigWin('🏆 JACKPOT!!',payout);
+    }else{
+      const fm=+(triSym.pay3*bonus*mVal).toFixed(2);
+      payout=Math.floor(eBet*fm);
+      triggerFlash('rgba(245,158,11,.3)',4);
+      document.getElementById('slotMachine').classList.add('triple-flash');
+      setTimeout(()=>document.getElementById('slotMachine').classList.remove('triple-flash'),1000);
+      rType=payout>=eBet*5?'big-win':'win';
+      if(rType==='big-win')showBigWin('🎉 BIG WIN!',payout);
+      mainMsg=`🎉 ${triSym.em}${triSym.em}${triSym.em} 트리플! ×${fm}`;combos=[`${triSym.em}${triSym.em}${triSym.em} ×${fm}`];
+      if(mVal>1)combos.push(`✖${mVal} MULT!`);
+    }
+    litCenterCells();if(nonM[0]===FREESPIN_SYM_IDX)trigFS=3+Math.floor(Math.random()*5);
+  }else if(nonM.length>=2){
+    let mIdx=-1;
+    if(nonM[0]===nonM[1])mIdx=nonM[0];
+    else if(nonM.length===3&&nonM[0]===nonM[2])mIdx=nonM[0];
+    else if(nonM.length===3&&nonM[1]===nonM[2])mIdx=nonM[1];
+    if(mIdx>=0){
+      const ps=ALL_SYMBOLS[mIdx];
+      const fm=+(ps.pay2*bonus*mVal).toFixed(2);
+      payout=Math.floor(eBet*fm);rType='win';
+      mainMsg=`✨ ${ps.em}${ps.em} 2개 일치! ×${fm}`;combos=[`${ps.em}${ps.em} ×${fm}`];
+      if(mVal>1)combos.push(`✖${mVal} MULT!`);litCenterCells();
+      if(mIdx===FREESPIN_SYM_IDX)trigFS=3;
+    }else{
+      // 일반 심볼 2~3개 있지만 매칭 없음 → 꽝, nearMiss 가능
+      nearMiss=Math.random()<0.35&&loseStreak<5;
+      if(nearMiss){
+        mainMsg='😤 아깝다! 한 칸 차이...';rType='near';
+        const lr=stopOrder[2].reel;
+        document.getElementById('reel'+lr).classList.add('near-miss-pulse');
+        setTimeout(()=>document.getElementById('reel'+lr).classList.remove('near-miss-pulse'),1200);
+      }else{
+        mainMsg=`😞 꽝 — ${fmtWon(isFree?0:eBet)} 손실`;rType='lose';
+      }
+    }
+  }else{
+    // nonM.length < 2: 멀티플라이어만 있거나 일반 심볼 1개
+    nearMiss=Math.random()<0.35&&loseStreak<5;
+    if(nearMiss){
+      mainMsg='😤 아깝다! 한 칸 차이...';rType='near';
+      const lr=stopOrder[2].reel;
+      document.getElementById('reel'+lr).classList.add('near-miss-pulse');
+      setTimeout(()=>document.getElementById('reel'+lr).classList.remove('near-miss-pulse'),1200);
+    }else{
+      mainMsg=`😞 꽝 — ${fmtWon(isFree?0:eBet)} 손실`;rType='lose';
+    }
+  }
+  if(mVal>1&&payout>0)showMultBadge(`×${mVal} MULT`);
+  // ── 더블업 챌린지 판정 (잭팟/프리스핀 제외, 일반 당첨 시 25% 확률) ──
+  const canDoubleUp = payout>0 && rType!=='jackpot' && trigFS===0 && !isFree && Math.random()<0.25;
+  if(!canDoubleUp){
+    balance+=payout;
+  }
+  stats.totalWin+=payout;rtpTracker.totalReturn+=payout;
+  if(payout>stats.maxWin)stats.maxWin=payout;
+  if(payout>0){stats.wins++;winStreak++;loseStreak=0;}else{loseStreak++;winStreak=0;}
+  if(isFree)freeSpinsLeft--;
+  saveBalance();saveStats();updateBalUI();updateStats();updateRtpUI();updateFsBanner();
+  // 프리스핀 트리거 시 히스토리는 'f'로만 기록 (w/l 중복 방지)
+  const histEntry = trigFS > 0 ? 'f' : (rType==='jackpot'?'j': nearMiss?'n': payout>0?'w':'l');
+  history.push(histEntry);
+  if(history.length>30)history.shift();
+  renderHistory();showStreak();
+  const rb=document.getElementById('resultBox');
+  const rt=document.getElementById('resultText');
+  rb.className='result-box '+(payout>0?'win-glow':nearMiss?'near-miss-glow':'lose-glow');
+  if(isFree&&payout>0)rb.className+=' freespin-glow';
+  rt.className='result-text '+rType;rt.textContent=mainMsg+(isFree?' 🆓':'');
+  if(payout>0&&rType!=='jackpot')startCountup(payout);
+  if(combos.length){
+    document.getElementById('comboRow').innerHTML=combos.map((c,i)=>
+      `<span class="combo-chip${i>0&&c.includes('MULT')?' mult':''}">${c}</span>`).join('');
+  }
+  if(payout>0)spawnParticles(rType==='jackpot'?120:payout>=eBet*5?80:30);
+  // ★ 게임 종료 진동 효과
+  if(trigFS>0) vibrateResult('freespin');
+  else vibrateResult(nearMiss?'near':rType);
+  try{window.parent?.postMessage({type:'GAME_OVER',gameId:'slot',won:payout>0,payout,bet:eBet},window.location.origin);}catch(e){}
+  setTimeout(()=>triggerAI(payout>0,rType,nearMiss,isFree),600);
+  if(trigFS>0){
+    // 프리스핀 오버레이가 닫힐 때까지 spinning 상태 유지
+    setTimeout(()=>{
+      freeSpinsLeft+=trigFS;
+      document.getElementById('fsOverlayCount').textContent=`×${trigFS} 획득!`;
+      document.getElementById('freeSpinOverlay').classList.add('show');updateFsBanner();
+      spinning=false;
+      document.getElementById('spinBtn').classList.remove('spinning');
+      setSpinStatus(`🆓 프리스핀 ${freeSpinsLeft}회 남음`,'freespin');
+      updateSpinBtn();
+      updateReelStrips();
+      try{window.parent?.postMessage({type:'SAVE_BALANCE', balance},window.location.origin);}catch(e){}
+    },1500);
+  }else if(canDoubleUp){
+    // ── 더블업 제안: 당첨금 아직 미지급 상태 ──
+    doubleUpPending=payout;
+    doubleUpBet=eBet;
+    spinning=false;
+    document.getElementById('spinBtn').classList.remove('spinning');
+    setSpinStatus('🎲 더블업 챌린지!','');
+    updateSpinBtn();
+    updateReelStrips();
+    setTimeout(()=>showDoubleUp(payout),1200);
+  }else{
+    spinning=false;
+    document.getElementById('spinBtn').classList.remove('spinning');
+    setSpinStatus(payout>0?'🎉 당첨!':'😞 다음 기회에...','');
+    updateSpinBtn();
+    updateReelStrips();
+    try{window.parent?.postMessage({type:'SAVE_BALANCE', balance},window.location.origin);}catch(e){}
+  }
+}
+function closeFreeSpinOverlay(){document.getElementById('freeSpinOverlay').classList.remove('show');updateSpinBtn();}
+
+/* ── 더블업 챌린지 시스템 (리스핀 방식) ── */
+let duCountdownTimer = null;
+let duHeartbeatTimer = null;
+
+function showDoubleUp(amount){
+  doubleUpPending=amount;
+  document.getElementById('duCurrentAmount').textContent=fmtWon(amount);
+  document.getElementById('duPhaseAsk').style.display='';
+  document.getElementById('duPhaseResult').style.display='none';
+  document.getElementById('doubleUpOverlay').classList.add('show');
+  // ── 긴장감 연출: 심박 진동 반복 + 10초 카운트다운 ──
+  let sec=10;
+  const cdEl=document.getElementById('duCountdown');
+  cdEl.textContent=`⏱ ${sec}초 내에 결정!`;
+  clearInterval(duCountdownTimer);clearInterval(duHeartbeatTimer);
+  duCountdownTimer=setInterval(()=>{
+    sec--;
+    if(sec<=0){
+      clearInterval(duCountdownTimer);clearInterval(duHeartbeatTimer);
+      declineDoubleUp(); // 시간 초과 → 안전 수령
+      return;
+    }
+    cdEl.textContent=`⏱ ${sec}초 내에 결정!`;
+    if(sec<=5)cdEl.style.color='#ef4444';
+    if(sec<=3&&navigator.vibrate)navigator.vibrate([60,40,60]); // 마지막 3초 강한 진동
+  },1000);
+  // 심박 진동 (0.8초 간격)
+  duHeartbeatTimer=setInterval(()=>{
+    if(navigator.vibrate)navigator.vibrate([25,120,35]);
+  },800);
+}
+
+function acceptDoubleUp(){
+  clearInterval(duCountdownTimer);clearInterval(duHeartbeatTimer);
+  document.getElementById('doubleUpOverlay').classList.remove('show');
+  if(navigator.vibrate)navigator.vibrate([40,20,40,20,80]);
+  // ── 당첨금을 베팅금으로 리스핀 ──
+  const duBet=doubleUpPending;
+  doubleUpPending=0;
+  doubleUpBet=duBet;
+  isDoubleUpSpin=true;
+  // 릴 결과 결정 (더블업 전용 확률)
+  spinning=true;stoppedCount=0;diamondAlert=false;
+  const btn=document.getElementById('spinBtn');
+  btn.classList.add('spinning');btn.textContent='⏳ DOUBLE UP...';btn.disabled=true;
+  clearResult();clearAllLit();clearMultBadge();
+  document.getElementById('aiBox').classList.remove('show');
+  setSpinStatus('🎲 더블업 리스핀!','active');
+  // 릴스트립 렌더링
+  for(let r=0;r<REEL_COUNT;r++)renderReelDOM(r,reelStrips[r]);
+  // 더블업 결과 결정 — 60% 당첨 (일반보다 높지만 꽝도 있음)
+  const duWin=Math.random()<0.60;
+  if(duWin){
+    const normalIdxs=activeSymIdxs.filter(i=>!ALL_SYMBOLS[i].isMult);
+    if(normalIdxs.length>0){
+      const s=normalIdxs[Math.floor(Math.random()*normalIdxs.length)];
+      if(Math.random()<0.30) finalSymIdxs=[s,s,s]; // 30% 트리플
+      else{
+        let extra=wRandExcept(s);
+        const pos=Math.floor(Math.random()*3);
+        finalSymIdxs=[s,s,s];finalSymIdxs[pos]=extra;
+      }
+    }else finalSymIdxs=forceNonWin();
+  }else{
+    finalSymIdxs=forceNonWin();
+  }
+  // 스핀 시작 (빠른 타이밍)
+  const times=shuffleArr([2000,4000,6500]);
+  stopOrder=[{reel:0,stopAt:times[0]},{reel:1,stopAt:times[1]},{reel:2,stopAt:times[2]}];
+  stopOrder.sort((a,b)=>a.stopAt-b.stopAt);
+  startTensionBar(stopOrder[2].stopAt);
+  for(let r=0;r<REEL_COUNT;r++){
+    const e=stopOrder.find(x=>x.reel===r);
+    const isLast=e.stopAt===stopOrder[2].stopAt;
+    spinReel(r,e.stopAt,isLast,()=>onReelStopped(r,isLast));
+  }
+}
+
+function finishDoubleUp(duBet){
+  const[i0,i1,i2]=finalSymIdxs;
+  const[s0,s1,s2]=[ALL_SYMBOLS[i0],ALL_SYMBOLS[i1],ALL_SYMBOLS[i2]];
+  let mVal=1;[s0,s1,s2].forEach(s=>{if(s.isMult)mVal*=s.multVal;});
+  const nonM=[i0,i1,i2].filter(i=>!ALL_SYMBOLS[i].isMult);
+  let payout=0,mainMsg='',rType='lose';
+  const st=calcStrategy();const bonus=st.payBonus;
+  if(nonM.length===3&&nonM[0]===nonM[1]&&nonM[1]===nonM[2]){
+    const triSym=ALL_SYMBOLS[nonM[0]];
+    if(nonM[0]===0){
+      // 잭팟!
+      payout=Math.floor(jackpot*mVal);jackpot=JP_SEED;saveJp();updateJpUI();
+      rType='jackpot';mainMsg='🏆 DOUBLE UP JACKPOT!!';
+      triggerFlash('rgba(147,197,253,.3)',6);showBigWin('🏆 JACKPOT!!',payout);
+    }else{
+      const fm=+(triSym.pay3*bonus*mVal).toFixed(2);
+      payout=Math.floor(duBet*fm);
+      rType=payout>=duBet*5?'big-win':'win';
+      mainMsg=`🎉 ${triSym.em}${triSym.em}${triSym.em} 트리플! ×${fm}`;
+      triggerFlash('rgba(245,158,11,.3)',4);
+      if(rType==='big-win')showBigWin('🎉 DOUBLE UP BIG WIN!',payout);
+    }
+    litCenterCells();
+  }else if(nonM.length>=2){
+    let mIdx=-1;
+    if(nonM[0]===nonM[1])mIdx=nonM[0];
+    else if(nonM.length===3&&nonM[0]===nonM[2])mIdx=nonM[0];
+    else if(nonM.length===3&&nonM[1]===nonM[2])mIdx=nonM[1];
+    if(mIdx>=0){
+      const ps=ALL_SYMBOLS[mIdx];
+      const fm=+(ps.pay2*bonus*mVal).toFixed(2);
+      payout=Math.floor(duBet*fm);rType='win';
+      mainMsg=`✨ ${ps.em}${ps.em} ×${fm}`;litCenterCells();
+    }else{
+      mainMsg='💀 꽝... 당첨금 몰수!';rType='lose';
+    }
+  }else{
+    mainMsg='💀 꽝... 당첨금 몰수!';rType='lose';
+  }
+  if(mVal>1&&payout>0)showMultBadge(`×${mVal} MULT`);
+  // 결과 표시
+  const rb=document.getElementById('resultBox');
+  const rt=document.getElementById('resultText');
+  rb.className='result-box '+(payout>0?'win-glow':'lose-glow');
+  rt.className='result-text '+rType;rt.textContent=mainMsg;
+  if(payout>0&&rType!=='jackpot')startCountup(payout);
+  if(payout>0)spawnParticles(rType==='jackpot'?120:payout>=duBet*5?80:40);
+  vibrateResult(rType);
+  // 더블업 결과 오버레이
+  setTimeout(()=>{
+    document.getElementById('duPhaseAsk').style.display='none';
+    document.getElementById('duPhaseResult').style.display='';
+    const titleEl=document.getElementById('duResultTitle');
+    const amountEl=document.getElementById('duResultAmount');
+    if(payout>0){
+      titleEl.textContent='🎉 SUCCESS!';
+      titleEl.className='du-result win';
+      amountEl.textContent='+'+fmtWon(payout);
+      balance+=payout;
+      stats.totalWin+=payout;rtpTracker.totalReturn+=payout;
+      if(payout>stats.maxWin)stats.maxWin=payout;
+      showToast(`🎲 더블업 성공! ${fmtWon(payout)} 획득!`,3000);
+    }else{
+      titleEl.textContent='💀 FAILED...';
+      titleEl.className='du-result lose';
+      amountEl.textContent=fmtWon(duBet)+' 몰수';
+      // 원래 당첨 기록 취소
+      stats.totalWin-=duBet;rtpTracker.totalReturn-=duBet;
+      triggerFlash('rgba(239,68,68,.3)',3);
+      if(navigator.vibrate)navigator.vibrate([200,100,400]);
+      showToast(`🎲 더블업 실패... ${fmtWon(duBet)} 몰수`,3000);
+    }
+    saveBalance();saveStats();updateBalUI();updateStats();updateRtpUI();
+    try{window.parent?.postMessage({type:'SAVE_BALANCE', balance},window.location.origin);}catch(e){}
+    document.getElementById('doubleUpOverlay').classList.add('show');
+  },800);
+  spinning=false;
+  document.getElementById('spinBtn').classList.remove('spinning');
+  updateSpinBtn();updateReelStrips();
+}
+
+function declineDoubleUp(){
+  clearInterval(duCountdownTimer);clearInterval(duHeartbeatTimer);
+  // 안전하게 받기 → 당첨금 지급
+  balance+=doubleUpPending;
+  saveBalance();updateBalUI();
+  try{window.parent?.postMessage({type:'SAVE_BALANCE', balance},window.location.origin);}catch(e){}
+  showToast(`💰 ${fmtWon(doubleUpPending)} 안전 수령!`,2000);
+  doubleUpPending=0;
+  document.getElementById('doubleUpOverlay').classList.remove('show');
+  setSpinStatus('🎉 당첨!','');
+  updateSpinBtn();
+}
+
+function closeDoubleUp(){
+  document.getElementById('doubleUpOverlay').classList.remove('show');
+  setSpinStatus('🎰 다음 스핀 준비!','');
+  updateSpinBtn();
+}
+
+function startCountup(target){
+  const w=document.getElementById('countupWrap');
+  w.classList.add('show');w.textContent='+'+fmtWon(0);
+  const dur=Math.min(1500,500+target/1000);
+  const start=performance.now();
+  function step(now){
+    const p=Math.min((now-start)/dur,1);
+    w.textContent='+'+fmtWon(Math.floor(easeOut(p)*target));
+    if(p<1)requestAnimationFrame(step);else w.textContent='+'+fmtWon(target);
+  }
+  requestAnimationFrame(step);
+}
+
+function showMultBadge(t){
+  const b=document.getElementById('multBadge');b.textContent=t;b.classList.add('show');
+  document.getElementById('multHint').textContent='배당에 곱하기 적용!';
+  setTimeout(()=>{b.classList.remove('show');document.getElementById('multHint').textContent='';},4000);
+}
+function clearMultBadge(){document.getElementById('multBadge').classList.remove('show');document.getElementById('multHint').textContent='';}
+
+function triggerFlash(color,times){
+  const ov=document.getElementById('flashOverlay');ov.style.background=color;let n=0;
+  function f(){if(n>=times*2)return;ov.style.opacity=n%2===0?'1':'0';n++;setTimeout(f,110);}f();
+}
+function litCenterCells(){
+  for(let r=0;r<REEL_COUNT;r++){
+    const inner=document.getElementById('ri'+r);
+    const cells=inner.querySelectorAll('.reel-cell');
+    const top=parseFloat(inner.style.top)||0;
+    const stripLen=reelStrips[r].length;
+    // 반복 렌더링(strip×5) 구조에서 정확한 중간 셀 인덱스 계산
+    const rawIdx=Math.round((-top+CELL_H)/CELL_H);
+    const totalCells=stripLen*5;
+    const clampedIdx=((rawIdx%totalCells)+totalCells)%totalCells; // [버그수정] rawIdx → clampedIdx로 배열 범위 보장
+    const mid=clampedIdx%stripLen;
+    if(cells[clampedIdx]){
+      const s=ALL_SYMBOLS[reelStrips[r][mid]];
+      cells[clampedIdx].classList.add(s.isMult?'multiplier-lit':'lit');
+    }
+  }
+}
+function clearAllLit(){document.querySelectorAll('.reel-cell').forEach(c=>c.classList.remove('lit','multiplier-lit'));}
+function clearResult(){
+  document.getElementById('resultBox').className='result-box';
+  document.getElementById('resultText').className='result-text';
+  document.getElementById('resultText').textContent='🎰 스피닝...';
+  document.getElementById('countupWrap').classList.remove('show');
+  document.getElementById('countupWrap').textContent='';
+  document.getElementById('comboRow').innerHTML='';
+}
+
+const AI_DB={
+  win:{
+    bigWin:  ['흥미롭군. 하지만 행운은 오래 못 가.','잘 즐겨. 얼마 안 남았으니.'],
+    streak:  ['연승이라... 슬슬 끝날 때가 됐는데.','그 운, 다 쓰고 있는 거 알아?'],
+    normal:  ['이번엔 봐드리죠.','잠깐의 행운이겠지.','오호, 이번엔 됐군.'],
+    freespin:['프리스핀까지... 운이 너무 좋은데?','공짜라도 조심해. 습관이 되니까.'],
+  },
+  lose:{
+    streak:  ['슬슬 나올 때도 됐는데...','계속해봐. 분명 나올 거야.'],
+    lowBal:  ['잔고가 많이 줄었네.','마지막 베팅이 될 수도 있겠는데.'],
+    normal:  ['당연한 결과야.','이번엔 내가 이겼군.'],
+    hot:     ['핫 구간인데도 꽝이라니... 안됐군.'],
+    cold:    ['콜드 구간이야. 그래도 계속할 거야?'],
+  },
+  nearMiss:['한 칸 차이였어. 아깝지?','이거 한 번 더 하면 나올 것 같은데?'],
+  jackpot: ['...말이 안 돼.','오늘은 네가 이겼다. 딱 오늘만.'],
+};
+function triggerAI(win,type,nearMiss,isFree){
+  let pool;
+  const br=balance/DEFAULT_BAL;
+  const ct=CYCLE_DEFS[cycle.idx].type;
+  if(type==='jackpot')pool=AI_DB.jackpot;
+  else if(nearMiss)   pool=AI_DB.nearMiss;
+  else if(win){
+    if(isFree)            pool=AI_DB.win.freespin;
+    else if(winStreak>=3) pool=AI_DB.win.streak;
+    else if(type==='big-win')pool=AI_DB.win.bigWin;
+    else                  pool=AI_DB.win.normal;
+  }else{
+    if(ct==='hot'&&loseStreak>=2)pool=AI_DB.lose.hot;
+    else if(ct==='cold')         pool=AI_DB.lose.cold;
+    else if(loseStreak>=3)       pool=AI_DB.lose.streak;
+    else if(br<0.3)              pool=AI_DB.lose.lowBal;
+    else                         pool=AI_DB.lose.normal;
+  }
+  if(!pool||!pool.length)return;
+  const tier=aiProfile.tier||'NORMAL';
+  if(tier==='EASY'   &&Math.random()>0.60)return;
+  if(tier==='NORMAL' &&Math.random()>0.85)return;
+  if(tier==='HARD'   &&Math.random()>0.95)return;
+  // EXTREME: 100% 발동 (의도적)
+  document.getElementById('aiTierBadge').textContent=tier;
+  document.getElementById('aiText').textContent=pool[Math.floor(Math.random()*pool.length)];
+  const box=document.getElementById('aiBox');box.classList.add('show');setTimeout(()=>box.classList.remove('show'),5000);
+}
+
+function showBigWin(title,amount){
+  document.getElementById('bwTitle').textContent=title;
+  document.getElementById('bwAmount').textContent='+'+fmtWon(amount);
+  document.getElementById('bigWinOverlay').classList.add('show');
+}
+function closeBigWin(){document.getElementById('bigWinOverlay').classList.remove('show');}
+
+const canvas=document.getElementById('particleCanvas');
+const ctx=canvas.getContext('2d');
+let particles=[],animId=null;
+function resizeCanvas(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+window.addEventListener('resize',resizeCanvas);resizeCanvas();
+function spawnParticles(count){
+  const colors=['#f59e0b','#fbbf24','#a855f7','#c084fc','#22c55e','#ffffff','#ef4444'];
+  for(let i=0;i<count;i++){
+    particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height*.5,
+      vx:(Math.random()-.5)*5,vy:Math.random()*-5-2,size:Math.random()*9+4,
+      color:colors[Math.floor(Math.random()*colors.length)],life:1,
+      decay:Math.random()*.018+.012,shape:Math.random()>.5?'circle':'rect',rot:0,rotV:(Math.random()-.5)*.2});
+  }
+  if(!animId)loopParticles();
+}
+function loopParticles(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles=particles.filter(p=>p.life>0);
+  for(const p of particles){
+    p.x+=p.vx;p.y+=p.vy;p.vy+=.13;p.life-=p.decay;p.rot+=p.rotV;
+    ctx.save();ctx.globalAlpha=Math.max(p.life,0);ctx.fillStyle=p.color;
+    ctx.translate(p.x,p.y);ctx.rotate(p.rot);
+    if(p.shape==='circle'){ctx.beginPath();ctx.arc(0,0,p.size/2,0,Math.PI*2);ctx.fill();}
+    else ctx.fillRect(-p.size/2,-p.size/4,p.size,p.size/2);
+    ctx.restore();
+  }
+  if(particles.length>0)animId=requestAnimationFrame(loopParticles);
+  else{animId=null;ctx.clearRect(0,0,canvas.width,canvas.height);}
+}
+
+/* ★ postMessage 수신 */
+const ALLOWED_ORIGINS = new Set([location.origin, 'null', window.location.ancestorOrigins?.[0] || ''].filter(o => o && o.length > 0));
+function isTrustedOrigin(o){ return o === 'null' || o === location.origin || ALLOWED_ORIGINS.has(o); }
+window.addEventListener('message', e => {
+  if(!isTrustedOrigin(e.origin)) return;
+  const d = e.data || {};
+  switch(d.type){
+    case 'INIT':
+      balance = parseInt(d.balance ?? localStorage.getItem(BAL_KEY) ?? DEFAULT_BAL);
+      if(isNaN(balance)||balance<0) balance = DEFAULT_BAL;
+      if(d.points !== undefined) pointBalance = parseInt(d.points) || 0;
+      if(d.aiProfile) aiProfile = d.aiProfile;
+      localStorage.setItem(BAL_KEY, balance);
+      if(balance > 0 && betAmount > 0){
+        document.getElementById('betInput').value = betAmount;
+      } else if(balance <= 0){
+        betAmount = 0;
+        document.getElementById('betInput').value = '';
+      }
+      document.body.classList.add('in-iframe');
+      updateBalUI();
+      updateSpinBtn();
+      break;
+    case 'POINT_UPDATE':
+      pointBalance = parseInt(d.points || 0);
+      if(d.balance !== undefined && !spinning){
+        const nb = parseInt(d.balance);
+        if(!isNaN(nb) && nb >= 0) balance = nb;
+      }
+      updateBalUI();
+      if(!spinning) updateSpinBtn();
+      break;
+    case 'CHARGE': {
+      const addAmount = parseInt(d.amount || 0);
+      if(addAmount > 0){
+        balance += addAmount;
+        localStorage.setItem(BAL_KEY, balance);
+        if(!spinning){
+          try{window.parent?.postMessage({type:'SAVE_BALANCE', balance},window.location.origin);}catch(e){}
+          updateSpinBtn(); // 스핀 중엔 updateSpinBtn 스킵 (finishSpin에서 처리)
+        }
+        updateBalUI();
+        showToast(`✅ ${fmtWon(addAmount)} 충전 완료!`);
+      }
+      break;
+    }
+    case 'BALANCE_UPDATE':
+      // spinning 중에는 베팅 차감분 소실 방지를 위해 무시
+      if(!spinning){
+        balance = parseInt(d.balance || 0);
+        if(isNaN(balance)||balance<0) balance=0;
+        localStorage.setItem(BAL_KEY, balance);
+        updateBalUI();
+        updateSpinBtn();
+      }
+      break;
+    case 'AI_PROFILE': {
+      const p = d.profile;
+      if(p && typeof p === 'object') aiProfile = p;
+      else if(d.tier) aiProfile = {...aiProfile, tier: d.tier};
+      localStorage.setItem(AI_KEY, JSON.stringify(aiProfile));
+      break;
+    }
+  }
+});
+
+function goHome(){
+  try{window.parent?.postMessage({type:'GO_HOME'},window.location.origin);}catch(e){}
+}
+
+// ★ 뒤로가기(popstate) → 허브 복귀
+(function(){
+  history.pushState({slot:true}, '');
+  window.addEventListener('popstate', function(){
+    goHome();
+  });
+})();
+
+/* ★ 진동 효과 - 게임 종료 시 결과에 따라 다른 패턴 */
+function vibrateResult(type){
+  if(!navigator.vibrate) return; // 진동 미지원 기기 무시
+  switch(type){
+    case 'jackpot':
+      // 잭팟: 강한 진동 패턴 (흥분감)
+      navigator.vibrate([200,80,200,80,400,80,200,80,200]);
+      break;
+    case 'big-win':
+      // 빅윈: 중간 세기 패턴
+      navigator.vibrate([150,60,150,60,300]);
+      break;
+    case 'win':
+      // 일반 당첨: 짧고 경쾌한 패턴
+      navigator.vibrate([80,40,80]);
+      break;
+    case 'freespin':
+      // 프리스핀 획득: 리듬감 있는 패턴
+      navigator.vibrate([60,30,60,30,60,30,120]);
+      break;
+    case 'near':
+      // 아깝: 짧은 더블 진동
+      navigator.vibrate([40,30,40]);
+      break;
+    case 'lose':
+      // 꽝: 한 번 짧게
+      navigator.vibrate([30]);
+      break;
+    default:
+      navigator.vibrate([30]);
+  }
+}
+
+let toastTimer = null;
+function showToast(msg, dur=2500){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),dur);
+}
+
+/* ★ iframe 즉시 감지 */
+if(window.self !== window.top){
+  document.body.classList.add('in-iframe');
+}
+
+init();
+</script>
+</body>
+</html>
