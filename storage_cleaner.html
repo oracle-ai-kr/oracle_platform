@@ -1,0 +1,1613 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storage Cleaner</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;800&family=Inter:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0e1a12;
+    --panel: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(100,200,120,0.2);
+    --accent: #6dcc88;
+    --accent2: #e87070;
+    --accent3: #88bbff;
+    --text: #a8c4b0;
+    --text-dim: #4a6652;
+    --text-bright: #e8f0eb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* 사진 질감 배경 */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(40,100,55,0.35) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 85% 90%, rgba(20,70,35,0.4) 0%, transparent 55%),
+      radial-gradient(ellipse 50% 40% at 60% 40%, rgba(15,50,25,0.2) 0%, transparent 60%),
+      linear-gradient(160deg, #0a1a0e 0%, #0e1f14 40%, #081510 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* 종이 노이즈 텍스처 오버레이 */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* 리포트 용지 라인 */
+  .page-lines {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: repeating-linear-gradient(
+      transparent,
+      transparent 27px,
+      rgba(100,180,120,0.04) 27px,
+      rgba(100,180,120,0.04) 28px
+    );
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 20px 60px;
+  }
+
+  /* 헤더 */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-strong);
+    position: relative;
+  }
+
+  /* 헤더 왼쪽 세로선 장식 */
+  .header::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 0; bottom: 20px;
+    width: 3px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    border-radius: 2px;
+  }
+
+  .title-block h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-bright);
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+
+  .title-block h1 span {
+    color: var(--accent);
+  }
+
+  .title-block p {
+    margin-top: 7px;
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .usage-bar-wrap {
+    text-align: right;
+    min-width: 160px;
+  }
+
+  .usage-label {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .usage-bar {
+    width: 160px;
+    height: 5px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 5px;
+  }
+
+  .usage-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease, background 0.3s;
+    background: var(--accent);
+  }
+
+  .usage-text {
+    font-size: 0.7rem;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* 통계 카드 */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(8px);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+  .stat-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent), transparent); }
+  .stat-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .stat-card:nth-child(3)::before { background: linear-gradient(90deg, var(--accent2), transparent); }
+
+  /* 카드 내부 광택 */
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text-bright);
+    display: block;
+    line-height: 1;
+    margin-bottom: 5px;
+  }
+
+  .stat-label {
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* 툴바 */
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 180px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 9px 14px;
+    color: var(--text-bright);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    backdrop-filter: blur(4px);
+  }
+
+  .search-box::placeholder { color: var(--text-dim); }
+  .search-box:focus {
+    border-color: var(--accent);
+    background: rgba(109,204,136,0.06);
+  }
+
+  .btn {
+    padding: 8px 14px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-ghost {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .btn-ghost:hover {
+    border-color: var(--accent3);
+    color: var(--accent3);
+    background: rgba(136,187,255,0.07);
+  }
+
+  .btn-danger {
+    background: transparent;
+    border: 1px solid rgba(232,112,112,0.4);
+    color: var(--accent2);
+  }
+  .btn-danger:hover { background: rgba(232,112,112,0.15); border-color: var(--accent2); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #071209;
+    font-weight: 600;
+  }
+  .btn-primary:hover { opacity: 0.88; }
+
+  .btn-warn {
+    background: transparent;
+    border: 1px solid rgba(255,180,50,0.4);
+    color: #ffb432;
+  }
+  .btn-warn:hover { background: rgba(255,180,50,0.12); border-color: #ffb432; }
+
+  /* 키 목록 */
+  .key-list {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: visible;
+    backdrop-filter: blur(8px);
+    position: relative;
+  }
+
+  .key-list-header {
+    display: grid;
+    grid-template-columns: 24px 1fr 100px 80px 70px;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(10,20,13,0.96);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    border-radius: 10px 10px 0 0;
+    backdrop-filter: blur(8px);
+  }
+
+  .key-item {
+    display: grid;
+    grid-template-columns: 24px 1fr 100px 80px 70px;
+    gap: 12px;
+    padding: 11px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.035);
+    align-items: center;
+    transition: background 0.12s;
+  }
+
+  .key-item.anim-in {
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .key-item:last-child { border-bottom: none; }
+  .key-item:hover { background: rgba(109,204,136,0.04); }
+  .key-item.selected { background: rgba(109,204,136,0.07); }
+
+  .key-check {
+    width: 14px; height: 14px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .key-name {
+    font-size: 0.78rem;
+    color: var(--text-bright);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .key-name:hover { color: var(--accent); }
+
+  .key-size {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .key-size.large { color: var(--accent2); }
+  .key-size.medium { color: #ffb432; }
+
+  .key-preview {
+    font-size: 0.63rem;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .key-actions {
+    display: flex;
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  .icon-btn {
+    width: 26px; height: 26px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    color: var(--text-dim);
+    font-size: 11px;
+  }
+
+  .icon-btn.view:hover { border-color: var(--accent3); color: var(--accent3); background: rgba(136,187,255,0.08); }
+  .icon-btn.del:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(232,112,112,0.08); }
+
+  /* 빈 상태 */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 12px; }
+  .empty-state p { font-size: 0.78rem; }
+
+  /* 모달 */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,15,8,0.8);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .modal-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: #0f1e14;
+    border: 1px solid var(--border-strong);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 560px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(10px);
+    transition: transform 0.2s;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-title {
+    font-size: 0.78rem;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 420px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .modal-close {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-dim); font-size: 1.1rem; padding: 2px 6px;
+    border-radius: 4px; transition: color 0.15s;
+  }
+  .modal-close:hover { color: var(--accent2); }
+
+  .modal-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .modal-value {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 14px;
+    font-size: 0.72rem;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-all;
+    max-height: 300px;
+    overflow-y: auto;
+    line-height: 1.7;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .modal-foot {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  /* 토스트 */
+  .toast {
+    position: fixed;
+    bottom: max(24px, calc(env(safe-area-inset-bottom) + 12px));
+    left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    background: #0f1e14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 20px;
+    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-bright);
+    z-index: 200;
+    opacity: 0;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    max-width: calc(100vw - 32px);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .toast.success { border-color: var(--accent); color: var(--accent); }
+  .toast.error { border-color: var(--accent2); color: var(--accent2); }
+
+  /* 선택 바 */
+  .select-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(109,204,136,0.06);
+    border: 1px solid rgba(109,204,136,0.2);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.73rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .select-bar.visible {
+    opacity: 1;
+    max-height: 60px;
+  }
+
+  .select-bar span { flex: 1; }
+
+  /* 정렬 탭 */
+  .sort-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 14px;
+  }
+
+  .sort-tab {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .sort-tab.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(109,204,136,0.15);
+  }
+
+  /* 스토리지 탭 */
+  .storage-tabs {
+    display: flex;
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .storage-tab {
+    padding: 8px 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .storage-tab.active { background: var(--accent); color: #071209; font-weight: 500; }
+  .storage-tab:not(.active):hover { color: var(--text-bright); background: rgba(255,255,255,0.07); }
+
+  /* 패턴 삭제 행 */
+  .pattern-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .pattern-label {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .pattern-input {
+    flex: 1;
+    min-width: 120px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px;
+    color: var(--text-bright);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .pattern-input::placeholder { color: var(--text-dim); }
+  .pattern-input:focus { border-color: #ffb432; }
+
+  .pattern-match {
+    font-size: 0.7rem;
+    color: #ffb432;
+    white-space: nowrap;
+    min-width: 50px;
+  }
+
+  /* Undo 바 */
+  .undo-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    background: rgba(255,180,50,0.07);
+    border: 1px solid rgba(255,180,50,0.3);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-size: 0.75rem;
+    color: #ffb432;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: all 0.25s;
+  }
+
+  .undo-bar.visible { opacity: 1; max-height: 60px; }
+  .undo-bar span { flex: 1; }
+
+  .undo-progress {
+    width: 60px; height: 3px;
+    background: rgba(255,180,50,0.2);
+    border-radius: 2px; overflow: hidden;
+  }
+
+  .undo-progress-fill {
+    height: 100%; background: #ffb432;
+    border-radius: 2px; transition: width linear;
+  }
+
+  /* 모달 편집 */
+  .modal-value-edit {
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--accent3);
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 0.72rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--text-bright);
+    word-break: break-all;
+    min-height: 120px;
+    max-height: 300px;
+    resize: vertical;
+    outline: none;
+    line-height: 1.6;
+    display: none;
+  }
+
+  .edit-toggle {
+    font-size: 0.68rem;
+    color: var(--accent3);
+    background: none; border: none; cursor: pointer;
+    padding: 0; text-decoration: underline;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .modal-meta {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* 반응형 */
+  @media (max-width: 600px) {
+    .container { padding: 20px 12px 40px; }
+    .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .usage-bar-wrap { text-align: left; width: 100%; }
+    .usage-bar { width: 100%; min-width: 0; }
+    .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat-card { padding: 12px 8px; }
+    .key-list-header,
+    .key-item { grid-template-columns: 22px 1fr 62px 0 50px; gap: 6px; }
+    .key-list-header > *:nth-child(4),
+    .key-item > *:nth-child(4) { overflow: hidden; width: 0; min-width: 0; padding: 0; margin: 0; }
+    .key-item { padding: 10px 10px; }
+    .key-list-header { padding: 8px 10px; }
+    .stat-num { font-size: 1.2rem; }
+    .stat-label { font-size: 0.55rem; }
+    .toolbar { gap: 5px; flex-wrap: wrap; }
+    .btn { padding: 6px 9px; font-size: 0.67rem; }
+    .search-box { min-width: 0; flex: 1 1 120px; font-size: 0.78rem; }
+    .storage-tabs { width: 100%; max-width: 100%; }
+    .storage-tab { flex: 1; padding: 9px 12px; font-size: 0.7rem; min-height: 40px; }
+    .sort-tabs { flex-wrap: wrap; }
+    .sort-tab { padding: 6px 10px; min-height: 36px; }
+    .pattern-row { flex-wrap: wrap; gap: 6px; }
+    .pattern-input { min-width: 100px; }
+    .modal { max-height: 90vh; border-radius: 10px; }
+    .modal-value, .modal-value-edit { font-size: 0.68rem; max-height: 220px; }
+    .modal-foot { flex-wrap: wrap; gap: 6px; }
+    .modal-foot .btn { flex: 1; min-width: 60px; text-align: center; justify-content: center; }
+  }
+  @media (max-width: 360px) {
+    .stats-row { gap: 5px; }
+    .stat-num { font-size: 1.05rem; }
+    .key-list-header,
+    .key-item { grid-template-columns: 20px 1fr 56px 0 46px; gap: 4px; }
+  }
+
+  /* undo-bar 숨김 상태에서 padding/margin/border가 공간 차지하지 않도록 */
+  .undo-bar:not(.visible) { padding-top: 0; padding-bottom: 0; margin-bottom: 0; border-width: 0; pointer-events: none; }
+  /* select-bar 동일 처리 */
+  .select-bar:not(.visible) { padding-top: 0; padding-bottom: 0; margin-bottom: 0; border-width: 0; pointer-events: none; }
+
+  /* 인라인 확인 바텀시트 */
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    background: rgba(5,15,8,0.75);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.18s ease;
+  }
+  .confirm-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+  .confirm-sheet {
+    width: 100%;
+    max-width: 520px;
+    background: #0f1e14;
+    border: 1px solid var(--border-strong);
+    border-radius: 16px 16px 0 0;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+    transform: translateY(12px);
+    transition: transform 0.18s ease;
+  }
+  .confirm-overlay.open .confirm-sheet {
+    transform: translateY(0);
+  }
+  .confirm-msg {
+    font-size: 0.82rem;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+    line-height: 1.6;
+    font-family: 'DM Mono', monospace;
+  }
+  .confirm-msg strong {
+    color: var(--accent2);
+  }
+  .confirm-btns {
+    display: flex;
+    gap: 8px;
+  }
+  .confirm-btns .btn {
+    flex: 1;
+    justify-content: center;
+    height: 42px;
+    font-size: 0.75rem;
+  }
+</style>
+</head>
+<body>
+<div class="page-lines"></div>
+<div class="container">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div class="title-block">
+      <h1>STORAGE <span>CLEANER</span></h1>
+      <p>localStorage inspector &amp; manager</p>
+    </div>
+    <div class="usage-bar-wrap">
+      <div class="usage-label">Usage</div>
+      <div class="usage-bar"><div class="usage-fill" id="usageFill" style="width:0%"></div></div>
+      <div class="usage-text" id="usageText">—</div>
+    </div>
+  </div>
+
+  <!-- 스토리지 타입 탭 -->
+  <div class="storage-tabs">
+    <button class="storage-tab active" id="tabLocal" onclick="switchStorage('local')">localStorage</button>
+    <button class="storage-tab" id="tabSession" onclick="switchStorage('session')">sessionStorage</button>
+  </div>
+
+  <!-- 통계 -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-num" id="statTotal">0</span>
+      <span class="stat-label">Total Keys</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="statSize">0 B</span>
+      <span class="stat-label">Total Size</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num" id="statLarge">0</span>
+      <span class="stat-label">Large Items (&gt;50KB)</span>
+    </div>
+  </div>
+
+  <!-- 툴바 -->
+  <div class="toolbar">
+    <input class="search-box" type="text" id="searchBox" placeholder="키 이름 검색..." oninput="render()">
+    <button class="btn btn-ghost" onclick="refresh()">↻ 새로고침</button>
+    <button class="btn btn-ghost" onclick="exportData()">↓ 내보내기</button>
+    <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">↑ 가져오기</button>
+    <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="btn btn-warn" onclick="deleteSelected()" id="btnDelSel" style="display:none">선택 삭제</button>
+    <button class="btn btn-danger" onclick="confirmClearAll()">⚠ 전체 삭제</button>
+  </div>
+
+  <!-- 패턴 삭제 -->
+  <div class="pattern-row">
+    <span class="pattern-label">prefix 삭제:</span>
+    <input class="pattern-input" type="text" id="patternInput" placeholder="예: BAL_KEY_ 또는 mind_" oninput="updatePatternMatch()">
+    <span class="pattern-match" id="patternMatch"></span>
+    <button class="btn btn-warn" onclick="deleteByPattern()" id="btnPattern" style="display:none">일치 삭제</button>
+  </div>
+
+  <!-- 정렬 탭 -->
+  <div class="sort-tabs">
+    <button class="sort-tab active" onclick="setSort('key', this)">이름순</button>
+    <button class="sort-tab" onclick="setSort('size', this)">크기순</button>
+  </div>
+
+  <!-- Undo 바 -->
+  <div class="undo-bar" id="undoBar">
+    <span id="undoMsg">삭제됨</span>
+    <div class="undo-progress"><div class="undo-progress-fill" id="undoProgress"></div></div>
+    <button class="btn btn-ghost" onclick="undoDelete()">↩ 되돌리기</button>
+  </div>
+
+  <!-- 선택 바 -->
+  <div class="select-bar" id="selectBar">
+    <span id="selectCount">0개 선택됨</span>
+    <button class="btn btn-ghost" onclick="selectAll()">전체 선택</button>
+    <button class="btn btn-ghost" onclick="clearSelection()">선택 해제</button>
+    <button class="btn btn-danger" onclick="deleteSelected()">선택 삭제</button>
+  </div>
+
+  <!-- 키 목록 -->
+  <div class="key-list" id="keyList">
+    <div class="key-list-header">
+      <div><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></div>
+      <div>KEY</div>
+      <div style="text-align:right">SIZE</div>
+      <div>PREVIEW</div>
+      <div></div>
+    </div>
+    <div id="keyItems"></div>
+  </div>
+
+</div>
+
+<!-- 뷰 모달 -->
+<div class="modal-overlay" id="viewModal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalKey">—</div>
+      <button class="modal-close" onclick="closeViewModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-meta">
+        <span id="modalSize">—</span>
+        <button class="edit-toggle" id="editToggle" onclick="toggleEdit()">편집 모드</button>
+      </div>
+      <div class="modal-value" id="modalValue"></div>
+      <textarea class="modal-value-edit" id="modalValueEdit" placeholder="값 입력..."></textarea>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="copyValue()">복사</button>
+      <button class="btn btn-primary" id="btnSaveEdit" onclick="saveEdit()" style="display:none">저장</button>
+      <button class="btn btn-danger" onclick="deleteFromModal()">삭제</button>
+      <button class="btn btn-ghost" onclick="closeViewModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 인라인 확인 바텀시트 -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-sheet">
+    <div class="confirm-msg" id="confirmMsg"></div>
+    <div class="confirm-btns">
+      <button class="btn btn-ghost" id="confirmCancelBtn">취소</button>
+      <button class="btn btn-danger" id="confirmOkBtn">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+let sortMode = 'key';
+let currentModalKey = null;
+let selected = new Set();
+let currentStorage = localStorage; // localStorage or sessionStorage
+let isEditMode = false;
+
+// ── Undo 시스템 (다단계) ──────────────────────────────
+let undoStack = []; // [{ items: [{key,val}], label, timer }]
+const UNDO_DURATION = 5000;
+const UNDO_MAX = 10;
+
+function pushUndo(items, label) {
+  // 이전 undo 타이머 유지한 채 새 항목 추가
+  const entry = { items, label, timer: null };
+
+  const bar = document.getElementById('undoBar');
+  const fill = document.getElementById('undoProgress');
+  const msg = document.getElementById('undoMsg');
+
+  undoStack.push(entry);
+  if (undoStack.length > UNDO_MAX) {
+    const old = undoStack.shift();
+    clearTimeout(old.timer);
+  }
+
+  // 가장 최근 항목 기준으로 UI 표시
+  msg.textContent = label + (undoStack.length > 1 ? ` (${undoStack.length}단계)` : '');
+  bar.classList.add('visible');
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      fill.style.transition = `width ${UNDO_DURATION}ms linear`;
+      fill.style.width = '0%';
+    });
+  });
+
+  entry.timer = setTimeout(() => {
+    // 이 항목 만료
+    const idx = undoStack.indexOf(entry);
+    if (idx >= 0) undoStack.splice(idx, 1);
+    if (undoStack.length === 0) {
+      bar.classList.remove('visible');
+    } else {
+      // 남은 항목으로 UI 갱신
+      const latest = undoStack[undoStack.length - 1];
+      msg.textContent = latest.label + (undoStack.length > 1 ? ` (${undoStack.length}단계)` : '');
+    }
+  }, UNDO_DURATION);
+}
+
+function undoDelete() {
+  if (undoStack.length === 0) return;
+  // 가장 최근 것부터 복원
+  const entry = undoStack.pop();
+  clearTimeout(entry.timer);
+
+  let failCount = 0;
+  entry.items.forEach(({ key, val }) => {
+    try {
+      currentStorage.setItem(key, val);
+    } catch (e) {
+      failCount++;
+    }
+    selected.delete(key);
+  });
+
+  const total = entry.items.length;
+  if (failCount > 0) {
+    showToast(`${total - failCount}개 복원, ${failCount}개 용량 초과로 실패`, 'error');
+  } else {
+    showToast(`${total}개 복원됨`, 'success');
+  }
+
+  const bar = document.getElementById('undoBar');
+  const msg = document.getElementById('undoMsg');
+  if (undoStack.length === 0) {
+    bar.classList.remove('visible');
+  } else {
+    const latest = undoStack[undoStack.length - 1];
+    msg.textContent = latest.label + (undoStack.length > 1 ? ` (${undoStack.length}단계)` : '');
+  }
+  render();
+}
+
+// ── 스토리지 전환 ──────────────────────────────
+function switchStorage(type) {
+  currentStorage = type === 'local' ? localStorage : sessionStorage;
+  selected.clear();
+  // 다른 스토리지의 undo 데이터가 잘못 복원되지 않도록 초기화
+  undoStack.forEach(e => clearTimeout(e.timer));
+  undoStack = [];
+  document.getElementById('undoBar').classList.remove('visible');
+  document.getElementById('tabLocal').classList.toggle('active', type === 'local');
+  document.getElementById('tabSession').classList.toggle('active', type === 'session');
+  render();
+}
+
+// ── 데이터 유틸 ──────────────────────────────
+function getAllItems() {
+  const items = [];
+  try {
+    for (let i = 0; i < currentStorage.length; i++) {
+      const key = currentStorage.key(i);
+      if (key === null) continue;
+      const val = currentStorage.getItem(key);
+      if (val === null) continue;
+      const size = new Blob([val]).size;
+      items.push({ key, val, size });
+    }
+  } catch (e) {
+    // SecurityError 등 스토리지 접근 자체가 차단된 경우
+    console.warn('Storage access error:', e.message);
+  }
+  return items;
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+function updateStats(items) {
+  const total = items.length;
+  const totalSize = items.reduce((a, b) => a + b.size, 0);
+  const large = items.filter(i => i.size > 50 * 1024).length;
+
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statSize').textContent = formatSize(totalSize);
+  document.getElementById('statLarge').textContent = large;
+
+  const limit = 5 * 1024 * 1024;
+  const pct = Math.min((totalSize / limit) * 100, 100);
+  const fill = document.getElementById('usageFill');
+  fill.style.width = pct + '%';
+  fill.style.background = pct > 80 ? '#e87070' : pct > 50 ? '#ffb432' : '#6dcc88';
+  document.getElementById('usageText').textContent =
+    formatSize(totalSize) + ' / 5 MB (' + pct.toFixed(1) + '%)';
+}
+
+// ── 렌더 ──────────────────────────────
+function render() {
+  const query = document.getElementById('searchBox').value.toLowerCase();
+  const allItems = getAllItems(); // 한 번만 호출
+
+  let items = query
+    ? allItems.filter(i => i.key.toLowerCase().includes(query))
+    : allItems.slice();
+
+  if (sortMode === 'size') items.sort((a, b) => b.size - a.size);
+  else items.sort((a, b) => a.key.localeCompare(b.key));
+
+  updateStats(allItems); // 검색 필터 없는 전체 통계
+  updatePatternMatch(allItems);
+
+  const container = document.getElementById('keyItems');
+
+  // 이전 키 목록 수집 (애니메이션 제어용)
+  const prevKeys = new Set(
+    [...container.querySelectorAll('.key-item')].map(el => el.dataset.key)
+  );
+  container.innerHTML = '';
+
+  if (items.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <div class="icon">🗂</div>
+      <p>${query ? '검색 결과가 없습니다' : '스토리지가 비어있습니다'}</p>
+    </div>`;
+    updateSelectBar();
+    // checkAll 초기화
+    const checkAllEl = document.getElementById('checkAll');
+    if (checkAllEl) { checkAllEl.checked = false; checkAllEl.indeterminate = false; }
+    return;
+  }
+
+  items.forEach(({ key, val, size }) => {
+    const div = document.createElement('div');
+    const isNew = !prevKeys.has(key);
+    div.className = 'key-item' + (selected.has(key) ? ' selected' : '') + (isNew ? ' anim-in' : '');
+    div.dataset.key = key;
+
+    const sizeClass = size > 100 * 1024 ? 'large' : size > 20 * 1024 ? 'medium' : '';
+    const previewRaw = val.replace(/[\r\n\t]+/g, ' ');
+    const previewText = previewRaw.length > 40 ? previewRaw.slice(0, 40) + '…' : previewRaw;
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.className = 'key-check';
+    cb.checked = selected.has(key);
+    cb.addEventListener('change', () => toggleSelect(key, cb));
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'key-name';
+    nameEl.title = key;
+    nameEl.textContent = key;
+    nameEl.addEventListener('click', () => viewItem(key));
+
+    const sizeEl = document.createElement('div');
+    sizeEl.className = 'key-size ' + sizeClass;
+    sizeEl.textContent = formatSize(size);
+
+    const prevEl = document.createElement('div');
+    prevEl.className = 'key-preview';
+    prevEl.textContent = previewText;
+
+    const actEl = document.createElement('div');
+    actEl.className = 'key-actions';
+
+    const viewBtn = document.createElement('button');
+    viewBtn.className = 'icon-btn view';
+    viewBtn.title = '보기/편집';
+    viewBtn.textContent = '👁';
+    viewBtn.addEventListener('click', () => viewItem(key));
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'icon-btn del';
+    delBtn.title = '삭제';
+    delBtn.textContent = '✕';
+    delBtn.addEventListener('click', () => deleteItem(key));
+
+    actEl.appendChild(viewBtn);
+    actEl.appendChild(delBtn);
+
+    div.appendChild(cb);
+    div.appendChild(nameEl);
+    div.appendChild(sizeEl);
+    div.appendChild(prevEl);
+    div.appendChild(actEl);
+
+    container.appendChild(div);
+  });
+
+  updateSelectBar();
+
+  // checkAll 체크박스 상태 동기화
+  const checkAll = document.getElementById('checkAll');
+  if (checkAll) {
+    const visibleKeys = items.map(i => i.key);
+    const allChecked = visibleKeys.length > 0 && visibleKeys.every(k => selected.has(k));
+    checkAll.checked = allChecked;
+    checkAll.indeterminate = !allChecked && visibleKeys.some(k => selected.has(k));
+  }
+}
+
+// ── 선택 ──────────────────────────────
+function toggleSelect(key, cb) {
+  if (cb.checked) selected.add(key);
+  else selected.delete(key);
+  render();
+}
+
+function toggleAll(cb) {
+  const query = document.getElementById('searchBox').value.toLowerCase();
+  let items = getAllItems();
+  if (query) items = items.filter(i => i.key.toLowerCase().includes(query));
+  if (cb.checked) items.forEach(i => selected.add(i.key));
+  else items.forEach(i => selected.delete(i.key));
+  render();
+}
+
+function selectAll() {
+  const query = document.getElementById('searchBox').value.toLowerCase();
+  let items = getAllItems();
+  if (query) items = items.filter(i => i.key.toLowerCase().includes(query));
+  items.forEach(i => selected.add(i.key));
+  render();
+}
+
+function clearSelection() {
+  selected.clear();
+  render();
+}
+
+function updateSelectBar() {
+  const bar = document.getElementById('selectBar');
+  const btnDel = document.getElementById('btnDelSel');
+  if (selected.size > 0) {
+    bar.classList.add('visible');
+    btnDel.style.display = '';
+    document.getElementById('selectCount').textContent = selected.size + '개 선택됨';
+  } else {
+    bar.classList.remove('visible');
+    btnDel.style.display = 'none';
+  }
+}
+
+// ── 삭제 (Undo 포함) ──────────────────────────────
+function deleteItem(key) {
+  const val = currentStorage.getItem(key);
+  if (val === null) { showToast('키를 찾을 수 없습니다', 'error'); return; }
+  const displayKey = key.length > 30 ? key.slice(0,30)+'…' : key;
+  showConfirm(
+    `<strong>"${displayKey}"</strong> 을(를) 삭제할까요?`,
+    () => {
+      currentStorage.removeItem(key);
+      selected.delete(key);
+      render();
+      showToast('삭제됨', 'success');
+      pushUndo([{ key, val }], `"${key.length > 20 ? key.slice(0,20)+'…' : key}" 삭제됨 — 5초간 복원 가능`);
+    }
+  );
+}
+
+function deleteSelected() {
+  if (selected.size === 0) return;
+  const backup = [];
+  selected.forEach(k => {
+    const v = currentStorage.getItem(k);
+    if (v !== null) backup.push({ key: k, val: v });
+  });
+  const count = backup.length;
+  if (count === 0) { selected.clear(); render(); return; }
+  showConfirm(
+    `선택된 <strong>${count}개</strong> 항목을 삭제할까요?<br><span style="font-size:0.75rem;color:var(--text-dim)">Undo 기능으로 5초간 복원 가능합니다.</span>`,
+    () => {
+      backup.forEach(i => currentStorage.removeItem(i.key));
+      selected.clear();
+      render();
+      showToast(`${count}개 삭제됨`, 'success');
+      pushUndo(backup, `${count}개 삭제됨 — 5초간 복원 가능`);
+    }
+  );
+}
+
+function confirmClearAll() {
+  const items = getAllItems();
+  if (items.length === 0) { showToast('이미 비어있습니다', 'error'); return; }
+  showConfirm(
+    `모든 항목 <strong>${items.length}개</strong>를 삭제할까요?<br><span style="font-size:0.75rem;color:var(--text-dim)">Undo 기능으로 5초간 복원 가능합니다.</span>`,
+    () => {
+      const backup = items.map(i => ({ key: i.key, val: i.val }));
+      currentStorage.clear();
+      selected.clear();
+      render();
+      showToast(`전체 ${backup.length}개 삭제됨`, 'success');
+      pushUndo(backup, `전체 ${backup.length}개 삭제됨 — 5초간 복원 가능`);
+    }
+  );
+}
+
+// ── 패턴 삭제 ──────────────────────────────
+function updatePatternMatch(cachedItems) {
+  const pattern = document.getElementById('patternInput').value.trim().toLowerCase();
+  const matchEl = document.getElementById('patternMatch');
+  const btnPattern = document.getElementById('btnPattern');
+
+  if (!pattern) {
+    matchEl.textContent = '';
+    btnPattern.style.display = 'none';
+    return;
+  }
+
+  const allItems = cachedItems || getAllItems();
+  const matches = allItems.filter(i => i.key.toLowerCase().startsWith(pattern));
+  if (matches.length > 0) {
+    matchEl.textContent = matches.length + '개 일치';
+    btnPattern.style.display = '';
+  } else {
+    matchEl.textContent = '없음';
+    btnPattern.style.display = 'none';
+  }
+}
+
+function deleteByPattern() {
+  const pattern = document.getElementById('patternInput').value.trim().toLowerCase();
+  if (!pattern) return;
+  const matches = getAllItems().filter(i => i.key.toLowerCase().startsWith(pattern));
+  if (matches.length === 0) return;
+  showConfirm(
+    `<strong>"${pattern}*"</strong> 에 일치하는 <strong>${matches.length}개</strong>를 삭제할까요?`,
+    () => {
+      const backup = matches.map(i => ({ key: i.key, val: i.val }));
+      matches.forEach(i => currentStorage.removeItem(i.key));
+      document.getElementById('patternInput').value = '';
+      render();
+      showToast(`패턴 일치 ${backup.length}개 삭제됨`, 'success');
+      pushUndo(backup, `패턴 삭제 ${backup.length}개 — 5초간 복원 가능`);
+    }
+  );
+}
+
+// ── 내보내기 / 가져오기 ──────────────────────────────
+function exportData() {
+  const items = getAllItems();
+  if (items.length === 0) { showToast('내보낼 데이터가 없습니다', 'error'); return; }
+
+  const obj = {};
+  items.forEach(i => { obj[i.key] = i.val; });
+
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const type = currentStorage === localStorage ? 'localStorage' : 'sessionStorage';
+  a.href = url;
+  a.download = `${type}_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 100);
+  showToast(`${items.length}개 내보내기 완료`, 'success');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    let resetInput = true;
+    try {
+      const obj = JSON.parse(e.target.result);
+      if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) {
+        showToast('JSON 형식 오류 (object 필요)', 'error');
+        resetInput = false; // 재시도 가능하도록 input 유지
+        return;
+      }
+      const keys = Object.keys(obj);
+      if (keys.length === 0) {
+        showToast('가져올 항목이 없습니다 (빈 객체)', 'error');
+        resetInput = false;
+        return;
+      }
+      showConfirm(
+        `<strong>${keys.length}개</strong> 항목을 가져올까요?<br><span style="font-size:0.75rem;color:var(--text-dim)">기존 동일 키는 덮어씁니다.</span>`,
+        () => {
+          let failCount = 0;
+          keys.forEach(k => {
+            const v = obj[k];
+            try {
+              currentStorage.setItem(k, (typeof v === 'object' && v !== null) ? JSON.stringify(v) : String(v));
+            } catch (e) {
+              failCount++;
+            }
+          });
+          render();
+          if (failCount > 0) {
+            showToast(`${keys.length - failCount}개 완료, ${failCount}개 용량 초과로 실패`, 'error');
+          } else {
+            showToast(`${keys.length}개 가져오기 완료`, 'success');
+          }
+        }
+      );
+      resetInput = true; // 확인 UI 띄운 후 input 초기화
+    } catch (err) {
+      showToast('JSON 파일 오류', 'error');
+      resetInput = false; // 파싱 오류 시에도 재시도 가능하도록 input 유지
+    } finally {
+      if (resetInput) event.target.value = '';
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── 정렬 ──────────────────────────────
+function refresh() {
+  selected.clear();
+  document.getElementById('searchBox').value = '';
+  document.getElementById('patternInput').value = '';
+  // render() 내부에서 updatePatternMatch(allItems) 호출하므로 여기서는 불필요
+  render();
+  showToast('새로고침 완료', 'success');
+}
+
+function setSort(mode, btn) {
+  sortMode = mode;
+  document.querySelectorAll('.sort-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// ── 모달 (뷰 + 편집) ──────────────────────────────
+function viewItem(key) {
+  const val = currentStorage.getItem(key);
+  if (val === null) { showToast('키를 찾을 수 없습니다', 'error'); return; }
+  currentModalKey = key;
+  isEditMode = false;
+  const size = new Blob([val]).size;
+
+  document.getElementById('modalKey').textContent = key;
+  document.getElementById('modalSize').textContent = formatSize(size);
+
+  let display = val;
+  try { display = JSON.stringify(JSON.parse(val), null, 2); } catch (e) {}
+
+  const viewEl = document.getElementById('modalValue');
+  const editEl = document.getElementById('modalValueEdit');
+  viewEl.textContent = display;
+  viewEl.style.display = '';
+  editEl.style.display = 'none';
+  editEl.value = val; // 원본 값 저장
+
+  document.getElementById('editToggle').textContent = '편집 모드';
+  document.getElementById('btnSaveEdit').style.display = 'none';
+  document.getElementById('viewModal').classList.add('open');
+}
+
+function toggleEdit() {
+  if (isEditMode) {
+    // 편집 → 보기: 변경사항이 있으면 토스트 경고
+    const editElCheck = document.getElementById('modalValueEdit');
+    const origVal = currentModalKey ? currentStorage.getItem(currentModalKey) : null;
+    if (origVal !== null && editElCheck.value !== origVal) {
+      showToast('변경사항 취소됨', 'error');
+    }
+  }
+  isEditMode = !isEditMode;
+  const viewEl = document.getElementById('modalValue');
+  const editEl = document.getElementById('modalValueEdit');
+  const toggle = document.getElementById('editToggle');
+  const btnSave = document.getElementById('btnSaveEdit');
+
+  if (isEditMode) {
+    viewEl.style.display = 'none';
+    editEl.style.display = '';
+    editEl.focus();
+    toggle.textContent = '보기 모드';
+    btnSave.style.display = '';
+  } else {
+    // 보기 모드 복귀 시 원본 값으로 textarea 초기화
+    if (currentModalKey) {
+      const orig = currentStorage.getItem(currentModalKey);
+      if (orig !== null) editEl.value = orig;
+    }
+    viewEl.style.display = '';
+    editEl.style.display = 'none';
+    toggle.textContent = '편집 모드';
+    btnSave.style.display = 'none';
+  }
+}
+
+function saveEdit() {
+  if (!currentModalKey) return;
+  const newVal = document.getElementById('modalValueEdit').value;
+  const key = currentModalKey;
+  try {
+    currentStorage.setItem(key, newVal);
+  } catch (e) {
+    if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+      showToast('저장 실패: 스토리지 용량 초과', 'error');
+    } else {
+      showToast('저장 실패: ' + e.message, 'error');
+    }
+    return;
+  }
+  render();
+  viewItem(key);
+  showToast('저장됨', 'success');
+}
+
+function closeViewModal() {
+  // 편집 모드에서 변경사항이 있으면 자동 취소 후 닫기
+  if (isEditMode && currentModalKey) {
+    const editEl = document.getElementById('modalValueEdit');
+    const origVal = currentStorage.getItem(currentModalKey);
+    if (origVal !== null && editEl.value !== origVal) {
+      showToast('변경사항 취소됨', 'error');
+    }
+  }
+  document.getElementById('viewModal').classList.remove('open');
+  currentModalKey = null;
+  isEditMode = false;
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('viewModal')) closeViewModal();
+}
+
+function copyValue() {
+  if (!currentModalKey) return;
+  const val = currentStorage.getItem(currentModalKey);
+  if (val === null) return;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(val)
+      .then(() => showToast('복사됨!', 'success'))
+      .catch(() => fallbackCopy(val));
+  } else {
+    fallbackCopy(val);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;width:1px;height:1px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, 99999); // 모바일 대응
+  try {
+    document.execCommand('copy');
+    showToast('복사됨!', 'success');
+  } catch (e) {
+    showToast('복사 실패 (수동으로 선택하세요)', 'error');
+  }
+  document.body.removeChild(ta);
+}
+
+function deleteFromModal() {
+  if (!currentModalKey) return;
+  const val = currentStorage.getItem(currentModalKey);
+  if (val === null) { showToast('키를 찾을 수 없습니다', 'error'); _forceCloseModal(); return; }
+  const key = currentModalKey;
+  currentStorage.removeItem(key);
+  selected.delete(key);
+  _forceCloseModal(); // 삭제이므로 편집 confirm 없이 강제 닫기
+  render();
+  showToast('삭제됨', 'success');
+  pushUndo([{ key, val }], `"${key.length > 20 ? key.slice(0,20)+'…' : key}" 삭제됨 — 5초간 복원 가능`);
+}
+
+// 편집 확인 없이 모달 강제 닫기 (삭제 등 확정 동작용)
+function _forceCloseModal() {
+  document.getElementById('viewModal').classList.remove('open');
+  currentModalKey = null;
+  isEditMode = false;
+}
+
+// ── 인라인 확인 UI (confirm() 대체) ──────────────────────────────
+let _confirmCallback = null;
+function showConfirm(msgHtml, onOk) {
+  const overlay = document.getElementById('confirmOverlay');
+  const msg     = document.getElementById('confirmMsg');
+  const okBtn   = document.getElementById('confirmOkBtn');
+  const cancelBtn = document.getElementById('confirmCancelBtn');
+  if (!overlay) { onOk(); return; } // fallback
+  msg.innerHTML = msgHtml;
+  overlay.classList.add('open');
+  _confirmCallback = onOk;
+
+  function close() {
+    overlay.classList.remove('open');
+    _confirmCallback = null;
+  }
+  okBtn.onclick = () => { close(); onOk(); };
+  cancelBtn.onclick = close;
+  // 배경 클릭으로 닫기
+  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+}
+
+// ── 토스트 ──────────────────────────────
+let toastTimer;
+let toastShowTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + type;
+  clearTimeout(toastTimer);
+  clearTimeout(toastShowTimer);
+  toastShowTimer = setTimeout(() => t.classList.add('show'), 10);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// init
+render();
+</script>
+</body>
+</html>
