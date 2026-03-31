@@ -1,0 +1,1915 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>🎮 미니게임 센터</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#07080f;--panel:#0d0f1e;--panel2:#111428;
+  --accent:#7c3aed;--accent2:#a855f7;
+  --gold:#f59e0b;--gold2:#fbbf24;
+  --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+  --red:#ef4444;--green:#22c55e;--blue:#3b82f6;--orange:#f97316;
+  --border:rgba(168,85,247,.22);--radius:14px;
+  --h-bar:54px;--shadow:0 4px 24px rgba(0,0,0,.7);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font-family:'Noto Sans KR',sans-serif;overflow-x:hidden;}
+
+/* ── 메인 탭바 ── */
+#topBar{
+  position:fixed;top:0;left:0;right:0;z-index:200;height:var(--h-bar);
+  background:rgba(7,8,15,.97);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 10px;gap:6px;backdrop-filter:blur(12px);
+}
+#platformBtn{
+  width:36px;height:36px;background:rgba(245,200,66,.18);border:1px solid rgba(245,200,66,.5);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;cursor:pointer;transition:all .2s;flex-shrink:0;position:relative;color:#f5c842;
+}
+#platformBtn:hover{background:rgba(245,200,66,.3);border-color:rgba(245,200,66,.7);}
+#platformBtn:active{transform:scale(.93);}
+#homeBtn{
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  color:var(--text2);border-radius:10px;padding:5px 10px;
+  font-size:.75rem;cursor:pointer;transition:background .2s;white-space:nowrap;
+}
+#homeBtn:hover{background:rgba(255,255,255,.14)}
+.bar-spacer{flex:1}
+#pointsBox{
+  display:flex;align-items:center;gap:4px;background:rgba(245,158,11,.1);
+  border:1px solid rgba(245,158,11,.28);border-radius:10px;padding:5px 9px;
+  font-size:.75rem;color:var(--gold);font-weight:700;white-space:nowrap;
+}
+#aiBtn{
+  border:none;border-radius:10px;padding:5px 9px;font-size:.75rem;font-weight:700;
+  cursor:pointer;white-space:nowrap;transition:background .4s,color .4s,box-shadow .4s;
+}
+#aiBtn.tier-easy{background:rgba(59,130,246,.18);color:#60a5fa;box-shadow:0 0 8px rgba(59,130,246,.25)}
+#aiBtn.tier-normal{background:rgba(34,197,94,.18);color:#4ade80;box-shadow:0 0 8px rgba(34,197,94,.25)}
+#aiBtn.tier-hard{background:rgba(249,115,22,.18);color:#fb923c;box-shadow:0 0 8px rgba(249,115,22,.3);animation:hardPulse 2s ease infinite}
+#aiBtn.tier-extreme{background:rgba(239,68,68,.22);color:#f87171;box-shadow:0 0 12px rgba(239,68,68,.4);animation:extremePulse 1.2s ease infinite}
+@keyframes hardPulse{0%,100%{box-shadow:0 0 8px rgba(249,115,22,.3)}50%{box-shadow:0 0 18px rgba(249,115,22,.6)}}
+@keyframes extremePulse{0%,100%{box-shadow:0 0 12px rgba(239,68,68,.4)}50%{box-shadow:0 0 24px rgba(239,68,68,.8)}}
+
+/* ── 게임 탭바 (iframe 열릴 때 표시) ── */
+#gameBar{
+  position:fixed;top:0;left:0;right:0;z-index:200;height:var(--h-bar);
+  background:rgba(7,8,15,.97);border-bottom:1px solid var(--border);
+  display:none;align-items:center;padding:0 10px;gap:6px;backdrop-filter:blur(12px);
+  pointer-events:auto;
+}
+#gameBar.show{display:flex;}
+#gameBarHomeBtn{
+  background:rgba(168,85,247,.15);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:18px;width:36px;height:36px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+#gameBarTitle{
+  font-size:.85rem;font-weight:700;color:var(--accent2);white-space:nowrap;
+}
+.game-bar-spacer{flex:1}
+#gameBarBalBox{
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);
+  border-radius:8px;padding:4px 8px;font-size:.72rem;color:var(--gold);font-weight:700;white-space:nowrap;
+}
+#gameBarPointBox{
+  background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.35);
+  border-radius:8px;padding:4px 8px;font-size:.72rem;color:var(--accent2);font-weight:700;white-space:nowrap;
+}
+#gameBarChargeBtn{
+  background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;
+  border-radius:8px;color:#fff;font-size:.72rem;font-weight:700;
+  padding:6px 10px;cursor:pointer;transition:opacity .2s;white-space:nowrap;
+  position:relative;z-index:201;-webkit-tap-highlight-color:rgba(168,85,247,.3);
+  touch-action:manipulation;
+}
+#gameBarChargeBtn:hover{opacity:.85}
+
+#atmOverlay{position:fixed;inset:0;pointer-events:none;z-index:50;transition:background .8s;}
+#atmOverlay.atm-easy   {background:rgba(56,189,248,.06);box-shadow:inset 0 0 40px rgba(56,189,248,.08);}
+#atmOverlay.atm-normal {background:rgba(74,222,128,.04)}
+#atmOverlay.atm-hard1  {background:rgba(239,68,68,.06);box-shadow:inset 0 0 40px rgba(249,115,22,.15);animation:hardBorderPulse 2.5s ease infinite}
+#atmOverlay.atm-hard2  {background:rgba(239,68,68,.1);box-shadow:inset 0 0 60px rgba(239,68,68,.25);animation:hardBorderPulse 1.5s ease infinite}
+#atmOverlay.atm-extreme{background:rgba(239,68,68,.14);box-shadow:inset 0 0 80px rgba(239,68,68,.4);animation:extremeFlicker 1s ease infinite}
+@keyframes hardBorderPulse{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes extremeFlicker{0%,100%{opacity:.8}50%{opacity:1}}
+@keyframes quake{0%,100%{transform:translate(0,0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-2px,1px)}80%{transform:translate(3px,-1px)}}
+body.quake-on{animation:quake .35s ease infinite}
+/* ── body tier 테마 ── */
+body.tier-easy    {--theme-accent:#38bdf8;}
+body.tier-normal  {--theme-accent:#4ade80;}
+body.tier-hard    {--theme-accent:#fb923c;}
+body.tier-extreme {--theme-accent:#ef4444;}
+/* infoBanner tier 색상 */
+body.tier-easy    #infoBanner{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.15);color:#7dd3fc;}
+body.tier-normal  #infoBanner{background:rgba(74,222,128,.06);border-color:rgba(74,222,128,.12);color:#86efac;}
+body.tier-hard    #infoBanner{background:rgba(251,146,60,.08);border-color:rgba(251,146,60,.15);color:#fdba74;}
+body.tier-extreme #infoBanner{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.15);color:#fca5a5;animation:bannerPulse 2s ease infinite;}
+#warnBanner{
+  position:fixed;top:var(--h-bar);left:0;right:0;z-index:196;
+  background:linear-gradient(90deg,rgba(239,68,68,.9),rgba(124,58,237,.9));
+  padding:6px 14px;text-align:center;font-size:.75rem;font-weight:700;
+  color:#fff;display:none;animation:bannerPulse 1.5s ease infinite;
+}
+#warnBanner.show{display:block}
+@keyframes bannerPulse{0%,100%{opacity:.85}50%{opacity:1}}
+#aiPopup{
+  position:fixed;top:calc(var(--h-bar)+8px);right:10px;width:210px;
+  background:var(--panel2);border:1px solid var(--border);border-radius:14px;
+  padding:14px;z-index:210;box-shadow:var(--shadow);display:none;animation:popIn .25s ease;
+}
+#aiPopup.show{display:block}
+@keyframes popIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.popup-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.popup-label{font-size:.7rem;color:var(--text3)}
+.ai-badge{font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:6px;transition:all .4s}
+.ai-badge.tier-easy{background:rgba(59,130,246,.2);color:#60a5fa}
+.ai-badge.tier-normal{background:rgba(34,197,94,.2);color:#4ade80}
+.ai-badge.tier-hard{background:rgba(249,115,22,.2);color:#fb923c}
+.ai-badge.tier-extreme{background:rgba(239,68,68,.25);color:#f87171}
+.popup-val{font-size:.8rem;font-weight:700;color:var(--text)}
+.ai-bar-wrap{margin-top:6px}
+.ai-bar-label{font-size:.68rem;color:var(--text3);margin-bottom:3px;display:flex;justify-content:space-between}
+.ai-bar{height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.ai-fill{height:100%;border-radius:3px;transition:width .5s,background .5s}
+#infoBanner{background:rgba(245,158,11,.08);border-bottom:1px solid rgba(245,158,11,.15);padding:7px 12px;font-size:.72rem;color:var(--gold2);text-align:center;line-height:1.6;}
+/* ── 분위기 바 ── */
+#atmoBar{
+  position:fixed;top:var(--h-bar);left:0;right:0;z-index:195;
+  display:flex;align-items:center;gap:7px;padding:6px 12px;
+  background:var(--panel2);border-bottom:1px solid var(--border);
+  font-size:.72rem;flex-wrap:nowrap;overflow:hidden;
+  transition:background .5s,border-color .5s;
+}
+#atmoBar.hidden{display:none!important}
+#atmoBadge{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;transition:all .4s;flex-shrink:0;}
+#atmoBadge.tier-easy   {background:rgba(56,189,248,.2);color:#38bdf8;border:1px solid rgba(56,189,248,.3);}
+#atmoBadge.tier-normal {background:rgba(74,222,128,.2);color:#4ade80;border:1px solid rgba(74,222,128,.3);}
+#atmoBadge.tier-hard   {background:rgba(251,146,60,.2);color:#fb923c;border:1px solid rgba(251,146,60,.3);animation:hardPulse 2s ease infinite;}
+#atmoBadge.tier-extreme{background:linear-gradient(90deg,rgba(239,68,68,.25),rgba(168,85,247,.25));color:#f87171;border:1px solid rgba(239,68,68,.35);animation:extremePulse 1.2s ease infinite;}
+#atmoScore{font-weight:700;color:var(--text);white-space:nowrap;flex-shrink:0;}
+#atmoEffect{
+  font-size:.63rem;color:var(--text2);flex:1;min-width:0;
+  overflow:hidden;white-space:nowrap;
+}
+#atmoEffectInner{
+  display:inline-block;
+}
+@keyframes marqueeScroll{
+  0%  {transform:translateX(100vw)}
+  100%{transform:translateX(-100%)}
+}
+#atmoActiveIcons{display:flex;gap:3px;flex-shrink:0;font-size:.9rem;}
+#missionBtn{font-size:.62rem;padding:2px 7px;border-radius:6px;border:none;cursor:pointer;font-weight:700;white-space:nowrap;flex-shrink:0;}
+#missionBtn.active {background:rgba(251,146,60,.2);color:#fb923c;border:1px solid rgba(251,146,60,.35);}
+#missionBtn.inactive{background:rgba(255,255,255,.06);color:var(--text3);cursor:default;border:1px solid transparent;}
+#atmoReportBtn{font-size:.68rem;padding:2px 6px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:var(--text2);cursor:pointer;flex-shrink:0;}
+/* ── 미션 현황 바 ── */
+#missionBar{
+  position:fixed;top:calc(var(--h-bar) + 36px);left:0;right:0;z-index:194;
+  display:none;padding:5px 12px;
+  background:rgba(251,146,60,.08);border-bottom:1px solid rgba(251,146,60,.2);
+  font-size:.68rem;color:var(--text2);align-items:center;gap:6px;
+}
+#missionBar.show{display:flex;}
+#missionTimer{font-size:.62rem;color:var(--text3);margin-left:auto;white-space:nowrap;}
+/* ── tier 전환 팝업 ── */
+#tierTransPopup{
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.85);
+  z-index:500;background:var(--panel2);border-radius:18px;padding:24px 20px;
+  text-align:center;min-width:200px;box-shadow:0 8px 40px rgba(0,0,0,.7);
+  border:1px solid var(--border);display:none;opacity:0;transition:opacity .3s,transform .3s;
+}
+#tierTransPopup.show{display:block;opacity:1;transform:translate(-50%,-50%) scale(1);}
+#tierTransIcon{font-size:2.4rem;margin-bottom:6px;}
+#tierTransTitle{font-family:'Black Han Sans',sans-serif;font-size:.95rem;margin-bottom:4px;}
+#tierTransDesc{font-size:.72rem;color:var(--text2);line-height:1.5;}
+/* ── 리포트 모달 ── */
+#reportModal{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;padding-top:56px;overflow-y:auto;}
+#reportModal.show{display:flex;}
+#reportBox{background:var(--panel2);border:1px solid var(--border);border-radius:18px;padding:16px 14px;width:min(94vw,360px);box-shadow:var(--shadow);margin-bottom:20px;}
+.report-section{margin-bottom:10px;}
+.report-title{font-size:.66rem;font-weight:700;color:var(--text3);letter-spacing:.08em;margin-bottom:4px;text-transform:uppercase;}
+.report-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.74rem;}
+.report-row:last-child{border:none;}
+.report-val-pos{color:#4ade80;font-weight:700;}
+.report-val-neg{color:#f87171;font-weight:700;}
+.report-val-neu{color:var(--text2);}
+.hist-item{font-size:.66rem;color:var(--text2);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);display:flex;justify-content:space-between;}
+.hist-item:last-child{border:none;}
+.hist-pos{color:#4ade80;}.hist-neg{color:#f87171;}
+#content{padding:10px 10px 30px}
+#gameGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;}
+.g-card{background:var(--panel);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;min-width:0;}
+.card-icon-wrap{height:72px;display:flex;align-items:center;justify-content:center;font-size:2.5rem;flex-shrink:0;transition:transform .2s;}
+.g-card:hover .card-icon-wrap{transform:scale(1.12);}
+.g-card:hover .card-icon-wrap span{display:inline-block;animation:iconBounce .5s ease infinite alternate;}
+@keyframes iconBounce{0%{transform:translateY(0) rotate(-4deg)}100%{transform:translateY(-5px) rotate(4deg)}}
+.card-body{padding:7px 10px 5px;flex:1;}
+.card-name{font-family:'Black Han Sans',sans-serif;font-size:.88rem;letter-spacing:.03em;margin-bottom:3px;}
+.card-desc{font-size:.65rem;color:var(--text3);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-bal-row{display:flex;align-items:center;justify-content:space-between;padding:5px 10px;background:rgba(0,0,0,.2);border-top:1px solid rgba(255,255,255,.05);font-size:.68rem;flex-shrink:0;}
+.bal-label{color:var(--text3)}
+.bal-val{font-weight:700;color:var(--gold2)}
+.card-exchange-row{display:flex;align-items:center;justify-content:flex-end;padding:3px 10px;border-top:1px solid rgba(255,255,255,.04);flex-shrink:0;}
+.exchange-badge{background:rgba(168,85,247,.12);border:1px solid rgba(168,85,247,.22);border-radius:5px;padding:2px 6px;font-size:.6rem;color:var(--accent2);white-space:nowrap;}
+.card-btn-row{display:flex;gap:5px;padding:7px 8px 8px;flex-shrink:0;}
+.btn-start{flex:1;padding:8px 4px;border:none;border-radius:8px;font-family:'Black Han Sans',sans-serif;font-size:.78rem;letter-spacing:.03em;color:#fff;cursor:pointer;transition:opacity .2s,transform .15s;white-space:nowrap;}
+.btn-start:hover{opacity:.85}
+.btn-start:active{transform:scale(.96)}
+.btn-exchange{
+  padding:8px 9px;border:1px solid rgba(168,85,247,.35);border-radius:8px;
+  background:rgba(168,85,247,.12);color:var(--accent2);font-size:.72rem;font-weight:700;
+  cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;
+}
+.btn-exchange:hover{background:rgba(168,85,247,.25)}
+#iframeView{
+  position:fixed;
+  top:var(--h-bar); /* 게임바 아래에서 시작 */
+  left:0;right:0;bottom:0;
+  z-index:100;background:var(--bg);display:none;flex-direction:column;
+}
+#iframeView.show{display:flex;}
+#gameFrame{flex:1;border:none;width:100%;height:100%;}
+.modal-bg{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex}
+.modal-box{background:var(--panel2);border:1px solid var(--border);border-radius:18px;padding:22px 18px;width:min(92vw,340px);box-shadow:var(--shadow);}
+.modal-title{font-family:'Black Han Sans',sans-serif;font-size:1.05rem;letter-spacing:.04em;margin-bottom:12px;text-align:center;}
+.modal-info{background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;font-size:.8rem;color:var(--text2);margin-bottom:12px;line-height:1.7;}
+.modal-desc{font-size:.78rem;color:var(--text2);line-height:1.6;margin-bottom:10px;}
+.modal-info b{color:var(--gold)}
+.modal-row{display:flex;gap:8px;margin-bottom:10px;align-items:center;}
+.input-wrap{position:relative;flex:1;}
+.modal-input{
+  width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);
+  border-radius:9px;padding:9px 11px;color:var(--text);font-size:.85rem;outline:none;
+}
+.modal-input:focus{border-color:var(--accent2)}
+.modal-input::placeholder{color:transparent}
+.input-placeholder{
+  position:absolute;top:50%;left:11px;transform:translateY(-50%);
+  font-size:.78rem;font-weight:700;pointer-events:none;
+  transition:opacity .15s;white-space:nowrap;
+}
+.input-placeholder.hidden{opacity:0}
+.calc-display{
+  flex:1;position:relative;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:9px;padding:9px 11px;
+  min-height:40px;display:flex;align-items:center;
+  cursor:text;transition:border-color .2s;
+}
+.calc-display:focus-within{border-color:var(--accent2);}
+.calc-display input[type=number]{
+  position:absolute;opacity:0;width:0;height:0;pointer-events:none;
+}
+.calc-text{
+  font-size:.85rem;font-weight:700;white-space:nowrap;overflow:hidden;
+  display:flex;align-items:center;gap:3px;
+}
+.calc-text .pt{color:#fff;}
+.calc-text .arrow{color:var(--text2);}
+.calc-text .won{color:var(--gold2);}
+.calc-cursor{
+  display:inline-block;width:1px;height:1em;
+  background:var(--text);margin-left:1px;
+  animation:blink .9s step-end infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.modal-btn{padding:9px 14px;border:none;border-radius:9px;font-size:.82rem;font-weight:700;cursor:pointer;transition:opacity .2s;white-space:nowrap;}
+.modal-btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.modal-btn.secondary{background:rgba(255,255,255,.08);color:var(--text2)}
+.modal-btn:hover{opacity:.85}
+.modal-btn:disabled{opacity:.35;cursor:not-allowed}
+.modal-presets{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.mp-btn{flex:1;min-width:46px;padding:6px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--text2);font-size:.72rem;cursor:pointer;text-align:center;transition:all .2s;}
+.mp-btn:hover{background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.35)}
+.mp-btn:active{transform:scale(0.96)}
+.exch-tabs{display:flex;gap:6px;margin-bottom:14px;}
+.exch-tab{flex:1;padding:8px;border-radius:9px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:var(--text2);font-size:.78rem;font-weight:700;cursor:pointer;text-align:center;transition:all .2s;}
+.exch-tab.active{background:rgba(168,85,247,.2);border-color:var(--accent2);color:var(--accent2);}
+.exch-section{display:none;}
+.exch-section.show{display:block;}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(13,15,30,.97);border:1px solid var(--border);border-radius:10px;padding:9px 18px;font-size:.82rem;color:var(--text);opacity:0;transition:all .32s;pointer-events:none;z-index:500;white-space:nowrap;max-width:88vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── 인벤토리 버튼/모달 ── */
+#invBtn{
+  height:38px;min-width:44px;padding:0 10px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);
+  color:var(--text);font-weight:900;position:relative;
+}
+#invBtn:active{transform:scale(.98)}
+#invBadge{
+  position:absolute;top:-5px;right:-5px;
+  min-width:16px;height:16px;padding:0 4px;
+  background:#ef4444;color:#fff;
+  font-size:10px;font-weight:900;border-radius:999px;
+  display:none;align-items:center;justify-content:center;
+  line-height:1;pointer-events:none;
+}
+#invBadge.show{display:flex;}
+#activeIconRow{display:flex;gap:3px;align-items:center;}
+#invModal .modal-box{max-width:520px}
+.inv-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:8px}
+.inv-item{
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:12px;padding:10px 12px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.inv-left{display:flex;align-items:center;gap:10px}
+.inv-ico{font-size:18px}
+.inv-name{font-weight:900}
+.inv-desc{font-size:12px;color:var(--text2);margin-top:2px}
+.inv-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.inv-actions button{
+  padding:8px 10px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.06);
+  color:var(--text);font-weight:900;font-size:12px;
+}
+.inv-actions button.primary{
+  border-color:rgba(0,229,255,.35);
+  background:linear-gradient(180deg, rgba(0,229,255,.18), rgba(0,229,255,.07));
+}
+.inv-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.inv-badge{
+  padding:8px 10px;border-radius:999px;font-size:12px;font-weight:900;
+  background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.10);
+}
+
+</style>
+</head>
+<body>
+
+<div id="atmOverlay"></div>
+<div id="warnBanner"></div>
+
+<!-- 메인 탭바 -->
+<div id="topBar">
+  <button id="platformBtn" onclick="goPlatform()">←</button>
+  <button id="homeBtn" onclick="showHome()" style="display:none">🏠 홈</button>
+  <div class="bar-spacer"></div>
+  <div id="pointsBox">🪙 <span id="pointsVal">0</span> P</div>
+  <button id="invBtn" onclick="toggleInvModal()">🎒<span id="invBadge"></span></button>
+  <button id="aiBtn" class="tier-easy" onclick="toggleAiPopup()">🤖 100</button>
+</div>
+
+<!-- 게임 탭바 (게임 실행 중에만 표시) -->
+<div id="gameBar">
+  <button id="gameBarHomeBtn" onclick="showHome()">🏠</button>
+  <span id="gameBarTitle">🎰 게임</span>
+  <div class="game-bar-spacer"></div>
+  <div id="gameBarBalBox">💰 <span id="gameBarBal">₩0</span></div>
+  <div id="gameBarPointBox">🪙 <span id="gameBarPoint">0</span>P</div>
+  <button id="gameBarChargeBtn" onclick="openExchangeModalFromBar()" style="display:none">💱 충전</button>
+</div>
+
+<!-- 분위기 바 (메인 전용) -->
+<div id="atmoBar">
+  <span id="atmoBadge" class="tier-easy">😊 EASY</span>
+  <span id="atmoScore">100점</span>
+  <span id="atmoEffect"><span id="atmoEffectInner"></span></span>
+  <span id="atmoActiveIcons"></span>
+  <button id="missionBtn" class="inactive" onclick="clickMissionBtn()">🎯 미션없음</button>
+  <button id="atmoReportBtn" onclick="toggleReportModal()">📊</button>
+</div>
+<!-- 미션 현황 바 -->
+<div id="missionBar">
+  <span id="missionBarText">—</span>
+  <span id="missionTimer"></span>
+  <button id="missionAbandonBtn" onclick="abandonMission()" style="font-size:.6rem;padding:2px 7px;border-radius:5px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.1);color:#f87171;cursor:pointer;white-space:nowrap;flex-shrink:0;">포기</button>
+</div>
+
+<!-- tier 전환 팝업 -->
+<div id="tierTransPopup">
+  <div id="tierTransIcon">🎉</div>
+  <div id="tierTransTitle"></div>
+  <div id="tierTransDesc"></div>
+  <button onclick="closeTierTransPopup()" style="margin-top:12px;padding:5px 16px;border-radius:8px;border:none;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;font-size:.8rem;">확인</button>
+</div>
+
+<!-- 리포트 모달 -->
+<div id="reportModal">
+  <div id="reportBox">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-family:'Black Han Sans',sans-serif;font-size:.95rem;">📊 AI 분위기 리포트</span>
+      <button onclick="toggleReportModal()" style="background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;">✕</button>
+    </div>
+    <div class="report-section" id="reportStatus"></div>
+    <div class="report-section" id="reportEffects"></div>
+    <div class="report-section" id="reportGuide"></div>
+    <div class="report-section">
+      <div class="report-title">📜 점수 변동 히스토리</div>
+      <div id="reportHistory"></div>
+    </div>
+  </div>
+</div>
+
+<div id="aiPopup">
+  <div class="popup-row"><span class="popup-label">티어</span><span class="ai-badge tier-easy" id="aiBadge">EASY</span></div>
+  <div class="popup-row"><span class="popup-label">무드</span><span class="popup-val" id="aiMood">RELAXED</span></div>
+  <div class="popup-row"><span class="popup-label">위협</span><span class="popup-val" id="aiThreat">NONE</span></div>
+  <div class="ai-bar-wrap">
+    <div class="ai-bar-label"><span>분위기</span><span id="aiAtmNum">100</span></div>
+    <div class="ai-bar"><div class="ai-fill" id="aiFill" style="width:100%"></div></div>
+  </div>
+</div>
+
+<div id="content">
+  <div id="infoBanner">💡 1P 환전 → 💰 100,000원 → 게임 시작 &nbsp;|&nbsp; 🔄 잔금은 게임별로 저장</div>
+  <div id="gameGrid"></div>
+</div>
+
+<div id="iframeView">
+  <iframe id="gameFrame" allowtransparency="true"></iframe>
+</div>
+
+<!-- 통합 환전 모달 -->
+<div class="modal-bg" id="exchangeModal">
+  <div class="modal-box">
+    <div class="modal-title" id="exchModalTitle">💱 환전</div>
+    <div class="exch-tabs">
+      <button class="exch-tab active" id="tabToGame" onclick="switchExchTab('toGame')">🪙 P → 게임머니</button>
+      <button class="exch-tab" id="tabToPoint" onclick="switchExchTab('toPoint')">💰 게임머니 → P</button>
+    </div>
+    <!-- 탭1: 포인트 → 게임머니 -->
+    <div class="exch-section show" id="secToGame">
+      <div class="modal-info">
+        보유 포인트: <b><span id="eg_points">0</span>P</b><br>
+        현재 잔금: <b><span id="eg_bal">0</span>원</b><br>
+        1P = ₩100,000 &nbsp;<span id="egFeeNotice" style="font-size:.72rem;font-weight:bold"></span>
+      </div>
+      <div class="modal-presets">
+        <button class="mp-btn" onclick="addEgPt(1)">+1P</button>
+        <button class="mp-btn" onclick="addEgPt(5)">+5P</button>
+        <button class="mp-btn" onclick="addEgPt(10)">+10P</button>
+        <button class="mp-btn" onclick="setEg50()">50%</button>
+      </div>
+      <div class="modal-row">
+        <div class="calc-display" id="egDisplay" onclick="focusEgInput()">
+          <input type="number" id="egInput" min="1" oninput="onEgInput()" onkeydown="onEgKey(event)">
+          <div class="calc-text" id="egText">
+            <span class="calc-cursor" id="egCursor"></span>
+          </div>
+        </div>
+        <button class="modal-btn primary" id="egDoBtn" onclick="doEg()" disabled>충전</button>
+      </div>
+    </div>
+    <!-- 탭2: 게임머니 → 포인트 -->
+    <div class="exch-section" id="secToPoint">
+      <div class="modal-info">
+        현재 잔금: <b><span id="ep_bal">0</span>원</b><br>
+        보유 포인트: <b><span id="ep_points">0</span>P</b><br>
+        ₩100,000 = 1P &nbsp;<span style="color:var(--text3);font-size:.68rem">(10만원 단위 입력)</span>
+        &nbsp;<span id="epFeeNotice" style="font-size:.72rem;font-weight:bold"></span>
+      </div>
+      <div class="modal-presets">
+        <button class="mp-btn" onclick="addEpAmount(100000)">+10만</button>
+        <button class="mp-btn" onclick="addEpAmount(500000)">+50만</button>
+        <button class="mp-btn" onclick="addEpAmount(1000000)">+100만</button>
+        <button class="mp-btn" onclick="setEp50()">50%</button>
+      </div>
+      <div class="modal-row">
+        <div class="calc-display" id="epDisplay" onclick="focusEpInput()">
+          <input type="number" id="epInput" step="100000" oninput="onEpInput()" onkeydown="onEpKey(event)">
+          <div class="calc-text" id="epText">
+            <span class="calc-cursor" id="epCursor"></span>
+          </div>
+        </div>
+        <button class="modal-btn primary" id="epDoBtn" onclick="doEp()" disabled>환전</button>
+      </div>
+    </div>
+    <div class="modal-row" style="margin-top:4px;margin-bottom:0">
+      <button class="modal-btn secondary" style="flex:1" onclick="closeExchangeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- 이벤트권 인벤토리 모달 -->
+<div class="modal-bg" id="invModal">
+  <div class="modal-box">
+    <div class="modal-title">🎒 이벤트권 인벤토리</div>
+    <div class="modal-desc">브루마블에서 획득한 이벤트권을 저장하고, 필요할 때 <b>채굴/베팅 게임</b>에 적용할 수 있어요.</div>
+    <div class="inv-badges" id="invActiveBadges"></div>
+    <div class="inv-grid" id="invList"></div>
+
+    <div class="modal-row" style="margin-top:10px">
+      <button class="modal-btn secondary" style="flex:1" onclick="toggleInvModal(false)">닫기</button>
+      <button class="modal-btn secondary" style="flex:1" onclick="clearInventoryConfirm()">전체 비우기</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const KEY_POINTS  = 'MG_POINTS';
+const KEY_AI      = 'MG_AI_PROFILE';
+// ── AI 분위기 tier별 배율 상수 ──
+const TIER_ENTRY_MULT  = {EASY:0, NORMAL:1, HARD:1.5, EXTREME:2}; // 입장료 배율 (EASY=면제)
+const TIER_REWARD_MULT = {EASY:1.5, NORMAL:1.0, HARD:0.8, EXTREME:0.6}; // 두더지/기억력 포인트 배율
+const TIER_EXCH_FEE    = {EASY:-0.10, NORMAL:0, HARD:0.10, EXTREME:0.20}; // 환전 수수료율 (음수=보너스)
+
+const BAL_KEYS   = {
+  horse:'MG_BAL_HORSE', slot:'MG_BAL_SLOT',
+  roulette:'MG_BAL_ROULETTE', ladder:'MG_BAL_LADDER_V4',
+  gomoku:'MG_BAL_GOMOKU', psychology:'MG_BAL_PSYCHOLOGY',
+  mole:'MG_BAL_MOLE', memory:'MG_BAL_MEMORY',
+  dart:'MG_BAL_DART', archery:'MG_BAL_ARCHERY', blue:'MG_BAL_BLUE'
+};
+const P_TO_WON = 100000;
+
+const GAMES = [
+  // 베팅
+  {id:'horse',     name:'경마',   icon:'🐎', desc:'6마리 경마 레이스!',            color:'#f59e0b', file:'horse.html'},
+  {id:'slot',      name:'슬롯',   icon:'🎰', desc:'릴을 돌려 잭팟을 노려라.',       color:'#a855f7', file:'slot.html'},
+  {id:'roulette',  name:'룰렛',   icon:'🎡', desc:'유럽식 37칸 룰렛에 베팅하세요.', color:'#ef4444', file:'roulette.html'},
+  {id:'ladder',    name:'사다리', icon:'🪜', desc:'4레인 이벤트 사다리! x2~x3 배당',  color:'#22c55e', file:'ladder.html'},
+
+  // 채굴(집중력)
+  {id:'mole',      name:'두더지', icon:'🐹', desc:'30초 이벤트 러시! 랜덤+패턴',     color:'#00e5ff', file:'mole_rush.html'},
+  {id:'memory',    name:'기억력', icon:'🧩', desc:'순서 기억 테스트! 집중력 챌린지',  color:'#3b82f6',  file:'memory_sequence.html'},
+  {id:'dart',      name:'다트',   icon:'🎯', desc:'정확도 챌린지! 3발로 점수 올리기', color:'#00e5ff', file:'hub.html'},
+
+  // 휴식
+  {id:'gomoku',    name:'오목',   icon:'⚫', desc:'AI와 오목 대결!',                color:'#00ff9c', file:'gomoku.html'},
+  {id:'blue',      name:'브루마블',icon:'🗺️',desc:'휴식+이벤트권 획득(24칸)',        color:'#00ff9c', file:'blue_marble.html'},
+
+  // 시스템
+  {id:'psychology',name:'심리전', icon:'🧠', desc:'AI 심리/분위기 컨트롤',            color:'#c46bff', file:'psychology.html'},
+];
+
+
+let points         = 0;
+let aiProfile      = {tier:'EASY', mood:'RELAXED', threat:'NONE', atmosphereScore:100};
+let currentGameId  = null;
+let btnLock        = false;
+/* ── 이벤트권(인벤토리) : 공용 저장/사용 ── */
+const KEY_INV     = 'MG_INV_V1';
+const KEY_ACTIVE  = 'MG_ACTIVE_V1';
+
+const ITEM_DEFS = {
+  WAIVE_FEE:  {icon:'🎟', name:'입장료 면제권',    desc:'다음 게임 입장료 무료 (1회)'},
+  DOUBLE:     {icon:'⚡',  name:'게임머니 2배권',   desc:'다음 게임 잔금 2배 (1회)'},
+  BONUS_P1:   {icon:'🎁',  name:'보너스 포인트권', desc:'+5P 즉시 지급'},
+  SHIELD:     {icon:'🛡',  name:'패널티 방어권',   desc:'다음 게임 패널티 차단 (1회)'},
+  ATMO_BOOST: {icon:'🌟',  name:'분위기 부스트',   desc:'즉시 발동 — AI 분위기 +20'},
+};
+
+function loadJSON(key, fallback){
+  try{ const v = localStorage.getItem(key); return v? JSON.parse(v): (fallback??null); }catch(e){ return fallback??null; }
+}
+function saveJSON(key, obj){
+  try{ localStorage.setItem(key, JSON.stringify(obj)); }catch(e){}
+}
+
+// ── 점수 변동 히스토리 ──
+const KEY_ATMO_HIST    = 'MG_ATMO_HIST';
+const KEY_HARD_MISSION = 'MG_HARD_MISSION';
+
+function addAtmoHistory(delta, reason){
+  // 게임 플레이 단순 -1은 히스토리 제외 (도배 방지)
+  if(delta === -1 && reason && reason.startsWith('게임 플레이:')) return;
+  const hist = loadJSON(KEY_ATMO_HIST, []);
+  hist.unshift({delta, reason, score: aiProfile.atmosphereScore, ts: Date.now()});
+  if(hist.length > 30) hist.pop();
+  saveJSON(KEY_ATMO_HIST, hist);
+}
+
+// ── HARD/EXTREME 미션 풀 ──
+const HARD_MISSIONS = [
+  {id:'hm_any3c',   icon:'🔥', name:'연속 클리어',    desc:'어떤 게임이든 3판 연속 클리어', reward:10, check:(r)=>r.streak>=3,                              dur:[24]},
+  {id:'hm_mine5',   icon:'⛏️', name:'채굴 집중',      desc:'두더지/기억력 5판 플레이',      reward:10, check:(r)=>(r.mole||0)+(r.memory||0)>=5,             dur:[24]},
+  {id:'hm_psych1',  icon:'🧠', name:'심리전 승리',    desc:'심리전 1회 승리',               reward:10, check:(r)=>(r.psych_win||0)>=1,                       dur:[24]},
+  {id:'hm_bet3',    icon:'🎰', name:'베팅 도전',      desc:'베팅형 게임 3판 플레이',         reward:10, check:(r)=>(r.slot||0)+(r.roulette||0)+(r.ladder||0)+(r.horse||0)>=3, dur:[24]},
+  {id:'hm_gomoku1', icon:'⚫', name:'오목 승리',      desc:'오목 1회 승리',                 reward:10, check:(r)=>(r.gomoku_win||0)>=1,                      dur:[24]},
+  {id:'hm_horse3',  icon:'🐎', name:'경마 도전',      desc:'경마 3판 플레이',               reward:10, check:(r)=>(r.horse||0)>=3,                          dur:[24]},
+  {id:'hm_dart5',   icon:'🎯', name:'다트/양궁 도전', desc:'다트 또는 양궁 5판 플레이',     reward:10, check:(r)=>(r.dart||0)>=5,                           dur:[24]},
+  {id:'hm_any5',    icon:'🎮', name:'게임 삼매경',    desc:'아무 게임 5판 플레이',           reward:10, check:(r)=>(r.total||0)>=5,                         dur:[24]},
+  {id:'hm_blue1',   icon:'🗺️', name:'브루마블 완주',  desc:'브루마블 1판 완주',             reward:10, check:(r)=>(r.blue_finish||0)>=1,                    dur:[48]},
+];
+const EXTREME_MISSIONS = [
+  {id:'em_any5c',   icon:'💀', name:'극한 연속 클리어',   desc:'어떤 게임이든 5판 연속 클리어',      reward:15, check:(r)=>(r.streak||0)>=5,                              dur:[48]},
+  {id:'em_mine10',  icon:'⛏️', name:'채굴 마라톤',        desc:'두더지/기억력 10판 플레이',          reward:15, check:(r)=>(r.mole||0)+(r.memory||0)>=10,               dur:[48]},
+  {id:'em_psych2c', icon:'🧠', name:'심리전 2연승',       desc:'심리전 2회 연속 승리',               reward:15, check:(r)=>(r.psych_streak||0)>=2,                       dur:[48]},
+  {id:'em_bet5',    icon:'🎰', name:'베팅 마라톤',        desc:'베팅형 게임 5판 플레이',              reward:15, check:(r)=>(r.slot||0)+(r.roulette||0)+(r.ladder||0)+(r.horse||0)>=5, dur:[48]},
+  {id:'em_gomokuH', icon:'⚫', name:'오목 강자 격파',     desc:'오목 HARD 이상 1회 승리',             reward:15, check:(r)=>(r.gomoku_hard_win||0)>=1,                   dur:[48]},
+  {id:'em_boost',   icon:'🌟', name:'부스트 사용',        desc:'분위기 부스트 아이템 사용',            reward:15, check:(r)=>(r.boost_used||0)>=1,                        dur:[48]},
+  {id:'em_any10',   icon:'🎮', name:'극한 마라톤',        desc:'총 10판 플레이',                      reward:15, check:(r)=>(r.total||0)>=10,                            dur:[48]},
+  {id:'em_blue1',   icon:'🗺️', name:'브루마블+이벤트권', desc:'브루마블 완주 + 이벤트권 3개 획득',   reward:15, check:(r)=>(r.blue_finish||0)>=1&&(r.blue_tickets||0)>=3, dur:[72]},
+];
+
+// ── HARD/EXTREME 미션 함수 ──
+function getHardMission(){ return loadJSON(KEY_HARD_MISSION, null); }
+function saveHardMission(m){ saveJSON(KEY_HARD_MISSION, m); }
+function clearHardMission(){ localStorage.removeItem(KEY_HARD_MISSION); }
+
+function issueHardMission(){
+  const tier = aiProfile.tier;
+  if(tier !== 'HARD' && tier !== 'EXTREME') return;
+  const pool = tier === 'EXTREME' ? EXTREME_MISSIONS : HARD_MISSIONS;
+  const m = pool[Math.floor(Math.random()*pool.length)];
+  const durHours = m.dur[Math.floor(Math.random()*m.dur.length)];
+  const mission = {
+    id:m.id, icon:m.icon, name:m.name, desc:m.desc,
+    reward:m.reward, tier,
+    expiresAt: Date.now() + durHours*3600000,
+    durLabel: durHours>=48?(durHours/24)+'일':durHours+'시간',
+    progress:{}, done:false,
+  };
+  saveHardMission(mission);
+  updateMissionBar(); updateAtmoBar();
+  showToast(`🎯 미션 발급: ${m.icon} ${m.name} (${mission.durLabel} 유효)`);
+}
+
+function checkHardMissionExpiry(){
+  const m = getHardMission();
+  if(!m || m.done) return;
+  if(Date.now() > m.expiresAt){
+    clearHardMission();
+    updateMissionBar(); updateAtmoBar();
+    showToast('⏰ 미션이 만료됐습니다. 다시 받을 수 있습니다.');
+  }
+}
+
+function progressHardMission(gameId, won=false, extra={}){
+  const m = getHardMission();
+  if(!m || m.done) return;
+  if(Date.now() > m.expiresAt){ clearHardMission(); updateMissionBar(); updateAtmoBar(); return; }
+  const p = m.progress || {};
+  p.total = (p.total||0)+1;
+  if(won) p.streak = (p.streak||0)+1;
+  else    p.streak = 0;
+  if(gameId) p[gameId] = (p[gameId]||0)+1;
+  if(gameId==='dart'||gameId==='archery') p.dart = (p.dart||0)+1;
+  if(gameId==='psychology'){
+    if(won){ p.psych_win=(p.psych_win||0)+1; p.psych_streak=(p.psych_streak||0)+1; }
+    else p.psych_streak=0;
+  }
+  if(won&&gameId==='gomoku'){ p.gomoku_win=(p.gomoku_win||0)+1; if(extra.hard) p.gomoku_hard_win=(p.gomoku_hard_win||0)+1; }
+  if(extra.blue_finish)  p.blue_finish =(p.blue_finish||0)+1;
+  if(extra.blue_tickets) p.blue_tickets=(p.blue_tickets||0)+(extra.blue_tickets||0);
+  if(extra.boost_used)   p.boost_used  =(p.boost_used||0)+1;
+  m.progress = p;
+  const def = [...HARD_MISSIONS,...EXTREME_MISSIONS].find(x=>x.id===m.id);
+  if(def && def.check(p)){
+    m.done = true; saveHardMission(m);
+    applyAtmosphereDelta(m.reward, `미션 완료: ${m.name}`);
+    showToast(`✅ 미션 완료! +${m.reward}점 분위기 회복!`);
+    updateMissionBar(); updateAtmoBar(); return;
+  }
+  saveHardMission(m); updateMissionBar();
+}
+
+function getMissionProgressText(m){
+  const p = m.progress||{};
+  if(m.id.includes('any3c')||m.id.includes('any5c')) return `연속 ${p.streak||0}판`;
+  if(m.id.includes('mine'))   return `${(p.mole||0)+(p.memory||0)}판`;
+  if(m.id.includes('bet'))    return `${(p.slot||0)+(p.roulette||0)+(p.ladder||0)+(p.horse||0)}판`;
+  if(m.id.includes('any'))    return `${p.total||0}판`;
+  if(m.id.includes('psych'))  return `${p.psych_win||0}승/연속${p.psych_streak||0}`;
+  if(m.id.includes('gomoku')) return `${p.gomoku_win||0}승`;
+  if(m.id.includes('horse'))  return `${p.horse||0}판`;
+  if(m.id.includes('dart'))   return `${p.dart||0}판`;
+  if(m.id.includes('blue'))   return `완주${p.blue_finish||0}/이벤트권${p.blue_tickets||0}`;
+  return '진행 중';
+}
+
+// ── 분위기 바 ──
+const TIER_EFFECT_TEXT = {
+  EASY:   '입장료 면제 / 보상 ×1.5 / 환전 +10%',
+  NORMAL: '입장료 ×1 / 보상 ×1.0 / 환전 0%',
+  HARD:   '입장료 ×1.5 / 보상 ×0.8 / 환전 -10%',
+  EXTREME:'입장료 ×2 / 보상 ×0.6 / 환전 -20%',
+};
+const TIER_ICONS = {EASY:'😊',NORMAL:'🤔',HARD:'😤',EXTREME:'😈'};
+const TIER_BAR_BG = {
+  EASY:   'rgba(56,189,248,.12)',
+  NORMAL: 'rgba(74,222,128,.08)',
+  HARD:   'rgba(251,146,60,.1)',
+  EXTREME:'rgba(239,68,68,.12)',
+};
+
+function updateAtmoBar(){
+  const bar = document.getElementById('atmoBar'); if(!bar) return;
+  const tier = aiProfile.tier || 'EASY';
+  const score = aiProfile.atmosphereScore;
+  bar.style.background = TIER_BAR_BG[tier] || TIER_BAR_BG.NORMAL;
+  const badge = document.getElementById('atmoBadge');
+  if(badge){ badge.textContent = (TIER_ICONS[tier]||'🤖')+' '+tier; badge.className = 'tier-'+tier.toLowerCase(); }
+  const scoreEl = document.getElementById('atmoScore'); if(scoreEl) scoreEl.textContent = score+'점';
+  const effEl = document.getElementById('atmoEffectInner');
+  if(effEl){
+    effEl.textContent = TIER_EFFECT_TEXT[tier]||'';
+    // 텍스트가 영역 초과할 때만 마퀴 적용
+    const wrapper = document.getElementById('atmoEffect');
+    if(wrapper){
+      effEl.style.animation = 'none';
+      requestAnimationFrame(()=>{
+        if(effEl.scrollWidth > wrapper.clientWidth){
+          effEl.style.animation = 'marqueeScroll 14s linear infinite';
+        }
+      });
+    }
+  }
+  // 장착 이벤트권 아이콘 (분위기 바 내)
+  const aiEl = document.getElementById('atmoActiveIcons');
+  if(aiEl){
+    const active = getActiveEffects();
+    const icons = [];
+    if(active.waive)  icons.push('🎟');
+    if(active.double) icons.push('⚡');
+    if(active.shield) icons.push('🛡');
+    aiEl.textContent = icons.join(' ');
+  }
+  // 미션 버튼
+  const mBtn = document.getElementById('missionBtn');
+  if(mBtn){
+    const canIssue = (tier==='HARD'||tier==='EXTREME');
+    if(!canIssue){
+      mBtn.className='inactive'; mBtn.textContent='🎯 미션없음';
+    } else {
+      const m = getHardMission();
+      const hasActive = m && !m.done && Date.now() <= m.expiresAt;
+      const isDone = m && m.done;
+      if(hasActive)    { mBtn.className='inactive'; mBtn.textContent='🎯 진행중'; }
+      else if(isDone)  { mBtn.className='active';   mBtn.textContent='🎯 새미션'; }
+      else             { mBtn.className='active';   mBtn.textContent='🎯 미션받기'; }
+    }
+  }
+  updateMissionBarTop();
+}
+
+function updateMissionBar(){
+  const bar = document.getElementById('missionBar');
+  const textEl = document.getElementById('missionBarText');
+  const timerEl = document.getElementById('missionTimer');
+  if(!bar) return;
+  const m = getHardMission();
+  if(!m || m.done || Date.now() > m.expiresAt){
+    bar.classList.remove('show');
+    updateMissionBarTop(); return;
+  }
+  bar.classList.add('show');
+  const prog = getMissionProgressText(m);
+  if(textEl) textEl.textContent = `${m.icon} ${m.name} — ${prog} (+${m.reward}점)`;
+  const remain = m.expiresAt - Date.now();
+  const h = Math.floor(remain/3600000);
+  const min = Math.floor((remain%3600000)/60000);
+  if(timerEl) timerEl.textContent = h>=24 ? `⏰ ${Math.floor(h/24)}일 ${h%24}시간` : `⏰ ${h}시간 ${min}분`;
+  // 포기 횟수 표시
+  const abandonBtn = document.getElementById('missionAbandonBtn');
+  if(abandonBtn){
+    const today = new Date().toDateString();
+    const rec = loadJSON('MG_MISSION_ABANDON', {date:'', count:0});
+    const used = rec.date === today ? rec.count : 0;
+    const left = 3 - used;
+    abandonBtn.textContent = `포기 (${left}/3)`;
+    abandonBtn.disabled = left <= 0;
+    abandonBtn.style.opacity = left <= 0 ? '.4' : '1';
+  }
+  updateMissionBarTop();
+}
+
+function updateMissionBarTop(){
+  // 분위기 바 높이에 따라 미션 바 top 위치 조정
+  const atmoBar = document.getElementById('atmoBar');
+  const mBar = document.getElementById('missionBar');
+  if(atmoBar && mBar){
+    const atmoH = atmoBar.classList.contains('hidden') ? 0 : atmoBar.offsetHeight;
+    mBar.style.top = (54 + atmoH) + 'px';
+  }
+  updateContentPadding();
+}
+
+function updateContentPadding(){
+  const content = document.getElementById('content'); if(!content) return;
+  const atmoBar = document.getElementById('atmoBar');
+  const mBar = document.getElementById('missionBar');
+  const atmoH = (atmoBar && !atmoBar.classList.contains('hidden')) ? atmoBar.offsetHeight : 0;
+  const mH = (mBar && mBar.classList.contains('show')) ? mBar.offsetHeight : 0;
+  content.style.paddingTop = (54 + atmoH + mH + 10) + 'px';
+}
+
+function abandonMission(){
+  const m = getHardMission();
+  if(!m || m.done) return;
+  // 하루 3회 제한 체크
+  const KEY_ABANDON = 'MG_MISSION_ABANDON';
+  const today = new Date().toDateString();
+  const rec = loadJSON(KEY_ABANDON, {date:'', count:0});
+  const count = rec.date === today ? rec.count : 0;
+  if(count >= 3){
+    showToast('⚠️ 오늘 포기 횟수를 모두 사용했습니다. (3/3)');
+    return;
+  }
+  if(!confirm(`미션을 포기할까요?\n오늘 포기 가능 횟수: ${3-count-1}회 남음`)) return;
+  saveJSON(KEY_ABANDON, {date:today, count:count+1});
+  clearHardMission();
+  updateMissionBar(); updateAtmoBar();
+  showToast(`미션 포기 (오늘 ${count+1}/3회 사용)`);
+}
+
+function clickMissionBtn(){
+  const tier = aiProfile.tier;
+  if(tier !== 'HARD' && tier !== 'EXTREME') return;
+  const m = getHardMission();
+  if(m && !m.done && Date.now() <= m.expiresAt){ showToast('🎯 미션 진행 중입니다.'); return; }
+  issueHardMission();
+}
+
+// ── tier 전환 연출 ──
+let _tierT = null;
+function showTierTransition(fromTier, toTier){
+  const popup = document.getElementById('tierTransPopup'); if(!popup) return;
+  const order = ['EASY','NORMAL','HARD','EXTREME'];
+  const isUp = order.indexOf(toTier) < order.indexOf(fromTier);
+  const colors = {EASY:'#38bdf8',NORMAL:'#4ade80',HARD:'#fb923c',EXTREME:'#ef4444'};
+  document.getElementById('tierTransIcon').textContent = isUp ? '🎉' : '⚠️';
+  document.getElementById('tierTransTitle').textContent = isUp
+    ? `${fromTier} → ${toTier} 탈출 성공!` : `${fromTier} → ${toTier} 하락`;
+  document.getElementById('tierTransDesc').textContent = TIER_EFFECT_TEXT[toTier]||'';
+  popup.style.borderColor = colors[toTier]||'var(--border)';
+  popup.classList.add('show');
+  clearTimeout(_tierT);
+  _tierT = setTimeout(()=>popup.classList.remove('show'), 3500);
+}
+function closeTierTransPopup(){
+  const p = document.getElementById('tierTransPopup'); if(p) p.classList.remove('show');
+}
+
+// ── 리포트 모달 ──
+function toggleReportModal(){
+  const m = document.getElementById('reportModal'); if(!m) return;
+  if(m.classList.contains('show')){ m.classList.remove('show'); return; }
+  renderReport(); m.classList.add('show');
+}
+function renderReport(){
+  const tier = aiProfile.tier||'EASY', score = aiProfile.atmosphereScore;
+  const vp = 'report-val-pos', vn = 'report-val-neg', vnu = 'report-val-neu';
+  const vc = (t) => t==='EASY'?vp:t==='EXTREME'?vn:vnu;
+  const nextInfo = score>=80?'최고 단계':score>=60?`EASY까지 ${80-score}점`:score>=20?`NORMAL까지 ${60-score}점`:`HARD까지 ${20-score}점`;
+  document.getElementById('reportStatus').innerHTML = `
+    <div class="report-title">현재 상태</div>
+    <div class="report-row"><span>티어</span><span class="${vc(tier)}">${TIER_ICONS[tier]} ${tier}</span></div>
+    <div class="report-row"><span>분위기 점수</span><span>${score}점</span></div>
+    <div class="report-row"><span>다음 티어까지</span><span class="${vnu}">${nextInfo}</span></div>`;
+  document.getElementById('reportEffects').innerHTML = `
+    <div class="report-title">현재 적용 중</div>
+    <div class="report-row"><span>포인트 채굴 입장료</span><span class="${tier==='EASY'?vp:tier!=='NORMAL'?vn:vnu}">${{EASY:'면제',NORMAL:'×1',HARD:'×1.5',EXTREME:'×2'}[tier]}</span></div>
+    <div class="report-row"><span>포인트 보상 배율</span><span class="${tier==='EASY'?vp:tier!=='NORMAL'?vn:vnu}">${{EASY:'×1.5',NORMAL:'×1.0',HARD:'×0.8',EXTREME:'×0.6'}[tier]}</span></div>
+    <div class="report-row"><span>환전 수수료</span><span class="${tier==='EASY'?vp:tier!=='NORMAL'?vn:vnu}">${{EASY:'-10% 보너스',NORMAL:'0%',HARD:'+10%',EXTREME:'+20%'}[tier]}</span></div>
+    <div class="report-row"><span>오목/다트/양궁 입장료</span><span class="${tier==='EASY'?vp:tier!=='NORMAL'?vn:vnu}">${{EASY:'면제',NORMAL:'×1',HARD:'×1.5',EXTREME:'×2'}[tier]}</span></div>`;
+  document.getElementById('reportGuide').innerHTML = `
+    <div class="report-title">점수 올리는 방법</div>
+    <div class="report-row"><span>심리전 승리(4~5승)</span><span class="${vp}">+8</span></div>
+    <div class="report-row"><span>심리전 환급(3승)</span><span class="${vp}">+2</span></div>
+    <div class="report-row"><span>분위기 부스트 🌟</span><span class="${vp}">+20</span></div>
+    <div class="report-row"><span>심리전 패배</span><span class="${vn}">-10</span></div>`;
+  const hist = loadJSON(KEY_ATMO_HIST, []);
+  const histEl = document.getElementById('reportHistory');
+  if(!hist.length){ histEl.innerHTML='<div style="font-size:.7rem;color:var(--text3)">아직 기록이 없습니다.</div>'; return; }
+  histEl.innerHTML = hist.slice(0,20).map(h=>{
+    const d = new Date(h.ts);
+    const t = `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+    return `<div class="hist-item"><span>${h.reason||'변동'}</span><span><span class="${h.delta>0?'hist-pos':'hist-neg'}">${h.delta>0?'+':''}${h.delta}</span> → ${h.score}점 <span style="color:var(--text3);font-size:.6rem">${t}</span></span></div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════
+   분위기 미션 시스템
+   ════════════════════════════════ */
+function getInventory(){
+  const inv = loadJSON(KEY_INV, {});
+  return (inv && typeof inv === 'object') ? inv : {};
+}
+function setInventory(inv){ saveJSON(KEY_INV, inv); updateInvButton(); renderInv(); }
+function getActiveEffects(){
+  const a = loadJSON(KEY_ACTIVE, {});
+  return (a && typeof a === 'object') ? a : {};
+}
+function setActiveEffects(a){ saveJSON(KEY_ACTIVE, a); updateInvButton(); renderInv(); updateAtmoBar(); }
+
+function getInventoryCount(){
+  const inv = getInventory();
+  return Object.values(inv).reduce((s,n)=>s+(Number(n)||0),0);
+}
+
+function toggleInvModal(force){
+  const el = document.getElementById('invModal');
+  const show = (typeof force === 'boolean') ? force : !el.classList.contains('show');
+  if(show){
+    renderInv();
+    el.classList.add('show');
+  } else el.classList.remove('show');
+}
+function updateActiveIcons(){
+  const row = document.getElementById('activeIconRow');
+  if(!row) return;
+  const active = getActiveEffects();
+  const icons = [];
+  if(active.waive)  icons.push('🎟');
+  if(active.double) icons.push('⚡');
+  if(active.shield) icons.push('🛡');
+  row.innerHTML = icons.map(ic =>
+    `<span style="font-size:1rem;line-height:1">${ic}</span>`
+  ).join('');
+}
+
+function updateInvButton(){
+  const btn = document.getElementById('invBtn');
+  if(!btn) return;
+  const n = getInventoryCount();
+  btn.childNodes[0].textContent = '🎒';
+  const badge = document.getElementById('invBadge');
+  if(badge){
+    if(n > 0){ badge.textContent = n > 99 ? '99+' : n; badge.classList.add('show'); }
+    else      { badge.classList.remove('show'); }
+  }
+  updateActiveIcons();
+}
+
+function addItem(type, qty=1){
+  if(!ITEM_DEFS[type]) return;
+  const inv = getInventory();
+  inv[type] = (Number(inv[type])||0) + Math.max(1, Math.round(qty));
+  setInventory(inv);
+  showToast(`${ITEM_DEFS[type].icon} ${ITEM_DEFS[type].name} +${qty}`);
+}
+
+function armItem(type){
+  const inv = getInventory();
+  if((Number(inv[type])||0) <= 0) return showToast('없음');
+  const active = getActiveEffects();
+
+  if(type === 'ATMO_BOOST'){
+    inv[type] = (Number(inv[type])||0) - 1;
+    if(inv[type] <= 0) delete inv[type];
+    setInventory(inv);
+    applyAtmosphereDelta(+20, '분위기 부스트 사용');
+    progressHardMission(currentGameId||'', false, {boost_used:1});
+    showToast('🌟 분위기 부스트 +20!');
+    return;
+  }
+
+  if(type === 'BONUS_P1'){
+    inv[type] = (Number(inv[type])||0) - 1;
+    if(inv[type] <= 0) delete inv[type];
+    setInventory(inv);
+    points = Math.max(0, points + 5);
+    saveJSON(KEY_POINTS, points);
+    updateUI(); broadcastPointUpdate();
+    showToast('🎁 보너스 +5P 지급!');
+    return;
+  }
+
+  const slotMap = {WAIVE_FEE:'waive', DOUBLE:'double', SHIELD:'shield'};
+  const slot = slotMap[type];
+  if(!slot) return;
+  if(active[slot]) return showToast('이미 장착됨');
+  active[slot] = type;
+
+  inv[type] = (Number(inv[type])||0) - 1;
+  if(inv[type] <= 0) delete inv[type];
+
+  setInventory(inv);
+  setActiveEffects(active);
+  showToast(`${ITEM_DEFS[type].icon} 장착`);
+}
+
+function consumeActive(slot){
+  const active = getActiveEffects();
+  if(active[slot]){
+    delete active[slot];
+    setActiveEffects(active);
+  }
+}
+
+function renderInv(){
+  const list = document.getElementById('invList');
+  const badges = document.getElementById('invActiveBadges');
+  if(!list || !badges) return;
+
+  const inv = getInventory();
+  const active = getActiveEffects();
+
+  const badgeParts = [];
+  if(active.double) badgeParts.push('⚡ 더블');
+  if(active.waive)  badgeParts.push('🎟 면제');
+  if(active.shield) badgeParts.push('🛡 방어');
+  badges.innerHTML = badgeParts.length
+    ? badgeParts.map(t=>`<div class="inv-badge">${t}</div>`).join('')
+    : `<div class="inv-badge" style="opacity:.7">활성 이벤트권 없음</div>`;
+
+  const types = ['WAIVE_FEE','DOUBLE','BONUS_P1','SHIELD','ATMO_BOOST'];
+  const rows = [];
+  for(const t of types){
+    const qty = Number(inv[t]||0);
+    const def = ITEM_DEFS[t]; if(!def) continue;
+    const emptyStyle = qty <= 0 ? 'opacity:.38;filter:grayscale(.8)' : '';
+    rows.push(`
+      <div class="inv-item" style="${emptyStyle}">
+        <div class="inv-left">
+          <div class="inv-ico">${def.icon}</div>
+          <div>
+            <div class="inv-name">${def.name} <span style="opacity:.75;font-weight:900">×${qty}</span>${qty<=0?'<span style="font-size:.65rem;color:#ef4444;margin-left:4px">없음</span>':''}</div>
+            <div class="inv-desc">${def.desc}</div>
+          </div>
+        </div>
+        <div class="inv-actions">
+          <button class="primary" ${qty<=0?'disabled':''} onclick="armItem('${t}')">${t==='ATMO_BOOST'||t==='BONUS_P1'?'사용':'장착'}</button>
+        </div>
+      </div>
+    `);
+  }
+  list.innerHTML = rows.join('');
+}
+
+function clearInventoryConfirm(){
+  if(confirm('이벤트권 인벤토리를 모두 비울까요?')){
+    saveJSON(KEY_INV, {});
+    saveJSON(KEY_ACTIVE, {});
+    updateInvButton();
+    renderInv();
+    showToast('인벤토리 초기화');
+  }
+}
+
+// (quakeTimer 제거됨 — S40에서 지진효과 삭제, S44에서 티어변경 진동으로 대체)
+let exchTargetGame = null;
+let exchTab        = 'toGame';
+let egVal = 0;
+let epVal = 0;
+
+function init(){
+  // ── charge= 쿼리 파라미터 처리 (게임에서 충전 요청 시) ──
+  try{
+    const urlParams = new URLSearchParams(window.location.search);
+    const chargeGame = urlParams.get('charge');
+    if(chargeGame){
+      // URL에서 charge 파라미터 제거 (히스토리 오염 방지)
+      history.replaceState(null, '', window.location.pathname);
+      // init 완료 후 모달 열기
+      setTimeout(()=> openExchangeModal(chargeGame), 300);
+    }
+  }catch(e){}
+  /* ★ 최초 접속 시 포인트 100P 지급 */
+  const stored = localStorage.getItem(KEY_POINTS);
+  if(stored === null){
+    points = 100;
+    saveJSON(KEY_POINTS, points);
+  } else {
+    points = parseInt(stored) || 0;
+  }
+  try{
+    const r = localStorage.getItem(KEY_AI);
+    if(r){
+      const loaded = JSON.parse(r);
+      // 구버전 저장값에 누락 필드가 있어도 기본값으로 보완 (atmosphereScore 없으면 tier 기반으로 추정)
+      const tierToScore = {EASY:100, NORMAL:80, HARD:40, EXTREME:10};
+      aiProfile = Object.assign({
+        tier:'EASY', mood:'RELAXED', threat:'NONE',
+        atmosphereScore: tierToScore[loaded.tier] ?? 100
+      }, loaded);
+      if(typeof aiProfile.atmosphereScore !== 'number' || isNaN(aiProfile.atmosphereScore)){
+        aiProfile.atmosphereScore = tierToScore[aiProfile.tier] ?? 100;
+      }
+    }
+  }catch(e){}
+  // ── MG_LAST_RESULT 처리 (게임 → 미니센터 복귀 시) ──
+  try{
+    const lastResult = JSON.parse(localStorage.getItem('MG_LAST_RESULT') || 'null');
+    if(lastResult){
+      localStorage.removeItem('MG_LAST_RESULT');
+      const gId = lastResult.gameId;
+      const gName = GAMES.find(x=>x.id===gId)?.name || gId;
+      // 분위기 점수 반영 (심리전은 자체 ATMOSPHERE 전송했으므로 여기서도 별도 처리)
+      if(gId === 'psychology'){
+        // 심리전: 승리 시 +10, 패배 시 0
+        const pWon = (lastResult.playerWins >= 3);
+        if(pWon) applyAtmosphereDelta(+10, '심리전 승리');
+      } else {
+        const gameWon = (lastResult.won === true);
+        applyAtmosphereDelta(gameWon ? +2 : -1, (gameWon?'승리':'패배') + ': ' + gName);
+      }
+      // 미션 진행도
+      const isWin = (lastResult.won === true) || (lastResult.playerWins >= 3);
+      progressHardMission(gId, isWin,
+        gId==='blue' ? {blue_finish:lastResult.blue_finish?1:0, blue_tickets:lastResult.blue_tickets||0} :
+        gId==='gomoku' ? {hard:lastResult.difficulty==='hard'||lastResult.difficulty==='extreme'} : {});
+      // 포인트 델타 (두더지/기억력 등)
+      if(typeof lastResult.pointDelta === 'number' && lastResult.pointDelta !== 0){
+        let pd = lastResult.pointDelta;
+        const active = getActiveEffects();
+        // 패널티 방어
+        if(pd < 0 && active.shield){ pd = 0; consumeActive('shield'); }
+        // 채굴형만 tier 배율
+        const isMining = ['mole','memory'].includes(gId);
+        if(pd > 0 && isMining){
+          const tier = aiProfile.tier || 'NORMAL';
+          const mult = TIER_REWARD_MULT[tier] ?? 1.0;
+          pd = Math.round(pd * mult);
+        }
+        if(pd !== 0){
+          points = Math.max(0, points + pd);
+          saveJSON(KEY_POINTS, points);
+        }
+      }
+      // 인벤토리 아이템 (게임에서 직접 localStorage에 저장했으므로 UI만 갱신)
+    }
+  }catch(e){ console.error('[MG_LAST_RESULT 처리 오류]', e); }
+
+  buildGrid();
+  updateUI();
+  updateInvButton();
+  updateAtmoBar();
+  checkHardMissionExpiry();
+  updateMissionBar();
+  setInterval(()=>{ checkHardMissionExpiry(); updateMissionBar(); }, 60000);
+  // 진입 시 0점이면 강한 진동
+  if(aiProfile.atmosphereScore <= 0){
+    try{ if(navigator.vibrate) navigator.vibrate([200,100,200]); }catch(_){}
+  }
+}
+
+function goPlatform(){ window.location.href = 'index.html'; }
+
+function buildGrid(){
+  const grid = document.getElementById('gameGrid');
+  grid.innerHTML = '';
+  GAMES.forEach(g => {
+    const bal    = getGameBal(g.id);
+    const balStr = bal > 0 ? '₩' + bal.toLocaleString('ko-KR') : '0원';
+
+    const card   = document.createElement('div');
+    card.className = 'g-card';
+
+    const exchangeRow = `
+      <div class="card-exchange-row">
+        <span class="exchange-badge">1P ↔ ₩100,000</span>
+      </div>`;
+
+    const exchangeBtn = `
+        <button class="btn-exchange" onclick="event.stopPropagation(); openExchangeModal('${g.id}')">💱 환전</button>`;
+
+    card.innerHTML = `
+      <div class="card-icon-wrap" style="background:linear-gradient(135deg,${g.color}28,${g.color}08)">
+        <span>${g.icon}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-name" style="color:${g.color}">${g.name}</div>
+        <div class="card-desc">${g.desc}</div>
+      </div>
+      <div class="card-bal-row">
+        <span class="bal-label">💰 잔금</span>
+        <span class="bal-val" id="bal_${g.id}">${balStr}</span>
+      </div>
+      ${exchangeRow}
+      <div class="card-btn-row">
+        <button class="btn-start"
+          style="background:linear-gradient(135deg,${g.color}cc,${g.color}77)"
+          onclick="openGame('${g.id}')">🎮 게임 시작</button>
+        ${exchangeBtn}
+      </div>`;
+    grid.appendChild(card);
+  });
+  // 카드 생성 후 tier 테마 즉시 적용
+  updateCardTheme(aiProfile.tier || 'EASY');
+}
+
+/* ── 게임 탭바 전환 ── */
+function showGameBar(gameId){
+  const g = GAMES.find(x => x.id === gameId);
+  document.getElementById('topBar').style.display = 'none';
+  document.getElementById('gameBar').classList.add('show');
+  document.getElementById('gameBarTitle').textContent = g ? g.icon + ' ' + g.name : '🎮 게임';
+  updateGameBar(gameId);
+}
+function hideGameBar(){
+  document.getElementById('topBar').style.display = 'flex';
+  document.getElementById('homeBtn').style.display = 'none';
+  document.getElementById('platformBtn').style.display = '';
+  document.getElementById('gameBar').classList.remove('show');
+}
+function updateGameBar(gameId){
+  const id = gameId || currentGameId;
+  if(!id) return;
+  const bal = getGameBal(id);
+  document.getElementById('gameBarBal').textContent  = '₩' + bal.toLocaleString('ko-KR');
+  document.getElementById('gameBarPoint').textContent = points;
+}
+function openExchangeModalFromBar(){
+  console.log('[충전바] 클릭됨, currentGameId:', currentGameId);
+  if(!currentGameId){ showToast('게임 실행 중에만 충전 가능합니다.'); return; }
+  openExchangeModal(currentGameId);
+}
+
+function openGame(gameId){
+  if(btnLock) return;
+  btnLock = true; setTimeout(() => btnLock = false, 800);
+  const g = GAMES.find(x => x.id === gameId);
+  if(!g) return;
+  // DOUBLE 이벤트권: 잔금 2배 적용 후 저장 (게임이 localStorage에서 직접 읽으므로)
+  const initActive = getActiveEffects();
+  if(initActive.double){
+    const balKey = BAL_KEYS[gameId];
+    if(balKey){
+      const curBal = getGameBal(gameId);
+      saveJSON(balKey, curBal * 2);
+      consumeActive('double');
+    }
+  }
+  // 토큰가드 설정 후 직접 이동
+  sessionStorage.setItem('ORACLE_ENTRY', Date.now());
+  window.location.href = g.file;
+}
+
+function showHome(){
+  btnLock = false;
+  currentGameId = null;
+  buildGrid(); updateUI();
+  updateAtmoBar();
+}
+
+window.addEventListener('message', e => {
+  // origin 검증: 같은 출처(iframe)만 허용
+  if(e.origin !== window.location.origin && e.origin !== 'null') return;
+  const d = e.data;
+  if(!d || !d.type) return;
+  switch(d.type){
+    case 'SAVE_BALANCE':
+      if(currentGameId && d.balance !== undefined && BAL_KEYS[currentGameId]){
+        if(!d._hubSync){
+          const v = Math.max(0, Math.round(d.balance));
+          saveJSON(BAL_KEYS[currentGameId], v);
+        }
+        const dispBal = Math.max(0, Math.round(d.balance));
+        const el = document.getElementById('bal_' + currentGameId);
+        if(el) el.textContent = dispBal > 0 ? '₩' + dispBal.toLocaleString('ko-KR') : '0원';
+        updateGameBar(currentGameId);
+      }
+      break;
+    case 'SAVE_POINTS':
+      // 브루마블 등 게임이 포인트를 직접 변경 후 index에 동기화 요청
+      if(d.points !== undefined){
+        const sp = Math.max(0, Math.round(Number(d.points)||0));
+        points = sp;
+        saveJSON(KEY_POINTS, points);
+        updateUI();
+        broadcastPointUpdate();
+      }
+      break;
+    case 'REQUEST_SPEND_BALANCE': {
+      // 두더지/기억력 게임 — 게임머니(잔고) 직접 차감
+      const reqId = d.requestId || (Date.now() + '_' + Math.random().toString(16).slice(2));
+      const frame = document.getElementById('gameFrame');
+      const gameId = d.gameId || currentGameId;
+      if(gameId !== 'mole' && gameId !== 'memory'){
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', requestId:reqId, ok:false, spent:0, points}, window.location.origin); }catch(e){}
+        break;
+      }
+      const amt = Math.max(0, Math.round(Number(d.amount || 0)));
+      const balKey = BAL_KEYS[gameId] || BAL_KEYS['mole'];
+      let bal = Math.max(0, Math.round(Number(loadJSON(balKey, 0))));
+      if(amt <= 0){
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', requestId:reqId, ok:true, spent:0, points, balance:bal}, window.location.origin); }catch(e){}
+        break;
+      }
+      // 이벤트권: 입장료 면제권 우선 체크
+      const balActive = getActiveEffects();
+      if(balActive.waive){
+        consumeActive('waive');
+        showToast('🎟 입장료 면제권 사용! (게임머니 면제)');
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', requestId:reqId, ok:true, spent:0, points, balance:bal}, window.location.origin); }catch(e){}
+        break;
+      }
+      // AI 분위기 tier 입장료 배율 적용
+      const balEntryTier = aiProfile.tier || 'NORMAL';
+      const balEntryMult = TIER_ENTRY_MULT[balEntryTier] ?? 1;
+      let finalBalAmt;
+      if(balEntryMult === 0){
+        // EASY: 입장료 면제
+        showToast('😊 EASY 모드 — 입장료 면제!');
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', requestId:reqId, ok:true, spent:0, points, balance:bal}, window.location.origin); }catch(e){}
+        break;
+      } else {
+        finalBalAmt = Math.round(amt * balEntryMult);
+        if(balEntryMult > 1) showToast(`😈 ${balEntryTier} 패널티 — 입장료 ×${balEntryMult} (₩${finalBalAmt.toLocaleString('ko-KR')})`);
+      }
+      if(bal >= finalBalAmt){
+        bal -= finalBalAmt;
+        saveJSON(balKey, bal);
+        updateGameBar(gameId);
+        if(balEntryMult === 1) showToast(`게임머니 -₩${finalBalAmt.toLocaleString('ko-KR')}`);
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', requestId:reqId, ok:true, spent:finalBalAmt, points, balance:bal}, window.location.origin); }catch(e){}
+      } else {
+        showToast('⚠️ 게임머니 부족! 충전하세요.');
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', requestId:reqId, ok:false, spent:0, points, balance:bal, need:finalBalAmt}, window.location.origin); }catch(e){}
+        setTimeout(() => openExchangeModal(gameId), 600);
+      }
+      break;
+    }
+    case 'REQUEST_CHARGE': {
+      const chargeTarget = d.gameId || currentGameId;
+      if(chargeTarget) openExchangeModal(chargeTarget);
+      break;
+    }
+    case 'REQUEST_POINT_INFO':
+      broadcastPointUpdate();
+      break;
+    case 'REQUEST_SPEND_POINTS':
+    case 'SPEND_POINTS': {
+      const amt = Math.max(0, Math.round(Number(d.amount ?? d.deltaPoints ?? d.points ?? d.payload?.amount ?? 0) || 0));
+      const reqId = d.requestId || d.payload?.requestId || (Date.now() + '_' + Math.random().toString(16).slice(2));
+      const frame = document.getElementById('gameFrame');
+      if(amt <= 0){
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', gameId:d.gameId, requestId:reqId, ok:true, spent:0, points}, window.location.origin); }catch(e){}
+        break;
+      }
+      // 이벤트권: 입장료 면제(1회) — tier 배율보다 우선
+      const active = getActiveEffects();
+      const hasWaive = !!active.waive;
+      if(hasWaive){
+        consumeActive('waive');
+        showToast('🎟 입장료 면제권 사용! (-' + amt + 'P → 0P)');
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', gameId:d.gameId, requestId:reqId, ok:true, spent:0, points}, window.location.origin); }catch(e){}
+        break;
+      }
+      // AI 분위기 tier 입장료 배율 적용
+      const tier = aiProfile.tier || 'NORMAL';
+      const entryMult = TIER_ENTRY_MULT[tier] ?? 1;
+      let finalAmt;
+      if(entryMult === 0){
+        // EASY: 입장료 면제
+        showToast('😊 EASY 모드 — 입장료 면제!');
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', gameId:d.gameId, requestId:reqId, ok:true, spent:0, points}, window.location.origin); }catch(e){}
+        break;
+      } else {
+        finalAmt = Math.round(amt * entryMult);
+        if(entryMult > 1) showToast(`😈 ${tier} 패널티 — 입장료 ×${entryMult} (${finalAmt}P)`);
+      }
+
+      if(points >= finalAmt){
+        points -= finalAmt;
+        saveJSON(KEY_POINTS, points);
+        updateUI(); broadcastPointUpdate();
+        if(entryMult === 1) showToast(`포인트 -${finalAmt}P`);
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', gameId:d.gameId, requestId:reqId, ok:true, spent:finalAmt, points}, window.location.origin); }catch(e){}
+      } else {
+        try{ frame?.contentWindow?.postMessage({type:'SPEND_RESULT', gameId:d.gameId, requestId:reqId, ok:false, spent:0, points, need:finalAmt}, window.location.origin); }catch(e){}
+        showToast('⚠️ 포인트 부족! 게임머니를 환전하세요.');
+        if(currentGameId){
+          setTimeout(() => openExchangeModal(currentGameId), 600);
+        }
+      }
+      break;
+    }
+
+    case 'ITEM_GRANT': {
+      const grantType = d.item || d.itemType || d.payload?.item;
+      if(grantType && typeof grantType === 'string'){
+        addItem(grantType, 1);
+      }
+      break;
+    }
+    case 'MG_ITEM_ADD': {
+      const raw = d.itemType || d.typeId || d.item || d.payload?.itemType || d.payload?.item;
+      const type = (typeof raw === 'string') ? raw : (raw && typeof raw === 'object' ? (raw.id || raw.type || raw.itemType) : null);
+      const qty = Number(d.qty ?? d.count ?? (raw && typeof raw === 'object' ? raw.count : undefined) ?? d.payload?.qty ?? 1) || 1;
+      if(type && typeof type === 'string' && type.length > 0){
+        addItem(type, qty);
+      }
+      break;
+    }
+
+    case 'GO_HOME':
+      showHome();
+      break;
+    case 'GAME_OVER': {
+      // 게임 결과 수신 — 게임바 잔액 즉시 갱신
+      if(d.gameId && BAL_KEYS[d.gameId]){
+        updateGameBar(d.gameId);
+      }
+      // 게임 플레이 완료 시 분위기 변동 (심리전 제외 — 심리전은 자체 ATMOSPHERE 전송)
+      const gId = d.gameId || currentGameId;
+      if(gId && gId !== 'psychology'){
+        const gName = GAMES.find(x=>x.id===gId)?.name || gId;
+        const gameWon = (d.won === true) || (d.playerWins >= 3);
+        if(gameWon){
+          applyAtmosphereDelta(+2, `승리: ${gName}`);
+        } else {
+          applyAtmosphereDelta(-1, `패배: ${gName}`);
+        }
+      }
+      // 미션 진행도 — 심리전(playerWins) + 경마/기타(won) 둘 다 처리
+      const isWin = (d.won === true) || (d.playerWins >= 3);
+      progressHardMission(gId, isWin,
+        gId==='blue' ? {blue_finish:d.blue_finish?1:0, blue_tickets:d.blue_tickets||0} :
+        gId==='gomoku' ? {hard:d.difficulty==='hard'||d.difficulty==='extreme'} : {});
+      break;
+    }
+    case 'POINT_DELTA':
+    case 'ADD_POINTS':
+    case 'EARN_POINTS': {
+      const dp = (d.deltaPoints !== undefined ? d.deltaPoints :
+                 (d.delta !== undefined ? d.delta :
+                 (d.points !== undefined ? d.points :
+                 (d.payload?.deltaPoints ?? d.payload?.points ?? 0))));
+      let add = Math.round(Number(dp) || 0);
+
+      // 이벤트권 적용(공용 인벤토리)
+      const active = getActiveEffects();
+      // 두더지·기억력만 포인트 보상 게임
+      const isMining = ['mole','memory'].includes(currentGameId);
+
+      // 패널티 방어: 음수 포인트를 0으로 막음(1회)
+      if(add < 0 && active.shield){
+        add = 0;
+        consumeActive('shield');
+        showToast('🧯 패널티 방어 적용');
+      }
+
+      // 두더지/기억력만 tier 배율 + 이벤트권 적용
+      if(add > 0 && isMining){
+        // AI 분위기 tier 배율
+        const tier = aiProfile.tier || 'NORMAL';
+        const mult = TIER_REWARD_MULT[tier] ?? 1.0;
+        if(mult !== 1.0){
+          const before = add;
+          add = Math.round(add * mult);
+          if(mult > 1) showToast(`😊 EASY 보너스 ×${mult} (+${add-before}P 추가)`);
+          else         showToast(`😈 ${tier} 패널티 ×${mult} (${add-before}P 감소)`);
+        }
+        // 이벤트권: 더블/보너스
+        if(active.double){
+          add = add * 2;
+          consumeActive('double');
+          showToast('⚡ 더블 적용');
+        }
+      }
+
+      if(add !== 0){
+        points = Math.max(0, points + add);
+        saveJSON(KEY_POINTS, points);
+        updateUI(); broadcastPointUpdate();
+        showToast(`포인트 ${add>0?'+':''}${add}P`);
+      } else {
+        updateUI(); broadcastPointUpdate();
+      }
+
+      // HARD/EXTREME 미션 진행도 업데이트
+      if(add > 0) progressHardMission(currentGameId, true);
+      break;
+    }
+    case 'AI_PROFILE': {
+      // 심리전 등 게임에서 tier/atmosphereScore 직접 변경 시 수신
+      const prof = d.profile || d;
+      if(prof.tier) aiProfile.tier = prof.tier;
+      if(typeof prof.atmosphereScore === 'number') aiProfile.atmosphereScore = prof.atmosphereScore;
+      if(prof.mood) aiProfile.mood = prof.mood;
+      if(prof.threat) aiProfile.threat = prof.threat;
+      saveAiProfile(); updateUI(); updateAtmoBar(); updateMissionBar();
+      const reason = `게임 내 AI 진화 → ${aiProfile.tier}`;
+      addAtmoHistory(0, reason);
+      break;
+    }
+    case 'ATMOSPHERE':
+    case 'MG_ATMO_DELTA': {
+      const delta = Number(d.delta !== undefined ? d.delta : (d.payload?.delta || 0));
+      if(!isNaN(delta) && delta !== 0) applyAtmosphereDelta(delta);
+      break;
+    }
+  }
+});
+
+function broadcastPointUpdate(){
+  const frame = document.getElementById('gameFrame');
+  if(!currentGameId) return;
+  try{
+    frame.contentWindow.postMessage({type:'POINT_UPDATE', points, balance: getGameBal(currentGameId)}, window.location.origin);
+  }catch(e){}
+}
+
+function applyAtmosphereDelta(delta, reason=''){
+  const prevTier = aiProfile.tier;
+  aiProfile.atmosphereScore = Math.round(Math.max(0, Math.min(100, aiProfile.atmosphereScore + delta)));
+  updateAiTier(); saveAiProfile(); updateUI(); broadcastAiProfile();
+  addAtmoHistory(delta, reason||(delta>0?'분위기 상승':'분위기 하락'));
+  if(Math.abs(delta) >= 5)
+    showToast(`분위기 ${delta>0?'+':''}${delta} → ${aiProfile.atmosphereScore}점`);
+  if(prevTier !== aiProfile.tier) showTierTransition(prevTier, aiProfile.tier);
+  // 티어 변경 시 진동 피드백
+  if(prevTier !== aiProfile.tier){
+    try{
+      if(navigator.vibrate){
+        if(aiProfile.atmosphereScore <= 0) navigator.vibrate([200,100,200]); // 0점: 강하게 두번
+        else if(aiProfile.tier==='EXTREME') navigator.vibrate([150,80,150]);
+        else if(aiProfile.tier==='HARD') navigator.vibrate(120);
+        else navigator.vibrate(60); // NORMAL, EASY
+      }
+    }catch(_){}
+  }
+  // HARD/EXTREME 새로 진입 시 미션 안내
+  if((aiProfile.tier==='HARD'||aiProfile.tier==='EXTREME') && prevTier!==aiProfile.tier){
+    const existing = getHardMission();
+    if(!existing || existing.done || Date.now() > existing.expiresAt)
+      setTimeout(()=>showToast(`😤 ${aiProfile.tier} 진입 — 미션받기로 회복하세요!`), 1500);
+  }
+  checkHardMissionExpiry();
+  updateAtmoBar(); updateMissionBar();
+}
+function updateAiTier(){
+  const s = aiProfile.atmosphereScore;
+  if(s>=80)     {aiProfile.tier='EASY';    aiProfile.mood='RELAXED'; aiProfile.threat='NONE';}
+  else if(s>=60){aiProfile.tier='NORMAL';  aiProfile.mood='NEUTRAL';  aiProfile.threat='LOW';}
+  else if(s>=20){aiProfile.tier='HARD';    aiProfile.mood='NERVOUS';  aiProfile.threat='HIGH';}
+  else          {aiProfile.tier='EXTREME'; aiProfile.mood='HOSTILE';  aiProfile.threat='CRITICAL';}
+}
+function saveAiProfile(){ saveJSON(KEY_AI, aiProfile); }
+function broadcastAiProfile(){
+  const frame = document.getElementById('gameFrame');
+  if(!currentGameId) return;
+  try{ frame.contentWindow.postMessage({type:'AI_PROFILE', profile:aiProfile}, window.location.origin); }catch(e){}
+}
+
+function updateUI(){
+  document.getElementById('pointsVal').textContent = points;
+  const tier  = aiProfile.tier || 'EASY';
+  const s     = aiProfile.atmosphereScore;
+  const icons = {EASY:'😊', NORMAL:'🤔', HARD:'😤', EXTREME:'😈'};
+  const aiBtn = document.getElementById('aiBtn');
+  aiBtn.className   = 'tier-' + tier.toLowerCase();
+  aiBtn.textContent = (icons[tier]||'🤖') + ' ' + s;
+  document.getElementById('aiBadge').textContent  = tier;
+  document.getElementById('aiBadge').className    = 'ai-badge tier-' + tier.toLowerCase();
+  document.getElementById('aiMood').textContent   = aiProfile.mood   || '-';
+  document.getElementById('aiThreat').textContent = aiProfile.threat || '-';
+  document.getElementById('aiAtmNum').textContent = s;
+  document.getElementById('aiFill').style.width   = s + '%';
+  document.getElementById('aiFill').style.background =
+    s>=80 ? 'linear-gradient(90deg,#38bdf8,#0ea5e9)':
+    s>=60 ? 'linear-gradient(90deg,#4ade80,#22c55e)':
+    s>=20 ? 'linear-gradient(90deg,#f97316,#ef4444)':
+            'linear-gradient(90deg,#ef4444,#a855f7)';
+
+  // body tier 클래스 — 전체 화면 테마
+  document.body.className = document.body.className
+    .replace(/\btier-\w+\b/g, '').trim();
+  document.body.classList.add('tier-' + tier.toLowerCase());
+
+  // atmOverlay
+  const ov = document.getElementById('atmOverlay');
+  ov.className = s>=80?'atm-easy':s>=60?'atm-normal':s>=40?'atm-hard1':s>=20?'atm-hard2':'atm-extreme';
+
+  // 경고 배너
+  const banner = document.getElementById('warnBanner');
+  const atmoBarEl = document.getElementById('atmoBar');
+  if(s<=0){
+    banner.textContent='😈 AI가 완전히 지배했습니다 — 분위기 0점';
+    banner.classList.add('show');
+    if(atmoBarEl) atmoBarEl.style.top = 'calc(var(--h-bar) + 32px)';
+  }else if(s<20){
+    banner.textContent='⚠️ AI가 분위기를 장악했다. 위험 수위 초과!';
+    banner.classList.add('show');
+    if(atmoBarEl) atmoBarEl.style.top = 'calc(var(--h-bar) + 32px)';
+  }else{
+    banner.classList.remove('show');
+    if(atmoBarEl) atmoBarEl.style.top = '';
+  }
+  /* ★ 게임바 포인트도 업데이트 */
+  document.getElementById('gameBarPoint').textContent = points;
+  // 게임 카드 테두리 tier 색상
+  updateCardTheme(tier);
+}
+
+function updateCardTheme(tier){
+  const colors = {
+    EASY:   'rgba(56,189,248,.25)',
+    NORMAL: 'rgba(74,222,128,.15)',
+    HARD:   'rgba(251,146,60,.3)',
+    EXTREME:'rgba(239,68,68,.35)',
+  };
+  const glows = {
+    EASY:   '0 0 8px rgba(56,189,248,.15)',
+    NORMAL: 'none',
+    HARD:   '0 0 10px rgba(251,146,60,.2)',
+    EXTREME:'0 0 14px rgba(239,68,68,.25)',
+  };
+  const borderColor = colors[tier] || colors.NORMAL;
+  const glow = glows[tier] || 'none';
+  document.querySelectorAll('.g-card').forEach(card=>{
+    card.style.borderColor = borderColor;
+    card.style.boxShadow   = glow;
+  });
+}
+
+function toggleAiPopup(){ document.getElementById('aiPopup').classList.toggle('show'); }
+document.addEventListener('click', e => {
+  const p=document.getElementById('aiPopup'), btn=document.getElementById('aiBtn');
+  if(!p.contains(e.target) && !btn.contains(e.target)) p.classList.remove('show');
+
+  // invModal 외부 클릭 닫기
+  const inv=document.getElementById('invModal'), invBtn=document.getElementById('invBtn');
+  if(inv.classList.contains('show') && !inv.querySelector('.modal-box').contains(e.target) && !invBtn.contains(e.target)){
+    toggleInvModal(false);
+  }
+
+  // exchangeModal 외부 클릭 닫기
+  const exch=document.getElementById('exchangeModal');
+  if(exch.classList.contains('show') && !exch.querySelector('.modal-box').contains(e.target)){
+    closeExchangeModal();
+  }
+});
+
+/* ════════════════════════════════
+   커스텀 디스플레이 렌더
+   ════════════════════════════════ */
+function renderEgDisplay(){
+  const textEl   = document.getElementById('egText');
+  const cursorEl = document.getElementById('egCursor');
+  if(egVal <= 0){
+    textEl.innerHTML = '';
+    textEl.appendChild(cursorEl);
+  } else {
+    const won = egVal * P_TO_WON;
+    textEl.innerHTML =
+      `<span class="pt">${egVal}P</span>` +
+      `<span class="arrow"> → </span>` +
+      `<span class="won">₩${won.toLocaleString('ko-KR')}</span>`;
+    textEl.appendChild(cursorEl);
+  }
+}
+function renderEpDisplay(){
+  const textEl   = document.getElementById('epText');
+  const cursorEl = document.getElementById('epCursor');
+  if(epVal <= 0){
+    textEl.innerHTML = '';
+    textEl.appendChild(cursorEl);
+  } else {
+    const p = Math.floor(epVal / P_TO_WON);
+    textEl.innerHTML =
+      `<span class="won">₩${epVal.toLocaleString('ko-KR')}</span>` +
+      `<span class="arrow"> → </span>` +
+      `<span class="pt">+${p}P</span>`;
+    textEl.appendChild(cursorEl);
+  }
+}
+function focusEgInput(){ document.getElementById('egInput').focus(); }
+function focusEpInput(){ document.getElementById('epInput').focus(); }
+
+/* ════════════════════════════════
+   통합 환전 모달
+   ════════════════════════════════ */
+function openExchangeModal(gameId){
+  try{
+  exchTargetGame = gameId || currentGameId;
+  if(!exchTargetGame){ console.warn('[충전] exchTargetGame이 null'); return; }
+  const g   = GAMES.find(x => x.id === exchTargetGame);
+  const bal = getGameBal(exchTargetGame);
+  document.getElementById('exchModalTitle').textContent = g ? `💱 ${g.name} 환전` : '💱 환전';
+
+  // AI 분위기 수수료/보너스 안내
+  const tier = aiProfile.tier || 'NORMAL';
+  const feeRate = TIER_EXCH_FEE[tier] ?? 0;
+  const feeColors = {EASY:'#00e5a0', NORMAL:'', HARD:'#ffaa33', EXTREME:'#ff4444'};
+  const egNotice = document.getElementById('egFeeNotice');
+  const epNotice = document.getElementById('epFeeNotice');
+  if(egNotice){
+    if(feeRate < 0)       egNotice.textContent = `😊 보너스 ${Math.round(-feeRate*100)}%`;
+    else if(feeRate > 0)  egNotice.textContent = `😈 수수료 ${Math.round(feeRate*100)}%`;
+    else                  egNotice.textContent = '';
+    egNotice.style.color = feeColors[tier] || '';
+  }
+  if(epNotice){
+    if(feeRate < 0)       epNotice.textContent = `😊 보너스 ${Math.round(-feeRate*100)}%`;
+    else if(feeRate > 0)  epNotice.textContent = `😈 수수료 ${Math.round(feeRate*100)}%`;
+    else                  epNotice.textContent = '';
+    epNotice.style.color = feeColors[tier] || '';
+  }
+
+  egVal = 0;
+  document.getElementById('eg_points').textContent = points;
+  document.getElementById('eg_bal').textContent    = bal.toLocaleString('ko-KR');
+  document.getElementById('egInput').value         = '';
+  document.getElementById('egDoBtn').disabled      = true;
+  renderEgDisplay();
+
+  epVal = 0;
+  document.getElementById('ep_bal').textContent    = bal.toLocaleString('ko-KR');
+  document.getElementById('ep_points').textContent = points;
+  document.getElementById('epInput').value         = '';
+  document.getElementById('epDoBtn').disabled      = true;
+  renderEpDisplay();
+
+  switchExchTab('toGame');
+  document.getElementById('exchangeModal').classList.add('show');
+  }catch(err){ console.error('[충전 모달 오류]', err); showToast('⚠️ 충전 모달 열기 실패: ' + err.message); }
+}
+function closeExchangeModal(){
+  egVal = 0; epVal = 0;
+  renderEgDisplay(); renderEpDisplay();
+  document.getElementById('egInput').value  = '';
+  document.getElementById('epInput').value  = '';
+  document.getElementById('egDoBtn').disabled = true;
+  document.getElementById('epDoBtn').disabled = true;
+  document.getElementById('exchangeModal').classList.remove('show');
+}
+function switchExchTab(tab){
+  exchTab = tab;
+  document.getElementById('tabToGame').classList.toggle('active', tab==='toGame');
+  document.getElementById('tabToPoint').classList.toggle('active', tab==='toPoint');
+  document.getElementById('secToGame').classList.toggle('show', tab==='toGame');
+  document.getElementById('secToPoint').classList.toggle('show', tab==='toPoint');
+}
+
+/* 탭1: P → 게임머니 */
+function addEgPt(p){
+  egVal = Math.min((egVal || 0) + p, points);
+  document.getElementById('egInput').value = egVal;
+  refreshEg();
+}
+function setEg50(){
+  egVal = Math.floor(points * 0.5);
+  document.getElementById('egInput').value = egVal;
+  refreshEg();
+}
+function onEgInput(){
+  egVal = Math.min(Math.max(0, parseInt(document.getElementById('egInput').value) || 0), points);
+  refreshEg();
+}
+function onEgKey(e){
+  if(e.key === 'Backspace'){
+    const str = String(egVal);
+    egVal = str.length > 1 ? parseInt(str.slice(0,-1)) : 0;
+    document.getElementById('egInput').value = egVal || '';
+    refreshEg();
+    e.preventDefault();
+  }
+}
+function refreshEg(){
+  renderEgDisplay();
+  document.getElementById('egDoBtn').disabled = egVal < 1 || egVal > points;
+}
+function doEg(){
+  if(egVal < 1){ showToast('⚠️ 포인트를 입력해주세요'); return; }
+  if(egVal > points){ showToast(`⚠️ 포인트 부족! 현재: ${points}P`); return; }
+  const balKey = BAL_KEYS[exchTargetGame];
+  if(!balKey){ showToast('⚠️ 환전 불가 게임'); return; }
+  // AI 분위기 환전 수수료/보너스
+  const tier = aiProfile.tier || 'NORMAL';
+  const feeRate = TIER_EXCH_FEE[tier] ?? 0;
+  const baseWon = egVal * P_TO_WON;
+  const won = Math.round(baseWon * (1 - feeRate)); // 수수료 차감 or 보너스 추가
+  points -= egVal;
+  saveJSON(KEY_POINTS, points);
+  const newBal = getGameBal(exchTargetGame) + won;
+  saveJSON(balKey, newBal);
+  if(currentGameId === exchTargetGame){
+    try{
+      document.getElementById('gameFrame').contentWindow
+        .postMessage({type:'CHARGE', amount:won}, window.location.origin);
+    }catch(e){}
+  }
+  broadcastPointUpdate();
+  let egToast = `✅ ${egVal}P → ₩${won.toLocaleString('ko-KR')} 충전 완료!`;
+  if(feeRate > 0)  egToast += ` (😈 수수료 ${Math.round(feeRate*100)}%)`;
+  if(feeRate < 0)  egToast += ` (😊 보너스 ${Math.round(-feeRate*100)}%)`;
+  // 환전 시 AI 분위기 점수 차감 (무한 환전 억제)
+  applyAtmosphereDelta(-2, '환전: P → 게임머니');
+  closeExchangeModal();
+  updateUI(); buildGrid();
+  updateGameBar(exchTargetGame);
+  showToast(egToast);
+}
+
+/* 탭2: 게임머니 → P */
+function addEpAmount(won){
+  const bal = getGameBal(exchTargetGame);
+  epVal = Math.min((epVal || 0) + won, bal);
+  document.getElementById('epInput').value = epVal;
+  refreshEp();
+}
+function setEp50(){
+  const bal  = getGameBal(exchTargetGame);
+  const half = Math.floor(bal * 0.5);
+  epVal = Math.floor(half / P_TO_WON) * P_TO_WON;
+  document.getElementById('epInput').value = epVal;
+  refreshEp();
+}
+function onEpInput(){
+  const bal = getGameBal(exchTargetGame);
+  epVal = Math.max(0, Math.min(parseInt(document.getElementById('epInput').value) || 0, bal));
+  refreshEp();
+}
+function onEpKey(e){
+  if(e.key === 'Backspace'){
+    const str = String(epVal);
+    epVal = str.length > 1 ? parseInt(str.slice(0,-1)) : 0;
+    document.getElementById('epInput').value = epVal || '';
+    refreshEp();
+    e.preventDefault();
+  }
+}
+function refreshEp(){
+  renderEpDisplay();
+  const bal     = getGameBal(exchTargetGame);
+  const isValid = epVal >= P_TO_WON && epVal <= bal && epVal % P_TO_WON === 0;
+  document.getElementById('epDoBtn').disabled = !isValid;
+}
+function doEp(){
+  if(epVal < P_TO_WON){ showToast('⚠️ 최소 100,000원부터 환전 가능합니다'); return; }
+  if(epVal % P_TO_WON !== 0){ showToast('⚠️ 10만원 단위로만 환전 가능합니다'); return; }
+  const balKey = BAL_KEYS[exchTargetGame];
+  if(!balKey){ showToast('⚠️ 환전 불가 게임'); return; }
+  const bal = getGameBal(exchTargetGame);
+  if(epVal > bal){ showToast(`⚠️ 잔금 부족! 현재: ₩${bal.toLocaleString('ko-KR')}`); return; }
+  // AI 분위기 환전 수수료/보너스 (게임머니→포인트 방향도 동일 적용)
+  const tier = aiProfile.tier || 'NORMAL';
+  const feeRate = TIER_EXCH_FEE[tier] ?? 0;
+  const basePts = Math.floor(epVal / P_TO_WON);
+  // 수수료: 포인트 수령량을 줄임 / 보너스: 늘림
+  const pToAdd = Math.max(1, Math.round(basePts * (1 - feeRate)));
+  const newBal = bal - epVal;
+  saveJSON(balKey, newBal);
+  points += pToAdd;
+  saveJSON(KEY_POINTS, points);
+  if(currentGameId === exchTargetGame){
+    try{
+      document.getElementById('gameFrame').contentWindow
+        .postMessage({type:'BALANCE_UPDATE', balance:newBal}, window.location.origin);
+    }catch(e){}
+  }
+  broadcastPointUpdate();
+  let epToast = `✅ ₩${epVal.toLocaleString('ko-KR')} → +${pToAdd}P 환전 완료!`;
+  if(feeRate > 0)  epToast += ` (😈 수수료 ${Math.round(feeRate*100)}%)`;
+  if(feeRate < 0)  epToast += ` (😊 보너스 ${Math.round(-feeRate*100)}%)`;
+  // 환전 시 AI 분위기 점수 차감 (무한 환전 억제)
+  applyAtmosphereDelta(-2, '환전: 게임머니 → P');
+  closeExchangeModal();
+  updateUI(); buildGrid();
+  updateGameBar(exchTargetGame);
+  showToast(epToast);
+}
+
+function getGameBal(gameId){
+  const key = BAL_KEYS[gameId];
+  if(!key) return 0; // 등록되지 않은 게임 ID 방어
+  return parseInt(localStorage.getItem(key) || '0') || 0;
+}
+function showToast(msg, dur=2600){
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), dur);
+}
+
+// 뒤로가기 처리
+window.addEventListener('popstate', function(){
+  sessionStorage.setItem('ORACLE_ENTRY', Date.now());
+  window.location.href = 'index.html';
+});
+
+init();
+</script>
+</body>
+</html>
