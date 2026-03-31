@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🌸 무궁화꽃 (강화)</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#e8002a;--red2:#ff1a42;--green:#00c853;--green2:#00e676;
+  --gold:#ffd600;--blue:#4db8ff;--orange:#ff7020;--orange2:#ff9040;
+  --teal:#1a8899;--teal2:#22b8cc;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;font-family:'Noto Sans KR',sans-serif;}
+
+/* ══ 운동장 배경 ══ */
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background:linear-gradient(180deg,
+    #87CEEB 0%,#b0e0ff 17%,
+    #c8f0a0 17%,#a8d868 21%,
+    #d4a855 21%,#c49840 100%);
+}
+#bg::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 25% at 50% 10%,rgba(255,240,100,.15),transparent);}
+#bg::after{content:'';position:absolute;top:17%;left:0;right:0;height:4%;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(100,180,40,.15) 0px,rgba(100,180,40,.15) 6px,transparent 6px,transparent 14px);}
+#bgEmoji{
+  position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+  font-size:2.2rem;letter-spacing:1.5rem;line-height:4.5rem;word-spacing:1rem;
+  white-space:normal;opacity:.045;
+  transform:rotate(-12deg) scale(1.3);transform-origin:center center;
+}
+.cloud{position:absolute;background:rgba(255,255,255,.85);border-radius:50px;pointer-events:none;}
+.c1{width:80px;height:26px;top:4%;left:8%;animation:cloudMove 18s linear infinite;}
+.c2{width:60px;height:20px;top:7%;left:40%;animation:cloudMove 24s linear infinite;}
+.c3{width:100px;height:30px;top:3%;left:70%;animation:cloudMove 20s linear infinite;}
+@keyframes cloudMove{0%{transform:translateX(0)}100%{transform:translateX(120vw)}}
+.fence{position:absolute;bottom:0;left:0;right:0;height:22px;
+  background:repeating-linear-gradient(90deg,#8B4513 0px,#8B4513 14px,transparent 14px,transparent 22px);
+  opacity:.6;pointer-events:none;}
+.deco{position:absolute;bottom:16%;font-size:3.2rem;opacity:.28;pointer-events:none;}
+.dl{left:1%}.dr{right:1%}
+
+/* ══ 헤더 ══ */
+#header{
+  position:fixed;top:0;left:0;right:0;z-index:200;height:50px;
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(8px);
+}
+#backBtn{width:30px;height:30px;border-radius:8px;border:1px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.1);color:#fff;font-size:.85rem;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#backBtn:active{opacity:.7;}
+.hd-title{font-family:'Black Han Sans',sans-serif;font-size:.88rem;letter-spacing:.05em;color:#fff;flex:1;}
+/* 강화판 배지 */
+.hd-badge{
+  font-family:'Black Han Sans',sans-serif;font-size:.6rem;
+  background:rgba(232,0,42,.8);color:#fff;border-radius:6px;
+  padding:2px 7px;letter-spacing:.04em;border:1px solid rgba(232,0,42,.6);
+}
+.hd-timer{font-family:'Black Han Sans',sans-serif;font-size:1.1rem;color:var(--gold);}
+.hd-sec{font-size:.62rem;color:rgba(255,255,255,.6);margin-left:1px;}
+
+/* ══ 진행바 ══ */
+#progressBar{position:fixed;top:50px;left:0;right:0;z-index:160;height:3px;background:rgba(255,255,255,.1);}
+#progressFill{height:100%;background:linear-gradient(90deg,var(--green),var(--green2));width:0%;transition:width .12s;}
+
+/* ══ 술래 존 ══ */
+#dollZone{
+  position:fixed;top:53px;left:0;right:0;z-index:150;height:130px;
+  background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,.18));
+  border-bottom:2px solid rgba(255,214,0,.15);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+}
+#dollWrap{position:relative;display:flex;align-items:flex-end;gap:6px;}
+#dollImg{font-size:3.8rem;line-height:1;filter:drop-shadow(0 0 16px rgba(232,0,42,.6));transition:filter .15s;}
+#dollImg.alert{filter:drop-shadow(0 0 32px rgba(232,0,42,1));animation:dollShake .08s ease 3;}
+@keyframes dollShake{0%,100%{transform:rotate(0)}50%{transform:rotate(-12deg)}}
+#elimNotice{
+  position:absolute;top:-28px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.8);border:1px solid rgba(232,0,42,.5);
+  border-radius:8px;padding:3px 10px;
+  font-size:.63rem;color:var(--red2);font-weight:900;white-space:nowrap;
+  opacity:0;transition:opacity .3s;
+}
+#elimNotice.show{opacity:1;}
+#lightBox{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(0,0,0,.65);border-radius:20px;padding:4px 14px;
+  border:1px solid rgba(255,255,255,.12);
+}
+.light-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);}
+.light-dot.ar{background:var(--red2);box-shadow:0 0 8px var(--red2);}
+.light-dot.ag{background:var(--green2);box-shadow:0 0 8px var(--green2);}
+#lightText{font-family:'Black Han Sans',sans-serif;font-size:.82rem;letter-spacing:.08em;color:#fff;}
+
+/* 무궁화꽃 텍스트 */
+#mugunghwa{
+  font-family:'Black Han Sans',sans-serif;font-size:.9rem;letter-spacing:.05em;
+  color:rgba(255,255,255,.85);min-height:22px;margin-top:2px;
+}
+#mugunghwa span{transition:color .08s;}
+.mc0{color:#ffb3c1;}.mc1{color:#ff6b6b;}.mc2{color:#ff0055;}
+.mc3{color:#fff;}.mc4{color:var(--green2);}.mc5{color:#fff;}
+.mc6{color:#fff;}.mc7{color:var(--gold);}.mc8{color:#ffa500;}
+.mc9{color:var(--red2);}.mc10{color:#ff69b4;}.mc11{color:var(--red2);font-size:1rem;}
+
+/* 위험 플래시 */
+/* ══ dangerFlash → squid_fx.js 대체 ══ */
+
+/* ══ 필드 ══ */
+#fieldWrap{position:fixed;top:179px;left:0;right:0;bottom:90px;overflow:hidden;z-index:10;}
+#finishLine{position:absolute;top:0;left:0;right:0;height:6px;z-index:5;
+  background:repeating-linear-gradient(90deg,var(--gold) 0,var(--gold) 12px,transparent 12px,transparent 20px);
+  box-shadow:0 0 12px rgba(255,214,0,.5);}
+#finishLabel{position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  font-family:'Black Han Sans',sans-serif;font-size:.6rem;color:var(--gold);
+  white-space:nowrap;z-index:5;text-shadow:0 1px 3px rgba(0,0,0,.7);}
+#startLine{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.2);}
+#fieldChars{position:absolute;inset:0;}
+
+/* ══ 캐릭터 공통 ══ */
+.char{position:absolute;display:flex;flex-direction:column;align-items:center;z-index:20;transition:left .18s ease;}
+.char-emoji{font-size:1.3rem;line-height:1;display:block;}
+/* AI — 청록색 */
+.char.ai-male   .char-emoji{filter:hue-rotate(175deg) saturate(3) brightness(.9);}
+.char.ai-female .char-emoji{filter:hue-rotate(168deg) saturate(2.8) brightness(.88);}
+/* 플레이어 — 오렌지 */
+#player .char-emoji{filter:hue-rotate(20deg) saturate(3.5) brightness(1.0);}
+.char-num{font-size:.46rem;font-weight:700;color:#fff;background:rgba(0,0,0,.65);border-radius:3px;padding:1px 3px;margin-top:1px;font-family:'Noto Sans KR',sans-serif;}
+.char.dead{opacity:.35;filter:grayscale(1) brightness(.5);}
+
+/* 총알 */
+.bullet{position:absolute;z-index:40;font-size:.9rem;pointer-events:none;animation:bulletFly .28s linear forwards;}
+@keyframes bulletFly{0%{opacity:1;transform:translateX(0) scale(1);}100%{opacity:0;transform:translateX(-40px) scale(1.5);}}
+
+/* 플레이어 */
+#player{z-index:30;transition:bottom .1s linear,left .15s ease;}
+#player .char-num{background:rgba(208,80,0,.92);font-size:.52rem;padding:1px 5px;}
+#playerArrow{
+  position:absolute;top:-15px;left:50%;transform:translateX(-50%);
+  width:0;height:0;
+  border-left:6px solid transparent;border-right:6px solid transparent;border-top:10px solid var(--gold);
+  filter:drop-shadow(0 0 4px var(--gold));
+  animation:arrowBounce .7s ease-in-out infinite;
+}
+@keyframes arrowBounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-3px)}}
+
+/* 탈락 팝 */
+.elim-pop{position:absolute;z-index:50;font-family:'Black Han Sans',sans-serif;
+  font-size:.7rem;color:var(--red2);font-weight:900;pointer-events:none;
+  text-shadow:0 0 6px rgba(232,0,42,.8);animation:elimFly .9s ease forwards;}
+@keyframes elimFly{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-36px) scale(1.2)}}
+
+/* ══ 컨트롤 ══ */
+#controlZone{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;height:90px;
+  background:rgba(0,0,0,.68);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+}
+.ctrl-btn{height:54px;border:none;border-radius:14px;font-family:'Black Han Sans',sans-serif;cursor:pointer;transition:all .12s;display:flex;align-items:center;justify-content:center;}
+#leftBtn,#rightBtn{width:70px;font-size:1.2rem;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);}
+#leftBtn:active,#rightBtn:active{background:rgba(255,255,255,.22);transform:scale(.94);}
+#moveBtn{
+  flex:1;font-size:.92rem;letter-spacing:.04em;color:#0a0a0a;
+  background:linear-gradient(135deg,var(--green),var(--green2));
+  box-shadow:0 3px 14px rgba(0,200,83,.4);
+}
+#moveBtn.pressing{background:linear-gradient(135deg,#009940,var(--green));box-shadow:none;transform:scale(.98);}
+#moveBtn.red-state{background:rgba(255,255,255,.1);color:rgba(255,255,255,.3);box-shadow:none;}
+#moveBtn.fake-state{background:linear-gradient(135deg,rgba(255,214,0,.4),rgba(255,214,0,.2));color:#fff;}
+
+/* ══ 시작 팝업 ══ */
+#startOverlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.82);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+#startOverlay.hidden{display:none;}
+.popup-box{
+  background:#1c1c1c;border-radius:22px;
+  padding:28px 22px 22px;width:100%;max-width:360px;
+  text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.8);
+}
+.popup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--red),var(--red2),var(--gold));}
+.popup-box::after{content:'○  △  □';position:absolute;bottom:10px;right:14px;font-size:.55rem;color:rgba(255,255,255,.06);letter-spacing:.2em;pointer-events:none;}
+.p-icon{font-size:3rem;margin-bottom:10px;display:block;}
+.p-title{font-family:'Black Han Sans',sans-serif;font-size:1.4rem;letter-spacing:.06em;color:var(--red2);margin-bottom:14px;}
+.p-rules{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin-bottom:16px;text-align:left;}
+.rule-row{display:flex;gap:8px;font-size:.75rem;color:#9a9490;line-height:1.6;margin-bottom:5px;}
+.rule-row:last-child{margin-bottom:0;}
+.rule-row b{color:#fff;}
+.hl{color:var(--red2);font-weight:900;}
+.hlg{color:var(--green2);font-weight:900;}
+.p-btn{width:100%;padding:14px;border:none;border-radius:13px;font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.04em;cursor:pointer;margin-bottom:9px;transition:all .15s;}
+.p-btn:last-child{margin-bottom:0;}
+.p-btn.primary{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 3px 14px rgba(232,0,42,.4);}
+.p-btn.secondary{background:rgba(255,255,255,.07);color:#9a9490;border:1px solid rgba(255,255,255,.1);}
+.p-btn:active{opacity:.8;}
+
+/* ══ 카운트다운 ══ */
+#countdown{
+  position:fixed;inset:0;z-index:450;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(3px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+}
+#countdown.hidden{display:none;}
+#cdNum{font-family:'Black Han Sans',sans-serif;font-size:6rem;color:var(--red2);
+  text-shadow:0 0 40px rgba(232,0,42,.8);animation:cdPop .9s ease infinite;}
+@keyframes cdPop{0%{transform:scale(1.25)}80%{transform:scale(.95)}100%{transform:scale(1.25)}}
+#cdSub{font-size:.85rem;color:rgba(255,255,255,.6);letter-spacing:.12em;}
+
+/* ══ 결과 팝업 ══ */
+#resultOverlay{
+  position:fixed;inset:0;z-index:600;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+#resultOverlay.show{display:flex;}
+.result-box{
+  background:#1c1c1c;border-radius:22px;padding:28px 22px 22px;
+  width:100%;max-width:360px;text-align:center;position:relative;overflow:hidden;
+  box-shadow:0 8px 40px rgba(0,0,0,.8);animation:popIn .28s ease;
+}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.result-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.result-box.win::before{background:linear-gradient(90deg,var(--green),var(--green2));}
+.result-box.lose::before{background:linear-gradient(90deg,var(--red),var(--red2));}
+.result-box::after{content:'○  △  □';position:absolute;bottom:10px;right:14px;font-size:.55rem;color:rgba(255,255,255,.06);letter-spacing:.2em;pointer-events:none;}
+.r-icon{font-size:3.4rem;margin-bottom:10px;display:block;}
+.r-title{font-family:'Black Han Sans',sans-serif;font-size:1.5rem;letter-spacing:.06em;margin-bottom:8px;}
+.r-title.win{color:var(--green2);}
+.r-title.lose{color:var(--red2);}
+.r-desc{font-size:.78rem;color:#9a9490;line-height:1.75;margin-bottom:14px;white-space:pre-line;}
+.r-reward{border-radius:10px;padding:10px;margin-bottom:18px;font-size:.9rem;font-weight:900;}
+.r-reward.earn{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.22);color:var(--green2);}
+.r-reward.loss{background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);color:#ff6680;}
+.r-btn{width:100%;padding:14px;border:none;border-radius:13px;font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.04em;cursor:pointer;margin-bottom:10px;}
+.r-btn:last-child{margin-bottom:0;}
+.r-btn.primary{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 3px 14px rgba(232,0,42,.4);}
+.r-btn.secondary{background:rgba(255,255,255,.07);color:#9a9490;border:1px solid rgba(255,255,255,.1);}
+.r-btn:active{opacity:.8;}
+
+/* ══ 이펙트 ══ */
+/* ══ 이펙트 → squid_fx.js 대체 ══ */
+
+/* ══ 토스트 ══ */
+#toast{
+  position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-8px);
+  background:rgba(10,10,10,.97);border:1px solid rgba(232,0,42,.28);
+  border-radius:10px;padding:8px 18px;font-size:.78rem;color:#f0ece8;
+  opacity:0;transition:all .28s;pointer-events:none;z-index:400;
+  white-space:nowrap;max-width:88vw;text-align:center;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ 파티클 ══ */
+.particle{position:fixed;pointer-events:none;z-index:700;font-size:1.1rem;animation:pfly 1.4s ease forwards;}
+@keyframes pfly{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-120px) rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div id="bg">
+  <div class="cloud c1"></div>
+  <div class="cloud c2"></div>
+  <div class="cloud c3"></div>
+</div>
+<div id="bgEmoji">🌸 🔫 👁️ 🚦 ⚡ 🌸 🔫 👁️ 🚦 ⚡ 🌸 🔫 👁️ 🚦 ⚡ 🌸 🔫 👁️ 🚦 ⚡ 🌸 🔫 👁️ 🚦 ⚡ 🌸 🔫 👁️ 🚦 ⚡ 🌸 🔫 👁️ 🚦 ⚡ 🌸 🔫 👁️ 🚦 ⚡</div>
+<div class="fence"></div>
+<div class="deco dl">🌳</div>
+<div class="deco dr">🌳</div>
+
+<!-- 헤더 -->
+<div id="header">
+  <button id="backBtn" onclick="doBack()">←</button>
+  <div class="hd-title">🌸 무궁화 꽃이 피었습니다</div>
+  <span class="hd-badge">강화판</span>
+  <span class="hd-timer" id="timerDisp">45</span>
+  <span class="hd-sec">초</span>
+</div>
+<div id="progressBar"><div id="progressFill"></div></div>
+
+<!-- 술래 존 -->
+<div id="dollZone">
+  <div id="dollWrap">
+    <div id="elimNotice">움직임 감지!</div>
+    <div id="dollImg">🎎</div>
+  </div>
+  <div id="lightBox">
+    <div class="light-dot" id="dotRed"></div>
+    <div class="light-dot ag" id="dotGreen"></div>
+    <span id="lightText">🟢 초록불</span>
+  </div>
+  <div id="mugunghwa"></div>
+  <div id="fakeWarn"></div>
+</div>
+
+<!-- 결승선 -->
+<div id="finishLine">🏁 결승선</div>
+
+<!-- 필드 -->
+<div id="fieldWrap">
+  <div id="finishLine"></div>
+  <div id="finishLabel">🏁 결승선</div>
+  <div id="startLine"></div>
+  <div id="fieldChars"></div>
+</div>
+
+<!-- 컨트롤 -->
+<div id="controlZone">
+  <div style="display:flex;gap:8px;">
+    <button class="ctrl-btn" id="leftBtn" ontouchstart="moveLeft(event)">◀</button>
+    <button class="ctrl-btn" id="rightBtn" ontouchstart="moveRight(event)">▶</button>
+  </div>
+  <button class="ctrl-btn" id="moveBtn"
+    ontouchstart="onMovePress(event)" ontouchend="onMoveRelease(event)"
+>
+    🟢 누르는 동안 전진
+  </button>
+</div>
+
+<!-- 시작 팝업 -->
+<div id="startOverlay">
+  <div class="popup-box">
+    <span class="p-icon">🌸</span>
+    <div class="p-title">무궁화꽃 (강화판)</div>
+    <div class="p-rules">
+      <div class="rule-row">🟢 <span><b>초록불</b> — 버튼 누르는 동안 전진</span></div>
+      <div class="rule-row">🔴 <span><b>빨간불</b> — <span class="hl">즉시 손 떼야 함!</span> 움직이면 탈락</span></div>
+      <div class="rule-row">⚠️ <span><span class="hl">페이크 빨간불!</span> 초록인 척 하다 급변!</span></div>
+      <div class="rule-row">◀▶ <span>좌우 버튼으로 <b>다른 참가자 피하기</b></span></div>
+      <div class="rule-row">⏱ <span>제한시간 <b>45초</b> · 결승선 도달하면 클리어!</span></div>
+    </div>
+    <button class="p-btn primary" onclick="startCountdown()">🌸 게임 시작!</button>
+    <button class="p-btn secondary" onclick="doBack()">돌아가기</button>
+  </div>
+</div>
+
+<!-- 카운트다운 -->
+<div id="countdown" class="hidden">
+  <div id="cdNum">3</div>
+  <div id="cdSub">준비하세요!</div>
+</div>
+
+<!-- 결과 팝업 -->
+<div id="resultOverlay">
+  <div class="result-box" id="resultBox">
+    <span class="r-icon" id="rIcon">🎉</span>
+    <div class="r-title" id="rTitle">클리어!</div>
+    <div class="r-desc" id="rDesc"></div>
+    <div class="r-reward" id="rReward"></div>
+    <button class="r-btn primary" onclick="goHub()">결과 확인</button>
+    <button class="r-btn secondary" onclick="goHub()">허브로 돌아가기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="squid_fx.js"></script>
+<script>
+// ════════════════════════════
+// 상수
+// ════════════════════════════
+const GAME_ID    = 'sq_redlight2';
+const GAME_TIME  = 45;
+const TOTAL_STEPS= 22;
+const AI_COUNT   = 40;  // 좌20 우20
+const PX_MIN = 6, PX_MAX = 94, X_STEP = 7;
+
+// 강화 설정
+const FAKE_COUNT = 3;
+const FAKE_DELAY = 0.5;
+
+let fieldH = 0, stepH = 0;
+let playerStep = 0;
+let playerX    = 50;
+let aiChars    = [];
+let aiNums     = [];
+
+// ════════════════════════════
+// 상태
+// ════════════════════════════
+let gameInfo    = null;
+let phase       = 'start';
+let timeLeft    = GAME_TIME;
+let timerIv     = null;
+let rafId       = null;
+let forwardIv   = null;
+let aiIv        = null;
+
+// 신호등
+let lightState  = 'red';
+let isGreenLight= false;
+let isMoving    = false;
+let isEliminated= false;
+
+// ════════════════════════════
+// 진동
+// ════════════════════════════
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+
+// ════════════════════════════
+// 초기화
+// ════════════════════════════
+function init(){
+  const raw = sessionStorage.getItem('SQ_CURRENT_GAME');
+  if(raw) gameInfo = JSON.parse(raw);
+}
+
+function makeAINums(){
+  const s=new Set();
+  while(s.size<AI_COUNT){ const n=Math.floor(Math.random()*454)+1; if(n!==456)s.add(n); }
+  return [...s];
+}
+
+function initField(){
+  const fw=document.getElementById('fieldWrap');
+  fieldH=fw.clientHeight;
+  stepH=(fieldH-28)/TOTAL_STEPS;
+  if(aiChars.length === 0){
+    aiNums=makeAINums();
+    createAI();
+  } else {
+    aiChars.forEach(ai => { ai.el.style.bottom=(ai.step*stepH)+'px'; });
+  }
+  renderPlayer();
+}
+
+// ════════════════════════════
+// AI 생성 (시즌1 방식 — 좌우 20씩)
+// ════════════════════════════
+const AI_EMOJIS_M=['🧍','🚶'];
+const AI_EMOJIS_F=['🧍‍♀️','🚶‍♀️'];
+
+function createAI(){
+  const container=document.getElementById('fieldChars');
+  aiChars=[];
+  for(let i=0;i<AI_COUNT;i++){
+    const num=aiNums[i];
+    const side=i<20?'left':'right';
+    const xBase=side==='left'
+      ?3+(i%20)*2.4+Math.random()*1.5
+      :52+(i%20)*2.4+Math.random()*1.5;
+    const startStep=Math.random()*2.5;
+    const isFemale=Math.random()<.5;
+    const emojis=isFemale?AI_EMOJIS_F:AI_EMOJIS_M;
+    const emoji=emojis[Math.floor(Math.random()*emojis.length)];
+    const genderCls=isFemale?'ai-female':'ai-male';
+    const el=document.createElement('div');
+    el.className=`char ${genderCls}`; el.id='ai_'+num;
+    el.innerHTML=`<span class="char-emoji">${emoji}</span><span class="char-num">${padNum(num)}</span>`;
+    el.style.cssText=`left:${xBase}%;transform:translateX(-50%);bottom:${startStep*stepH}px;transition:bottom .16s linear,left .22s ease;`;
+    container.appendChild(el);
+    aiChars.push({
+      num,el,x:xBase,step:startStep,alive:true,
+      speed:.03+Math.random()*.06,
+      driftTimer:0,driftInterval:8+Math.floor(Math.random()*12),
+    });
+  }
+}
+
+function padNum(n){ return String(n).padStart(3,'0'); }
+
+// ════════════════════════════
+// 플레이어 렌더
+// ════════════════════════════
+function renderPlayer(){
+  let el=document.getElementById('player');
+  if(!el){
+    el=document.createElement('div');
+    el.className='char'; el.id='player';
+    el.innerHTML=`<div id="playerArrow"></div><span class="char-emoji" id="playerEmoji">🧍</span><span class="char-num">456</span>`;
+    document.getElementById('fieldChars').appendChild(el);
+  }
+  el.style.left=playerX+'%';
+  el.style.transform='translateX(-50%)';
+  el.style.bottom=(playerStep*stepH)+'px';
+  document.getElementById('progressFill').style.width=(playerStep/TOTAL_STEPS*100)+'%';
+}
+
+// ════════════════════════════
+// AI 업데이트
+// ════════════════════════════
+function updateAI(){
+  aiChars.forEach(ai=>{
+    if(!ai.alive) return;
+    if(isGreenLight){
+      ai.step=Math.min(ai.step+ai.speed,TOTAL_STEPS);
+      ai.driftTimer++;
+      if(ai.driftTimer%ai.driftInterval===0){
+        ai.x=Math.max(2,Math.min(98,ai.x+(Math.random()-.5)*3));
+        ai.el.style.left=ai.x+'%';
+      }
+    }
+    ai.el.style.bottom=(ai.step*stepH)+'px';
+  });
+}
+
+let elimNoticeTimer=null;
+function triggerAIElim(){
+  const cands=aiChars.filter(a=>a.alive&&a.step>1.5&&a.step<TOTAL_STEPS-1);
+  if(!cands.length) return;
+  const ai=cands[Math.floor(Math.random()*cands.length)];
+  ai.alive=false; ai.el.classList.add('dead');
+  spawnBullet(ai.x,ai.step);
+  const rect = ai.el.getBoundingClientRect();
+  SQ.aiElimEffect(rect.left + rect.width/2, rect.top + rect.height/2);
+  const pop=document.createElement('div');
+  pop.className='elim-pop'; pop.textContent='💀 탈락!';
+  pop.style.cssText=`left:${ai.x}%;bottom:${(ai.step*stepH+18)}px;`;
+  document.getElementById('fieldChars').appendChild(pop);
+  setTimeout(()=>pop.remove(),950);
+  showElimNotice(ai.num);
+  SQ.announce(`💀 ${padNum(ai.num)}번 탈락`, {type:'danger', duration:1200});
+  const deadCount = AI_COUNT - aiChars.filter(a=>a.alive).length;
+  if(deadCount % 5 === 0) SQ.shake(250, false);
+  vib(60);
+}
+
+function spawnBullet(xPct,step){
+  const fw=document.getElementById('fieldWrap');
+  const b=document.createElement('div');
+  b.className='bullet'; b.textContent='💥';
+  b.style.cssText=`left:${xPct}%;bottom:${(step*stepH+8)}px;`;
+  fw.appendChild(b);
+  setTimeout(()=>b.remove(),300);
+}
+
+function showElimNotice(num){
+  const el=document.getElementById('elimNotice');
+  el.textContent=`💀 ${padNum(num)}번 참가자 탈락!`;
+  el.classList.add('show');
+  clearTimeout(elimNoticeTimer);
+  elimNoticeTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ════════════════════════════
+// 카운트다운
+// ════════════════════════════
+function startCountdown(){
+  document.getElementById('startOverlay').classList.add('hidden');
+  initField();
+  document.getElementById('countdown').classList.remove('hidden');
+  let n=3;
+  document.getElementById('cdNum').textContent=n;
+  document.getElementById('cdSub').textContent='준비하세요!';
+  SQ.vignette(true, true);
+  SQ.vibrate([100,50,100]);
+  const tick=setInterval(()=>{
+    n--;
+    if(n>0){
+      document.getElementById('cdNum').textContent=n;
+      vib(n===2?[120,50,120]:[150,50,150]);
+    } else {
+      clearInterval(tick);
+      SQ.vignette(false);
+      SQ.flash('white', 120);
+      document.getElementById('cdNum').textContent='GO!';
+      document.getElementById('cdSub').textContent='결승선을 향해 달려라!';
+      SQ.vibrate([80,60,80,60,150]);
+      setTimeout(()=>{
+        document.getElementById('countdown').classList.add('hidden');
+        startGame();
+      },700);
+    }
+  },900);
+}
+
+// ════════════════════════════
+// 게임 시작
+// ════════════════════════════
+function startGame(){
+  phase='playing';
+  SQ.announce('시즌2 첫 번째 게임', {type:'system', duration:1800});
+  setTimeout(()=>{ SQ.announce('🌸 무궁화꽃이 피었습니다 (강화)', {type:'guard', duration:2500, typing:true}); }, 2000); isEliminated=false;
+  timeLeft=GAME_TIME; playerStep=0; playerX=50;
+  fakeUsed=0; cycleIdx=0;
+  isGreenLight=false;
+
+  timerIv=setInterval(()=>{
+    timeLeft--;
+    const td=document.getElementById('timerDisp');
+    td.textContent=timeLeft;
+    SQ.timerUrgent(timeLeft);
+    if(timeLeft<=10){
+      td.style.color='var(--red2)';
+      SQ.vibrate(timeLeft<=5 ? [60,30,60] : 30);
+      if(timeLeft===10) SQ.announce('⏱ 서두르세요!', {type:'system', duration:2000});
+    }
+    if(timeLeft<=30 && timeLeft>10){
+      SQ.vignette(true, false);
+    }
+    if(timeLeft<=0){ clearInterval(timerIv); timeUp(); }
+  },1000);
+
+  aiIv=setInterval(()=>{
+    if(phase!=='playing') return;
+    updateAI();
+    if(!isGreenLight && Math.random()<.05) triggerAIElim();
+  },80);
+
+  scheduleDoll();
+}
+
+// ════════════════════════════
+// 무궁화꽃 카운터 (시즌1 이식)
+// ════════════════════════════
+const PHRASE_A = [{ch:'무',c:'mc0'},{ch:'궁',c:'mc1'},{ch:'화',c:'mc2'},{ch:'꽃',c:'mc4'},{ch:'이',c:'mc5'}];
+const PHRASE_B = [{ch:' ',c:''},{ch:'피',c:'mc7'},{ch:'었',c:'mc8'},{ch:'습',c:'mc9'},{ch:'니',c:'mc10'},{ch:'다',c:'mc11'}];
+
+// 강화판 사이클 — 시즌1보다 빠르게
+const CYCLES = [
+  [2200,1000],[1600,800],[1900,700],[1300,900],
+  [1500,600],[1100,800],[1800,500],[1000,700],
+  [1400,900],[800,600],[1200,500],[1000,900],
+  [700,500],[900,700],[600,400],
+];
+
+let cycleIdx  = 0;
+let dollTo    = null;
+let mentIv    = null;
+let fakeUsed  = 0;
+
+function scheduleDoll(){
+  if(phase!=='playing') return;
+  const [greenMs, redMs] = CYCLES[cycleIdx % CYCLES.length];
+  cycleIdx++;
+  setLight(true);
+
+  const avgProg = playerStep / TOTAL_STEPS;
+  const speedMult = avgProg > 0.5 ? 0.58 : 1.0;
+
+  const baseCharMs = Math.floor((greenMs * 0.72) / (PHRASE_A.length + PHRASE_B.length));
+  const charMsA = Math.max(35, Math.floor((baseCharMs + Math.floor(Math.random()*30)) * speedMult));
+  const charMsB = Math.max(28, Math.floor((baseCharMs * 0.70 + Math.floor(Math.random()*18)) * speedMult));
+
+  playMugunghwaSplit(charMsA, charMsB, ()=>{
+    if(phase!=='playing') return;
+    if(fakeUsed < FAKE_COUNT && Math.random() < 0.35 && playerStep > TOTAL_STEPS*0.2){
+      triggerFake(redMs);
+    } else {
+      setLight(false);
+      if(isMoving) setTimeout(()=>eliminate(), 55);
+      dollTo = setTimeout(()=>{ if(phase==='playing') scheduleDoll(); }, redMs);
+    }
+  });
+}
+
+function playMugunghwaSplit(charMsA, charMsB, onDone){
+  const el = document.getElementById('mugunghwa');
+  el.innerHTML = '';
+  clearTimeout(mentIv);
+  let i = 0;
+  const allChars = [...PHRASE_A, ...PHRASE_B];
+  const charMsList = [
+    ...PHRASE_A.map(()=>charMsA),
+    ...PHRASE_B.map(()=>charMsB),
+  ];
+  function nextChar(){
+    if(i >= allChars.length){ onDone(); return; }
+    const {ch,c} = allChars[i];
+    const s = document.createElement('span');
+    s.textContent = ch; if(c) s.className = c;
+    el.appendChild(s);
+    i++;
+    mentIv = setTimeout(nextChar, charMsList[i-1]||charMsB);
+  }
+  nextChar();
+}
+
+// ════════════════════════════
+// 신호등
+// ════════════════════════════
+function setLight(green){
+  lightState   = green ? 'green' : 'red';
+  isGreenLight = green;
+  const doll = document.getElementById('dollImg');
+  const ltxt = document.getElementById('lightText');
+  const dotR = document.getElementById('dotRed');
+  const dotG = document.getElementById('dotGreen');
+  const btn  = document.getElementById('moveBtn');
+
+  if(green){
+    doll.classList.remove('alert');
+    doll.style.filter='drop-shadow(0 0 8px rgba(0,200,83,.4))';
+    ltxt.textContent='🟢 초록불';
+    dotR.className='light-dot'; dotG.className='light-dot ag';
+    btn.className='ctrl-btn'; btn.style.flex='1';
+    btn.style.background='linear-gradient(135deg,var(--green),var(--green2))';
+    btn.style.color='#0a0a0a';
+    btn.textContent='🟢 누르는 동안 전진';
+    SQ.greenLightEffect();
+    vib([30,20,30]);
+  } else {
+    doll.classList.add('alert');
+    doll.style.filter='drop-shadow(0 0 24px rgba(232,0,42,1))';
+    ltxt.textContent='🔴 빨간불';
+    dotR.className='light-dot ar'; dotG.className='light-dot';
+    btn.style.background='rgba(255,255,255,.1)';
+    btn.style.color='rgba(255,255,255,.3)';
+    btn.textContent='🔴 빨간불 — 손 떼세요!';
+    SQ.redLightEffect();
+    SQ.announce('멈춰!', {type:'danger', duration:1000});
+    flashDanger();
+    vib([80,40,80]);
+  }
+}
+
+function flashDanger(){
+  SQ.flash('red', 160);
+  SQ.shake(300, false);
+}
+
+// ════════════════════════════
+// 페이크 (강화판 신규)
+// ════════════════════════════
+function triggerFake(redMs){
+  fakeUsed++;
+  lightState='fake'; isGreenLight=false;
+
+  const dotR=document.getElementById('dotRed');
+  const dotG=document.getElementById('dotGreen');
+  const btn =document.getElementById('moveBtn');
+  dotR.className='light-dot'; dotG.className='light-dot ag';
+  document.getElementById('lightText').textContent='🟡 주의!';
+  document.getElementById('dollImg').style.filter='drop-shadow(0 0 12px rgba(255,214,0,.7))';
+  btn.style.background='linear-gradient(135deg,rgba(255,214,0,.4),rgba(255,214,0,.2))';
+  btn.style.color='#fff';
+  btn.textContent='🟡 속지마!';
+
+  vib([200,50,200]);
+  SQ.flash('gold', 200);
+  SQ.announce(`⚠️ 페이크! 속지마!`, {type:'danger', duration:1500});
+  showToast(`⚠️ 페이크 ${fakeUsed}/${FAKE_COUNT}! 속지마!`);
+
+  setTimeout(()=>{
+    if(phase!=='playing') return;
+    setLight(false);
+    if(isMoving) setTimeout(()=>eliminate(), 55);
+    dollTo=setTimeout(()=>{ if(phase==='playing') scheduleDoll(); }, redMs);
+  }, FAKE_DELAY*1000);
+}
+
+// ════════════════════════════
+// 버튼 컨트롤
+// ════════════════════════════
+
+// ── 결승선 도달 ──
+function clearGame(){
+  clearInterval(forwardIv); forwardIv=null;
+  clearInterval(timerIv); clearInterval(aiIv);
+  clearTimeout(dollTo); clearTimeout(mentIv);
+  endGame('win');
+}
+
+// ── 시간 초과 ──
+function timeUp(){
+  clearInterval(timerIv);
+  clearInterval(aiIv); clearInterval(forwardIv);
+  clearTimeout(dollTo); clearTimeout(mentIv);
+  SQ.flash('red', 300);
+  SQ.shake(500, true);
+  SQ.bigText('시간 초과!', 1500);
+  SQ.vibrate([100,50,100,50,200]);
+  endGame('lose','timeout');
+}
+
+// ── 탈락 ──
+function eliminate(){
+  if(isEliminated||phase!=='playing') return;
+  isEliminated=true; phase='caught';
+  clearInterval(forwardIv); forwardIv=null;
+  clearInterval(timerIv); clearInterval(aiIv);
+  clearTimeout(dollTo); clearTimeout(mentIv);
+  isMoving=false;
+
+  document.getElementById('moveBtn').classList.remove('pressing');
+  const pe=document.getElementById('playerEmoji');
+  if(pe) pe.textContent='🧍';
+  const pl=document.getElementById('player');
+  if(pl) pl.classList.add('dead');
+  document.getElementById('elimNotice').textContent='💀 456번 참가자 탈락!';
+  document.getElementById('elimNotice').classList.add('show');
+  document.getElementById('dollImg').classList.add('alert');
+
+  const playerEl=document.getElementById('player');
+  const rect=playerEl?playerEl.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2,width:0,height:0};
+  SQ.eliminateEffect({x: rect.left+rect.width/2, y: rect.top+rect.height/2});
+  SQ.bigText('탈락!', 1500);
+  flashDanger();
+  SQ.vibrate([300,100,300]);
+  showToast('💀 빨간불에 움직임이 감지되었습니다!');
+  setTimeout(()=>endGame('lose','caught'), 1200);
+}
+
+function onMovePress(e){
+  e.preventDefault();
+  if(phase!=='playing'||isEliminated) return;
+  isMoving=true;
+  document.getElementById('moveBtn').classList.add('pressing');
+  const pe=document.getElementById('playerEmoji');
+  if(pe) pe.textContent='🏃';
+  if(!isGreenLight){ eliminate(); return; }
+  clearInterval(forwardIv);
+  forwardIv=setInterval(()=>{
+    if(!isGreenLight){ eliminate(); return; }
+    playerStep=Math.min(playerStep+.13,TOTAL_STEPS);
+    renderPlayer();
+    if(playerStep>=TOTAL_STEPS) clearGame();
+  },55);
+}
+function onMoveRelease(e){
+  if(e) e.preventDefault();
+  isMoving=false;
+  clearInterval(forwardIv); forwardIv=null;
+  if(phase==='playing'){
+    document.getElementById('moveBtn').classList.remove('pressing');
+    const pe=document.getElementById('playerEmoji');
+    if(pe) pe.textContent='🧍';
+  }
+}
+function moveLeft(e){
+  if(e) e.preventDefault();
+  if(phase!=='playing'||isEliminated) return;
+  const newX=Math.max(PX_MIN,playerX-X_STEP);
+  if(!isBlockedByAI(newX, playerStep)) playerX=newX;
+  renderPlayer();
+}
+function moveRight(e){
+  if(e) e.preventDefault();
+  if(phase!=='playing'||isEliminated) return;
+  const newX=Math.min(PX_MAX,playerX+X_STEP);
+  if(!isBlockedByAI(newX, playerStep)) playerX=newX;
+  renderPlayer();
+}
+
+function isBlockedByAI(x, step){
+  return aiChars.some(ai=>{
+    if(!ai.alive) return false;
+    const dx=Math.abs(ai.x - x);
+    const dy=Math.abs(ai.step - step);
+    return dx < 5 && dy < 1.5;
+  });
+}
+
+// ════════════════════════════
+// 게임 종료
+// ════════════════════════════
+function endGame(outcome, reason=''){
+  if(phase==='result') return;
+  phase='result';
+  clearInterval(timerIv); clearInterval(aiIv);
+  clearInterval(forwardIv); clearTimeout(dollTo); clearTimeout(mentIv);
+  isMoving=false;
+
+  const isWin = outcome==='win';
+  const isNew = gameInfo ? gameInfo.isNew : true;
+
+  sessionStorage.setItem('SQ_GAME_RESULT', JSON.stringify({
+    gameId:GAME_ID, outcome:isWin?'clear':'fail'
+  }));
+
+  const box = document.getElementById('resultBox');
+  box.className = `result-box ${isWin?'win':'lose'}`;
+  document.getElementById('rIcon').textContent = isWin?'🏆':'💀';
+  const rt = document.getElementById('rTitle');
+  rt.textContent = isWin?(isNew?'첫 클리어!':'클리어!'):'탈락!';
+  rt.className   = `r-title ${isWin?'win':'lose'}`;
+
+  const alive = aiChars.filter(a=>a.alive).length;
+  const elim  = AI_COUNT - alive;
+
+  const reasonTxt = {
+    caught: '빨간불에 움직임이 감지되었습니다!\n456번 참가자 탈락.',
+    timeout:'제한시간 45초를 초과했습니다!',
+  };
+  document.getElementById('rDesc').textContent = isWin
+    ? `강화판 클리어!\n페이크 ${fakeUsed}회 경험 · 남은시간 ${timeLeft}초\n참가자 ${elim}명 탈락 · ${alive}명 생존`
+    : reasonTxt[reason]||'실패했습니다.';
+
+  const rr     = document.getElementById('rReward');
+  rr.className   = `r-reward ${isWin?'earn':'loss'}`;
+  rr.textContent = isWin ? '보상은 허브에서 지급됩니다' : '입장료가 차감됩니다';
+
+  if(isWin){ SQ.pulse(null); SQ.clearEffect(); SQ.bigText('통과!', 1500); spawnParticles('🌸'); SQ.vibrate([60,40,60,40,60,40,150]); }
+  else { SQ.vibrate([200,60,200,60,300]); }
+
+  setTimeout(()=>{
+    document.getElementById('resultOverlay').classList.add('show');
+  }, 1600);
+}
+
+// ════════════════════════════
+// 유틸
+// ════════════════════════════
+function flashEffect(c){
+  SQ.flash(c === 'green' ? 'green' : c === 'blue' ? 'blue' : c === 'gold' ? 'gold' : 'red', 180);
+}
+function showToast(msg,dur=2200){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),dur);
+}
+function spawnParticles(emoji){
+  for(let i=0;i<12;i++) setTimeout(()=>{
+    const p=document.createElement('div');
+    p.className='particle'; p.textContent=emoji;
+    p.style.left=`${Math.random()*80+10}vw`;
+    p.style.top=`${Math.random()*60+10}vh`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1500);
+  },i*80);
+}
+function goHub(){ SQ.cleanup(); sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html'; }
+function doBack(){
+  SQ.cleanup();
+  if(phase==='playing'){
+    clearInterval(timerIv); clearInterval(aiIv);
+    clearInterval(forwardIv); clearTimeout(dollTo); clearTimeout(mentIv);
+    sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:'fail'}));
+  }
+  sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html';
+}
+
+init();
+</script>
+</body>
+</html>
