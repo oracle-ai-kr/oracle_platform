@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🦑 오징어 게임</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#e8002a;--red2:#ff1a42;--green:#00c853;--green2:#00e676;
+  --gold:#ffd600;--teal:#1a8899;--teal2:#22b8cc;--orange:#ff7020;--orange2:#ff9040;
+  --bg:#080808;--panel:#121212;--panel2:#1a1a1a;
+  --text:#f0ece8;--text2:#9a9490;--text3:#4a4642;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;font-family:'Noto Sans KR',sans-serif;}
+
+/* ══ 운동장 배경 ══ */
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background:linear-gradient(180deg,
+    #87CEEB 0%,#b8e4ff 16%,
+    #c8f0a0 16%,#a8d868 25%,
+    #c8a050 25%,#b89040 100%);
+}
+#bg::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 30% at 50% 10%,rgba(255,240,100,.18),transparent);}
+#bg::after{content:'';position:absolute;top:16%;left:0;right:0;height:9%;pointer-events:none;
+  background:repeating-linear-gradient(90deg,rgba(100,180,40,.15) 0px,rgba(100,180,40,.15) 6px,transparent 6px,transparent 14px);}
+.cloud{position:fixed;background:rgba(255,255,255,.88);border-radius:50px;pointer-events:none;z-index:0;}
+.c1{width:90px;height:28px;top:2%;left:5%;animation:cloudMove 22s linear infinite;}
+.c2{width:65px;height:20px;top:5%;left:42%;animation:cloudMove 30s linear infinite;}
+.c3{width:100px;height:30px;top:1%;left:72%;animation:cloudMove 25s linear infinite;}
+.c1::before,.c2::before,.c3::before{content:'';position:absolute;background:inherit;border-radius:50%;top:-40%;left:20%;width:50%;height:160%;}
+@keyframes cloudMove{0%{transform:translateX(-140px)}100%{transform:translateX(110vw)}}
+.dirt{position:fixed;top:25%;left:0;right:0;bottom:0;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,.03) 0px,rgba(0,0,0,.03) 1px,transparent 1px,transparent 12px);}
+.fence{position:fixed;bottom:0;left:0;right:0;height:16px;z-index:0;pointer-events:none;
+  background:repeating-linear-gradient(90deg,#8B4513 0px,#8B4513 12px,transparent 12px,transparent 20px);opacity:.5;}
+
+/* ══ 헤더 ══ */
+#header{
+  position:fixed;top:0;left:0;right:0;z-index:200;height:50px;
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:rgba(0,0,0,.58);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(232,0,42,.2);
+}
+#backBtn{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#backBtn:active{opacity:.7;}
+.hd-title{font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.06em;color:var(--red2);flex:1;}
+#turnBadge{font-family:'Black Han Sans',sans-serif;font-size:.75rem;color:var(--gold);background:rgba(255,214,0,.1);border:1px solid rgba(255,214,0,.22);border-radius:8px;padding:3px 9px;}
+
+/* ══ 팝업 공통 ══ */
+.overlay-bg{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;}
+.overlay-bg.hidden{display:none;}
+.popup-box{background:#1a1a1a;border-radius:22px;padding:28px 22px 22px;width:100%;max-width:360px;text-align:center;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.8);}
+.popup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.popup-box.red-top::before{background:linear-gradient(90deg,var(--red),var(--red2),var(--gold));}
+.popup-box.green-top::before{background:linear-gradient(90deg,var(--green),var(--green2));}
+.popup-box.lose-top::before{background:linear-gradient(90deg,var(--red),var(--red2));}
+.popup-box::after{content:'○  △  □';position:absolute;bottom:10px;right:14px;font-size:.55rem;color:rgba(255,255,255,.06);letter-spacing:.2em;pointer-events:none;}
+.p-icon{font-size:3rem;margin-bottom:10px;display:block;}
+.p-title{font-family:'Black Han Sans',sans-serif;font-size:1.4rem;letter-spacing:.06em;margin-bottom:14px;}
+.p-title.red{color:var(--red2);}.p-title.win{color:var(--green2);}.p-title.lose{color:var(--red2);}
+.p-rules{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin-bottom:16px;text-align:left;}
+.rule-row{display:flex;gap:8px;font-size:.74rem;color:var(--text2);line-height:1.6;margin-bottom:5px;}
+.rule-row:last-child{margin-bottom:0;}
+.rule-row b{color:#fff;}.hl{color:var(--red2);font-weight:900;}.hlg{color:var(--green2);font-weight:900;}
+.p-btn{width:100%;padding:13px;border:none;border-radius:13px;font-family:'Black Han Sans',sans-serif;font-size:.9rem;letter-spacing:.04em;cursor:pointer;margin-bottom:9px;transition:all .15s;}
+.p-btn:last-child{margin-bottom:0;}
+.p-btn.primary{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 3px 14px rgba(232,0,42,.4);}
+.p-btn.secondary{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.p-btn:active{opacity:.8;}
+.p-desc{font-size:.76rem;color:var(--text2);line-height:1.7;margin-bottom:14px;white-space:pre-line;}
+.p-reward{border-radius:10px;padding:10px;margin-bottom:16px;font-size:.88rem;font-weight:900;}
+.p-reward.earn{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.22);color:var(--green2);}
+.p-reward.loss{background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);color:#ff6680;}
+
+/* ══ 순서 공개 ══ */
+#orderScreen{position:fixed;inset:0;z-index:480;background:rgba(0,0,0,.92);backdrop-filter:blur(6px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:24px;}
+#orderScreen.show{display:flex;}
+.order-title{font-family:'Black Han Sans',sans-serif;font-size:1.2rem;color:#fff;letter-spacing:.06em;}
+.order-subtitle{font-size:.72rem;color:var(--text2);}
+.order-list{width:100%;max-width:320px;display:flex;flex-direction:column;gap:7px;}
+.order-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:9px 13px;animation:slideIn .3s ease both;}
+.order-item.is-player{background:rgba(255,112,32,.1);border-color:rgba(255,112,32,.3);}
+@keyframes slideIn{from{opacity:0;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
+.oi-num{font-family:'Black Han Sans',sans-serif;font-size:.82rem;color:var(--gold);min-width:22px;}
+.oi-char{font-size:1.3rem;}
+.oi-char.ai-c{filter:hue-rotate(175deg) saturate(3) brightness(.9);}
+.oi-char.pl-c{filter:hue-rotate(20deg) saturate(3.5) brightness(1.0);}
+.oi-name{flex:1;font-family:'Black Han Sans',sans-serif;font-size:.8rem;}
+.oi-badge{font-size:.58rem;font-weight:700;padding:2px 7px;border-radius:8px;}
+.badge-pl{background:rgba(255,112,32,.2);color:var(--orange2);border:1px solid rgba(255,112,32,.3);}
+.badge-ai{background:rgba(26,136,153,.2);color:var(--teal2);border:1px solid rgba(26,136,153,.3);}
+.badge-def{background:rgba(232,0,42,.15);color:var(--red2);border:1px solid rgba(232,0,42,.25);}
+.order-start-btn{width:100%;max-width:320px;padding:14px;border:none;border-radius:14px;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font-family:'Black Han Sans',sans-serif;font-size:1rem;letter-spacing:.06em;box-shadow:0 4px 20px rgba(232,0,42,.4);cursor:pointer;}
+.order-start-btn:active{transform:scale(.97);}
+
+/* ══ 카운트다운 ══ */
+#countdown{position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+#countdown.hidden{display:none;}
+#cdNum{font-family:'Black Han Sans',sans-serif;font-size:6rem;color:var(--red2);text-shadow:0 0 40px rgba(232,0,42,.8);animation:cdPop .9s ease infinite;}
+@keyframes cdPop{0%{transform:scale(1.25)}80%{transform:scale(.95)}100%{transform:scale(1.25)}}
+#cdSub{font-size:.85rem;color:rgba(255,255,255,.6);letter-spacing:.12em;}
+
+/* ══ 인게임 ══ */
+#gameArea{position:fixed;top:50px;left:0;right:0;bottom:0;z-index:1;display:flex;flex-direction:column;}
+#gameArea.hidden{display:none;}
+
+/* ══ 오징어 필드 ══ */
+#fieldWrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding-top:8px;}
+#squidSvg{width:min(250px,72vw);height:auto;filter:drop-shadow(0 4px 16px rgba(0,0,0,.45));}
+
+/* SVG 구역 색 */
+.field-tail{fill:rgba(26,136,153,.15);stroke:rgba(26,136,153,.4);stroke-width:2;}
+.field-body{fill:rgba(255,255,255,.05);stroke:rgba(255,255,255,.2);stroke-width:2;}
+.field-body2{fill:rgba(255,255,255,.03);stroke:rgba(255,255,255,.15);stroke-width:1.5;}
+.field-neck{fill:rgba(255,214,0,.12);stroke:rgba(255,214,0,.4);stroke-width:2.5;}
+.field-head{fill:rgba(232,0,42,.18);stroke:rgba(232,0,42,.55);stroke-width:2.5;}
+/* 활성 구역 강조 */
+.zone-active{filter:brightness(1.8) drop-shadow(0 0 6px rgba(255,214,0,.6));}
+
+/* ══ 캐릭터 오버레이 ══ */
+#charOverlay{position:absolute;inset:0;pointer-events:none;}
+.field-char{position:absolute;display:flex;flex-direction:column;align-items:center;gap:1px;transition:all .5s cubic-bezier(.4,0,.2,1);pointer-events:none;}
+.field-char .fc-emoji{font-size:1.25rem;line-height:1;}
+.field-char .fc-plate{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.36rem;padding:1px 3px;border-radius:3px;background:rgba(20,20,20,.9);color:#ddd;border:1px solid rgba(255,255,255,.18);}
+.field-char .fc-plate.p456{background:#d45000;color:#fff;border-color:rgba(255,200,100,.6);}
+.field-char.atk-char .fc-emoji{filter:hue-rotate(20deg) saturate(3.5) brightness(1.0);}
+.field-char.def-char .fc-emoji{filter:hue-rotate(175deg) saturate(3) brightness(.9);}
+.field-char.dead-char .fc-emoji{filter:grayscale(1) brightness(.4);opacity:.35;}
+@keyframes fallChar{0%{transform:translateY(0) rotate(0);opacity:1}100%{transform:translateY(40px) rotate(20deg);opacity:0}}
+.field-char.falling{animation:fallChar .7s ease forwards;}
+@keyframes advChar{0%{transform:scale(1)}50%{transform:scale(1.25)}100%{transform:scale(1)}}
+.field-char.advancing{animation:advChar .4s ease;}
+@keyframes defRush{0%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-50%) scale(1.3) translateY(8px)}100%{transform:translate(-50%,-50%) scale(1)}}
+@keyframes defShake{0%,100%{transform:translate(-50%,-50%) rotate(0)}25%{transform:translate(-50%,-50%) rotate(-12deg)}75%{transform:translate(-50%,-50%) rotate(12deg)}}
+.def-char.rushing{animation:defRush .5s ease;}
+.def-char.shaking{animation:defShake .25s ease 2;}
+
+/* ══ 공격대기줄 ══ */
+#atkQueue{display:flex;align-items:center;justify-content:center;gap:5px;padding:5px 0 3px;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.5);backdrop-filter:blur(8px);}
+.aq-char{display:flex;flex-direction:column;align-items:center;gap:1px;transition:opacity .3s;}
+.aq-char .aq-emoji{font-size:1.2rem;}
+.aq-char .aq-plate{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.36rem;padding:1px 3px;border-radius:3px;background:rgba(20,20,20,.9);color:#ddd;border:1px solid rgba(255,255,255,.18);}
+.aq-char .aq-plate.p456{background:#d45000;color:#fff;}
+.aq-char.atk-alive .aq-emoji{filter:hue-rotate(20deg) saturate(3.5) brightness(1.0);}
+.aq-char.atk-dead .aq-emoji{filter:grayscale(1) brightness(.3);opacity:.3;}
+.aq-char.atk-current .aq-emoji{filter:hue-rotate(20deg) saturate(3.5) brightness(1.2);animation:currentGlow .8s ease infinite alternate;}
+@keyframes currentGlow{0%{transform:scale(1)}100%{transform:scale(1.2)}}
+
+/* ══ 턴 패널 ══ */
+#turnPanel{background:rgba(0,0,0,.65);border-top:1px solid rgba(255,255,255,.1);padding:7px 14px 5px;backdrop-filter:blur(8px);}
+#turnDesc{font-family:'Black Han Sans',sans-serif;font-size:.8rem;letter-spacing:.04em;text-align:center;min-height:18px;margin-bottom:5px;}
+#turnDesc.my{color:var(--orange2);}#turnDesc.ai{color:var(--teal2);}
+#defHpRow{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+#defHpLabel{font-size:.58rem;color:var(--text3);white-space:nowrap;}
+#defHpBar{flex:1;height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;}
+#defHpFill{height:100%;background:linear-gradient(90deg,var(--red),var(--red2));border-radius:3px;transition:width .3s;}
+#defHpVal{font-family:'Black Han Sans',sans-serif;font-size:.62rem;color:var(--red2);min-width:18px;text-align:right;}
+
+/* ══ 분기 선택 버튼 ══ */
+#branchSection{padding:0 12px 8px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);display:none;}
+#branchSection.show{display:block;}
+#branchLabel{font-family:'Black Han Sans',sans-serif;font-size:.75rem;color:var(--gold);text-align:center;margin-bottom:7px;letter-spacing:.04em;}
+#branchBtns{display:flex;gap:8px;}
+.branch-btn{
+  flex:1;padding:12px 6px;border:2px solid;border-radius:13px;
+  font-family:'Black Han Sans',sans-serif;font-size:.82rem;letter-spacing:.03em;
+  cursor:pointer;transition:all .15s;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.branch-btn .bb-icon{font-size:1.2rem;}
+.branch-btn .bb-name{font-size:.78rem;}
+.branch-btn .bb-info{font-size:.58rem;opacity:.75;font-family:'Noto Sans KR',sans-serif;font-weight:700;}
+.branch-btn.front{background:rgba(232,0,42,.12);border-color:rgba(232,0,42,.4);color:var(--red2);}
+.branch-btn.side{background:rgba(0,200,83,.1);border-color:rgba(0,200,83,.35);color:var(--green2);}
+.branch-btn:active{transform:scale(.95);}
+
+/* ══ 타이밍 게이지 ══ */
+#gaugeSection{padding:0 12px 10px;background:rgba(0,0,0,.55);backdrop-filter:blur(8px);}
+#gaugeWrap{position:relative;height:40px;background:rgba(255,255,255,.05);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);margin-bottom:7px;}
+#successZone{position:absolute;top:0;bottom:0;background:rgba(0,200,83,.25);border-left:2px solid rgba(0,200,83,.6);border-right:2px solid rgba(0,200,83,.6);}
+#gaugeBall{position:absolute;top:50%;transform:translate(-50%,-50%);width:16px;height:16px;border-radius:50%;background:radial-gradient(circle,#fff,#ffd600);box-shadow:0 0 10px rgba(255,214,0,.8);}
+#gaugeHit{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Black Han Sans',sans-serif;font-size:.8rem;opacity:0;transition:opacity .2s;pointer-events:none;}
+#gaugeHit.show-good{color:var(--green2);opacity:1;}
+#gaugeHit.show-bad{color:var(--red2);opacity:1;}
+#tapBtn{width:100%;padding:15px;border:none;border-radius:13px;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font-family:'Black Han Sans',sans-serif;font-size:1rem;letter-spacing:.06em;box-shadow:0 4px 20px rgba(232,0,42,.45);cursor:pointer;transition:all .1s;}
+#tapBtn:active{transform:scale(.96);}
+#tapBtn:disabled{background:rgba(255,255,255,.08);color:var(--text3);box-shadow:none;pointer-events:none;}
+
+/* ══ 이펙트 → squid_fx.js 대체 ══ */
+
+/* ══ 토스트 ══ */
+#toast{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(8,8,8,.97);border:1px solid rgba(232,0,42,.25);border-radius:10px;padding:8px 18px;font-size:.76rem;color:var(--text);opacity:0;transition:all .28s;pointer-events:none;z-index:400;white-space:nowrap;max-width:88vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ══ 파티클 ══ */
+.particle{position:fixed;pointer-events:none;z-index:700;font-size:1.1rem;animation:pfly 1.4s ease forwards;}
+@keyframes pfly{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-120px) rotate(360deg)}}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+<div id="bgEmoji" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.04;font-size:2.1rem;letter-spacing:1.4rem;line-height:4.3rem;white-space:nowrap;transform:rotate(-14deg) scale(1.3);color:rgba(255,255,255,.5);">🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀🦑⚔️🛡️★💀</div>
+<div class="cloud c1"></div><div class="cloud c2"></div><div class="cloud c3"></div>
+<div class="dirt"></div><div class="fence"></div>
+
+<!-- 헤더 -->
+<div id="header">
+  <button id="backBtn" onclick="doBack()">←</button>
+  <div class="hd-title">🦑 오징어 게임</div>
+  <div id="turnBadge">대기 중</div>
+</div>
+
+<!-- 시작 팝업 -->
+<div class="overlay-bg" id="startOverlay">
+  <div class="popup-box red-top">
+    <span class="p-icon">🦑</span>
+    <div class="p-title red">오 징 어  게 임</div>
+    <div class="p-rules">
+      <div class="rule-row">⚔️ <span><b>공격팀 5명</b> vs <b>수비팀 5명</b> 턴제 대결</span></div>
+      <div class="rule-row">🔀 <span>분기점에서 <span class="hlg">경로 선택!</span> 총 4가지 루트</span></div>
+      <div class="rule-row">🎯 <span>타이밍 게이지 <b>녹색 구간</b>에서 탭!</span></div>
+      <div class="rule-row">🦑 <span><span class="hlg">★공격집</span> 도달하면 클리어!</span></div>
+      <div class="rule-row">💀 <span>456번 탈락 시 <span class="hl">즉시 패배</span></span></div>
+    </div>
+    <button class="p-btn primary" onclick="showOrderScreen()">🦑 게임 시작!</button>
+    <button class="p-btn secondary" onclick="doBack()">돌아가기</button>
+  </div>
+</div>
+
+<!-- 순서 공개 -->
+<div id="orderScreen">
+  <div class="order-title">⚔️ 전투 배치</div>
+  <div class="order-subtitle">공격 순서가 정해졌다</div>
+  <div class="order-list" id="orderList"></div>
+  <button class="order-start-btn" onclick="startCountdown()">돌진!</button>
+</div>
+
+<!-- 카운트다운 -->
+<div id="countdown" class="hidden">
+  <div id="cdNum">3</div>
+  <div id="cdSub">오징어 게임 시작!</div>
+</div>
+
+<!-- 인게임 -->
+<div id="gameArea" class="hidden">
+  <div id="fieldWrap">
+    <svg id="squidSvg" viewBox="0 0 240 360" xmlns="http://www.w3.org/2000/svg">
+      <!-- 수비집 사각형 -->
+      <rect id="zoneDefHome" class="field-body" x="30" y="175" width="180" height="108" rx="4"/>
+      <text x="120" y="236" text-anchor="middle" font-family="'Black Han Sans'" font-size="8.5" fill="rgba(26,136,153,.55)">⑤ 수비집</text>
+      <!-- 출발원 ④ -->
+      <circle id="zoneStartCircle" class="field-tail" cx="120" cy="290" r="26"/>
+      <text x="120" y="294" text-anchor="middle" font-family="'Black Han Sans'" font-size="7" fill="rgba(26,136,153,.75)">④출발</text>
+      <!-- 위 삼각형 -->
+      <polygon id="zoneTriangle" class="field-body2" points="120,30 30,145 210,145"/>
+      <text x="120" y="115" text-anchor="middle" font-family="'Black Han Sans'" font-size="8" fill="rgba(255,255,255,.2)">공격 진입로</text>
+      <!-- 다리 ② -->
+      <rect id="zoneBridge" class="field-neck" x="104" y="143" width="32" height="34" rx="3"/>
+      <text x="120" y="164" text-anchor="middle" font-family="'Black Han Sans'" font-size="7" fill="rgba(255,214,0,.8)">②다리</text>
+      <!-- 오른쪽 우회로 ③ -->
+      <rect id="zoneOuter" class="field-body" x="185" y="175" width="40" height="108" rx="3"/>
+      <text x="205" y="232" text-anchor="middle" font-family="'Black Han Sans'" font-size="7" fill="rgba(0,200,83,.6)">③우회</text>
+      <!-- 공격집 ★ -->
+      <circle id="zoneGoal" class="field-head" cx="120" cy="44" r="24"/>
+      <text x="120" y="40" text-anchor="middle" font-family="'Black Han Sans'" font-size="7" fill="rgba(232,0,42,.9)">공격집</text>
+      <text x="120" y="52" text-anchor="middle" font-size="11">★</text>
+      <!-- 경로 화살표 -->
+      <!-- 정면 경로: 출발→다리→수비집→공격집 -->
+      <path d="M 108,264 L 108,177" stroke="rgba(232,0,42,.3)" stroke-width="1.5" stroke-dasharray="4,3" fill="none"/>
+      <!-- 우회 경로: 출발→오른쪽→수비집 -->
+      <path d="M 143,278 Q 205,278 205,283" stroke="rgba(0,200,83,.3)" stroke-width="1.5" stroke-dasharray="4,3" fill="none"/>
+      <!-- 수비집→공격집 -->
+      <path d="M 120,175 L 120,68" stroke="rgba(232,0,42,.4)" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#arr)"/>
+      <defs><marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="rgba(232,0,42,.7)"/></marker></defs>
+      <!-- 중앙선 -->
+      <line x1="120" y1="20" x2="120" y2="316" stroke="rgba(255,255,255,.07)" stroke-width="1" stroke-dasharray="4,5"/>
+      <!-- 바깥마당 ① 레이블 -->
+      <text x="16" y="132" font-family="'Black Han Sans'" font-size="8" fill="rgba(255,255,255,.25)">①바깥</text>
+    </svg>
+    <div id="charOverlay"></div>
+  </div>
+
+  <div id="atkQueue"></div>
+
+  <div id="turnPanel">
+    <div id="turnDesc" class="ai">준비 중...</div>
+    <div id="defHpRow">
+      <span id="defHpLabel">수비 체력</span>
+      <div id="defHpBar"><div id="defHpFill" style="width:100%"></div></div>
+      <span id="defHpVal">20</span>
+    </div>
+  </div>
+
+  <!-- 분기 선택 -->
+  <div id="branchSection">
+    <div id="branchLabel">⚡ 경로를 선택하라!</div>
+    <div id="branchBtns">
+      <button class="branch-btn front" onclick="chooseBranch('front')">
+        <span class="bb-icon">⚔️</span>
+        <span class="bb-name">정면 돌파</span>
+        <span class="bb-info">빠름 · 수비 강함</span>
+      </button>
+      <button class="branch-btn side" onclick="chooseBranch('side')">
+        <span class="bb-icon">🔄</span>
+        <span class="bb-name">우회로</span>
+        <span class="bb-info">느림 · 수비 약함</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 타이밍 게이지 -->
+  <div id="gaugeSection">
+    <div id="gaugeWrap">
+      <div id="successZone"></div>
+      <div id="gaugeBall" style="left:0%"></div>
+      <div id="gaugeHit"></div>
+    </div>
+    <button id="tapBtn" onclick="onTap()" disabled>대기 중...</button>
+  </div>
+</div>
+
+<!-- 최종 결과 -->
+<div class="overlay-bg hidden" id="resultOverlay">
+  <div class="popup-box" id="resultBox">
+    <span class="p-icon" id="rIcon">🏆</span>
+    <div class="p-title" id="rTitle">클리어!</div>
+    <div class="p-desc" id="rDesc"></div>
+    <div class="p-reward" id="rReward"></div>
+    <button class="p-btn primary" onclick="goHub()">결과 확인</button>
+    <button class="p-btn secondary" onclick="goHub()">허브로 돌아가기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="squid_fx.js"></script>
+<script>
+// ════════════════════════════════════════
+// 상수
+// ════════════════════════════════════════
+const GAME_ID = 'sq_squid';
+const DEF_HP_MAX = 20;
+
+// ── 경로 그래프 ──
+// 각 구역에서 이동 가능한 다음 구역들
+// front=정면, side=우회, null=단일경로
+const ROUTE_GRAPH = {
+  start_circle: { front:'bridge',  side:'outer'    }, // ① 분기점
+  bridge:       { next:'def_home'                  }, // 단일
+  outer:        { next:'def_home'                  }, // 단일
+  def_home:     { front:'goal',    side:'goal_side'}, // ② 분기점 (같은 목적지지만 난이도 다름)
+  goal_side:    { next:'goal'                      }, // 우회→공격집
+  goal:         null,                                  // 최종 목적지
+};
+
+// 구역 이름
+const ZONE_NAMES = {
+  start_circle:'④ 출발원',
+  bridge:      '② 다리 통로',
+  outer:       '③ 우회로',
+  def_home:    '⑤ 수비집',
+  goal_side:   '측면→공격집',
+  goal:        '★ 공격집!',
+};
+
+// 분기점 구역
+const BRANCH_ZONES = new Set(['start_circle','def_home']);
+
+// 타이밍 게이지 설정
+const GAUGE_CFG = {
+  start_circle:{zoneW:26, speed:1.2, pattern:'normal'},
+  bridge:      {zoneW:13, speed:2.1, pattern:'fake'},   // 정면 어려움
+  outer:       {zoneW:22, speed:1.4, pattern:'normal'},  // 우회 쉬움
+  def_home:    {zoneW:18, speed:1.8, pattern:'rush'},
+  goal_side:   {zoneW:20, speed:1.6, pattern:'normal'},
+  goal:        {zoneW:14, speed:2.3, pattern:'fake'},    // 최종 어려움
+};
+
+// AI 동료 탈락 확률
+const AI_FAIL = {
+  start_circle:0.15, bridge:0.55, outer:0.25,
+  def_home:0.40, goal_side:0.30, goal:0.35,
+};
+
+// 수비 데미지
+const DEF_DMG = {
+  start_circle:1, bridge:5, outer:2,
+  def_home:4, goal_side:3, goal:6,
+};
+
+// 구역별 캐릭터 위치 (fieldWrap %)
+const ZONE_POS = {
+  start_circle:{x:50, y:82},
+  bridge:      {x:50, y:46},
+  outer:       {x:88, y:62},
+  def_home:    {x:50, y:64},
+  goal_side:   {x:75, y:46},
+  goal:        {x:50, y:14},
+};
+
+// 수비팀 위치
+const DEF_POS = [
+  {x:35,y:58},{x:65,y:58},{x:45,y:70},{x:55,y:70},{x:50,y:44}
+];
+
+// ════════════════════════════════════════
+// 상태
+// ════════════════════════════════════════
+let gameInfo     = null;
+let phase        = 'start';
+let attackers    = [];
+let turnOrder    = [];
+let playerAtkIdx = -1;
+let defHP        = DEF_HP_MAX;
+let currentTurn  = 0;
+
+// 게이지
+let ballPos=0, ballDir=1, ballSpeed=1.4;
+let successLeft=0, successW=20;
+let gaugRafId=null, gaugeActive=false, lastGaugeTs=0;
+let fakeTimer=0, currentPattern='normal';
+
+// 분기 대기 상태
+let waitingBranch = false;
+let branchAIdx    = -1;
+
+// ════════════════════════════════════════
+// 진동
+// ════════════════════════════════════════
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+
+// ════════════════════════════════════════
+// 초기화
+// ════════════════════════════════════════
+function init(){
+  const raw = sessionStorage.getItem('SQ_CURRENT_GAME');
+  if(raw) gameInfo = JSON.parse(raw);
+
+  const used = new Set([456]);
+  function rn(){ let n; do{n=Math.floor(Math.random()*455)+1;}while(used.has(n)); used.add(n); return n; }
+
+  attackers = [
+    {num:456,  isPlayer:true,  zone:'start_circle', alive:true},
+    {num:rn(), isPlayer:false, zone:'start_circle', alive:true},
+    {num:rn(), isPlayer:false, zone:'start_circle', alive:true},
+    {num:rn(), isPlayer:false, zone:'start_circle', alive:true},
+    {num:rn(), isPlayer:false, zone:'start_circle', alive:true},
+  ];
+  playerAtkIdx = 0;
+  turnOrder = [0,1,2,3,4].sort(()=>Math.random()-.5);
+}
+
+// ════════════════════════════════════════
+// 순서 공개
+// ════════════════════════════════════════
+function showOrderScreen(){
+  document.getElementById('startOverlay').classList.add('hidden');
+  document.getElementById('orderScreen').classList.add('show');
+  const list = document.getElementById('orderList');
+  list.innerHTML = '';
+  turnOrder.forEach((aIdx,i)=>{
+    const a = attackers[aIdx];
+    const item = document.createElement('div');
+    item.className = `order-item${a.isPlayer?' is-player':''}`;
+    item.style.animationDelay = `${i*0.1}s`;
+    item.innerHTML = `
+      <span class="oi-num">${i+1}번</span>
+      <span class="oi-char ${a.isPlayer?'pl-c':'ai-c'}">🧍</span>
+      <span class="oi-name" style="color:${a.isPlayer?'var(--orange2)':'var(--teal2)'}">
+        ${a.isPlayer?'나 (456번)':String(a.num).padStart(3,'0')+'번'}
+      </span>
+      <span class="oi-badge ${a.isPlayer?'badge-pl':'badge-ai'}">${a.isPlayer?'나':'AI'}</span>`;
+    list.appendChild(item);
+  });
+  const def = document.createElement('div');
+  def.style.cssText='width:100%;max-width:320px;background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);border-radius:12px;padding:9px 13px;display:flex;align-items:center;gap:8px;margin-top:4px;';
+  def.innerHTML=`<span style="font-family:'Black Han Sans';font-size:.72rem;color:var(--red2);">수비팀</span><span style="flex:1;font-size:.72rem;color:var(--text2);">AI 수비 5명</span><span class="oi-badge badge-def">수비</span>`;
+  list.appendChild(def);
+}
+
+// ════════════════════════════════════════
+// 카운트다운
+// ════════════════════════════════════════
+function startCountdown(){
+  document.getElementById('orderScreen').classList.remove('show');
+  document.getElementById('countdown').classList.remove('hidden');
+  SQ.vignette(true, true);
+  let n=3; document.getElementById('cdNum').textContent=n; SQ.vibrate([100,50,100]);
+  const tick=setInterval(()=>{
+    n--;
+    if(n>0){ document.getElementById('cdNum').textContent=n; SQ.vibrate(n===2?[120,50,120]:[150,50,150]); }
+    else{
+      clearInterval(tick);
+      document.getElementById('cdNum').textContent='GO!';
+      document.getElementById('cdSub').textContent='돌진하라!';
+      SQ.vignette(false);
+      SQ.flash('white', 120);
+      SQ.vibrate([80,40,80,40,80,40,200]);
+      setTimeout(()=>{ document.getElementById('countdown').classList.add('hidden'); startGame(); },700);
+    }
+  },900);
+}
+
+// ════════════════════════════════════════
+// 게임 시작
+// ════════════════════════════════════════
+function startGame(){
+  phase='playing';
+  document.getElementById('gameArea').classList.remove('hidden');
+  buildField(); buildAtkQueue(); updateDefHP();
+  SQ.announce('여섯 번째 게임', {type:'system', duration:1800});
+  setTimeout(()=>{
+    SQ.announce('🦑 오징어 게임 — 공격집을 점령하라!', {type:'guard', duration:2500, typing:true});
+  }, 2000);
+  setTimeout(()=>processTurn(), 500);
+}
+
+// ════════════════════════════════════════
+// 필드 구성
+// ════════════════════════════════════════
+function buildField(){
+  const overlay = document.getElementById('charOverlay');
+  overlay.innerHTML='';
+  const used = new Set([456,...attackers.map(a=>a.num)]);
+  const defNums=[];
+  for(let i=0;i<5;i++){ let n; do{n=Math.floor(Math.random()*455)+1;}while(used.has(n)); used.add(n); defNums.push(n); }
+  DEF_POS.forEach((pos,i)=>{
+    const el=document.createElement('div');
+    el.className='field-char def-char'; el.id=`def-${i}`;
+    el.style.left=pos.x+'%'; el.style.top=pos.y+'%'; el.style.transform='translate(-50%,-50%)';
+    el.innerHTML=`<span class="fc-emoji">🧍</span><span class="fc-plate">${String(defNums[i]).padStart(3,'0')}</span>`;
+    overlay.appendChild(el);
+  });
+  // 공격팀 출발원에 분산 배치
+  turnOrder.forEach((aIdx,i)=>{
+    const a=attackers[aIdx];
+    const el=document.createElement('div');
+    el.className='field-char atk-char'; el.id=`atk-field-${aIdx}`;
+    const ox=(i-2)*10;
+    el.style.left=(50+ox)+'%'; el.style.top='84%'; el.style.transform='translate(-50%,-50%)';
+    el.innerHTML=`<span class="fc-emoji">🧍</span><span class="fc-plate${a.num===456?' p456':''}">${String(a.num).padStart(3,'0')}</span>`;
+    overlay.appendChild(el);
+  });
+}
+
+function buildAtkQueue(){
+  const queue=document.getElementById('atkQueue'); queue.innerHTML='';
+  turnOrder.forEach((aIdx)=>{
+    const a=attackers[aIdx];
+    const el=document.createElement('div');
+    el.className='aq-char atk-alive'; el.id=`aq-${aIdx}`;
+    el.innerHTML=`<span class="aq-emoji">🧍</span><span class="aq-plate${a.num===456?' p456':''}">${String(a.num).padStart(3,'0')}</span>`;
+    queue.appendChild(el);
+  });
+}
+
+// ════════════════════════════════════════
+// 턴 처리
+// ════════════════════════════════════════
+function processTurn(){
+  if(phase!=='playing') return;
+
+  // 수비 체력 0 → 자동 승리
+  if(defHP <= 0 && attackers[playerAtkIdx].alive){
+    showToast('🔥 수비팀 전멸! 공격집 진입!');
+    setTimeout(()=>endGame('win'),800);
+    return;
+  }
+
+  while(currentTurn<turnOrder.length){
+    const aIdx=turnOrder[currentTurn];
+    const a=attackers[aIdx];
+    if(a.alive && a.zone !== 'goal') break; // goal 도달한 캐릭터는 스킵
+    currentTurn++;
+  }
+  if(currentTurn>=turnOrder.length){
+    const anyActive=attackers.some(a=>a.alive && a.zone !== 'goal');
+    if(!anyActive){
+      // 모두 도달 또는 탈락
+      if(attackers[playerAtkIdx].alive) endGame('win');
+      else endGame('lose');
+      return;
+    }
+    currentTurn=0;
+    setTimeout(processTurn,400); return;
+  }
+  const aIdx=turnOrder[currentTurn];
+  const atk=attackers[aIdx];
+  updateQueueHighlight(aIdx);
+  document.getElementById('turnBadge').textContent=atk.isPlayer?'내 차례!':String(atk.num).padStart(3,'0')+'번';
+
+  // 분기점 체크
+  if(BRANCH_ZONES.has(atk.zone)){
+    if(atk.isPlayer){
+      startPlayerBranch(aIdx);
+    } else {
+      startAiBranch(aIdx);
+    }
+  } else {
+    if(atk.isPlayer) startPlayerTurn(aIdx);
+    else startAiTurn(aIdx);
+  }
+}
+
+// ════════════════════════════════════════
+// 분기 선택 — 플레이어
+// ════════════════════════════════════════
+function startPlayerBranch(aIdx){
+  branchAIdx = aIdx;
+  waitingBranch = true;
+  const atk = attackers[aIdx];
+  const routes = ROUTE_GRAPH[atk.zone];
+  const desc = document.getElementById('turnDesc');
+  desc.textContent = `🟠 경로 선택! — ${ZONE_NAMES[atk.zone]}`;
+  desc.className = 'my';
+  SQ.vibrate([80,40,80]);
+  SQ.flash('gold', 100);
+
+  // 분기 버튼 텍스트 구역에 맞게 설정
+  const frontZone = routes.front;
+  const sideZone  = routes.side;
+  const frontBtn  = document.querySelector('.branch-btn.front');
+  const sideBtn   = document.querySelector('.branch-btn.side');
+  frontBtn.querySelector('.bb-name').textContent = ZONE_NAMES[frontZone] || '정면 돌파';
+  sideBtn.querySelector('.bb-name').textContent  = ZONE_NAMES[sideZone]  || '우회로';
+
+  // 난이도 표시
+  const frontCfg = GAUGE_CFG[frontZone];
+  const sideCfg  = GAUGE_CFG[sideZone];
+  frontBtn.querySelector('.bb-info').textContent = `게이지 ${frontCfg.zoneW}% · 데미지 ${DEF_DMG[frontZone]||3}`;
+  sideBtn.querySelector('.bb-info').textContent  = `게이지 ${sideCfg.zoneW}% · 데미지 ${DEF_DMG[sideZone]||3}`;
+
+  stopGauge(); // 분기 선택 중 게이지 정지
+  document.getElementById('branchSection').classList.add('show');
+  document.getElementById('gaugeSection').style.display='none';
+  document.getElementById('tapBtn').disabled=true;
+}
+
+function chooseBranch(dir){
+  if(!waitingBranch) return;
+  waitingBranch=false;
+  vib(30);
+  document.getElementById('branchSection').classList.remove('show');
+  document.getElementById('gaugeSection').style.display='';
+
+  const atk   = attackers[branchAIdx];
+  const routes = ROUTE_GRAPH[atk.zone];
+  const nextZone = dir==='front' ? routes.front : routes.side;
+  atk.zone = nextZone;
+  showToast(`⚡ ${ZONE_NAMES[nextZone]} 선택!`);
+  setTimeout(()=> startPlayerTurn(branchAIdx), 400);
+}
+
+// ════════════════════════════════════════
+// 분기 선택 — AI
+// ════════════════════════════════════════
+function startAiBranch(aIdx){
+  const atk   = attackers[aIdx];
+  const routes = ROUTE_GRAPH[atk.zone];
+  const desc  = document.getElementById('turnDesc');
+  desc.textContent=`🔵 ${String(atk.num).padStart(3,'0')}번 경로 선택 중...`;
+  desc.className='ai';
+  document.getElementById('branchSection').classList.remove('show');
+  document.getElementById('gaugeSection').style.display='';
+
+  // AI는 랜덤 (55% 정면, 45% 우회)
+  const goFront = Math.random()<0.55;
+  const nextZone = goFront ? routes.front : routes.side;
+  setTimeout(()=>{
+    atk.zone = nextZone;
+    showToast(`🔵 ${String(atk.num).padStart(3,'0')}번 → ${ZONE_NAMES[nextZone]}`);
+    setTimeout(()=> startAiTurn(aIdx), 400);
+  },800);
+}
+
+// ════════════════════════════════════════
+// 플레이어 턴 (게이지)
+// ════════════════════════════════════════
+function startPlayerTurn(aIdx){
+  const atk=attackers[aIdx];
+  const desc=document.getElementById('turnDesc');
+  desc.textContent=`🟠 내 차례! — ${ZONE_NAMES[atk.zone]} 돌진!`;
+  desc.className='my';
+  SQ.vibrate([80,40,80]);
+  SQ.announce(`🟠 ${ZONE_NAMES[atk.zone]} 돌진!`, {type:'player', duration:1500});
+  triggerDefRush(atk.zone, atk.zone==='bridge'||atk.zone==='goal'||atk.zone==='def_home');
+  setupGauge(atk.zone);
+  document.getElementById('tapBtn').disabled=false;
+  document.getElementById('tapBtn').textContent='⚡ 탭!';
+  startGaugeAnim();
+}
+
+// ════════════════════════════════════════
+// AI 턴 (자동)
+// ════════════════════════════════════════
+function startAiTurn(aIdx){
+  const atk=attackers[aIdx];
+  const desc=document.getElementById('turnDesc');
+  desc.textContent=`🔵 ${String(atk.num).padStart(3,'0')}번 돌진 중...`;
+  desc.className='ai';
+  document.getElementById('tapBtn').disabled=true;
+  document.getElementById('tapBtn').textContent='대기 중...';
+  triggerDefRush(atk.zone, false);
+  const failP=AI_FAIL[atk.zone]||0.35;
+  const ok=Math.random()>failP;
+  setupGauge(atk.zone); startGaugeAnim();
+  setTimeout(()=>{ stopGauge(); resolveAtk(aIdx,ok); },1200+Math.random()*600);
+}
+
+// ════════════════════════════════════════
+// 게이지
+// ════════════════════════════════════════
+function setupGauge(zone){
+  const cfg=GAUGE_CFG[zone]||GAUGE_CFG.def_home;
+  successW=cfg.zoneW; ballSpeed=cfg.speed; currentPattern=cfg.pattern; fakeTimer=0;
+  successLeft=10+Math.random()*(80-successW);
+  document.getElementById('successZone').style.left=successLeft+'%';
+  document.getElementById('successZone').style.width=successW+'%';
+  ballPos=0; ballDir=1; updateBallUI();
+  const gh=document.getElementById('gaugeHit'); gh.className=''; gh.textContent='';
+}
+function startGaugeAnim(){
+  gaugeActive=true; lastGaugeTs=performance.now();
+  if(gaugRafId) cancelAnimationFrame(gaugRafId);
+  gaugRafId=requestAnimationFrame(gaugeLoop);
+}
+function stopGauge(){ gaugeActive=false; if(gaugRafId) cancelAnimationFrame(gaugRafId); }
+function gaugeLoop(ts){
+  if(!gaugeActive) return;
+  const dt=Math.min((ts-lastGaugeTs)/1000,0.05); lastGaugeTs=ts;
+  if(currentPattern==='fake'){ fakeTimer+=dt; if(fakeTimer>0.6+Math.random()*0.5){fakeTimer=0;if(Math.random()<0.35)ballDir*=-1;} }
+  ballPos+=ballDir*ballSpeed*55*dt;
+  if(ballPos>=100){ballPos=100;ballDir=-1;} if(ballPos<=0){ballPos=0;ballDir=1;}
+  updateBallUI();
+  gaugRafId=requestAnimationFrame(gaugeLoop);
+}
+function updateBallUI(){ document.getElementById('gaugeBall').style.left=ballPos+'%'; }
+
+// ════════════════════════════════════════
+// 플레이어 탭
+// ════════════════════════════════════════
+function onTap(){
+  if(!gaugeActive) return;
+  stopGauge();
+  document.getElementById('tapBtn').disabled=true;
+  vib(25);
+  const aIdx=turnOrder[currentTurn];
+  const ok=(ballPos>=successLeft && ballPos<=successLeft+successW);
+  showGaugeResult(ok);
+  setTimeout(()=>resolveAtk(aIdx,ok),700);
+}
+function showGaugeResult(ok){
+  const el=document.getElementById('gaugeHit');
+  el.textContent=ok?'✅ 성공!':'❌ 실패!';
+  el.className=ok?'show-good':'show-bad';
+  setTimeout(()=>{el.className='';el.textContent='';},600);
+}
+
+// ════════════════════════════════════════
+// 돌진 결과
+// ════════════════════════════════════════
+function resolveAtk(aIdx, success){
+  stopGauge();
+  const atk=attackers[aIdx];
+  if(success){
+    SQ.flash('green', 150); SQ.vibrate([40,20,60]);
+    const dmg=DEF_DMG[atk.zone]||3;
+    defHP=Math.max(0,defHP-dmg); updateDefHP();
+    if(dmg >= 4) showToast(`💥 강력 타격! 수비 -${dmg}`, 1500);
+
+    const routes=ROUTE_GRAPH[atk.zone];
+
+    // 최종 목적지 도달 (routes===null)
+    if(!routes){
+      moveCharToZone(aIdx,'goal');
+      if(atk.isPlayer){
+        SQ.particles('firework', {x: window.innerWidth/2, y: window.innerHeight/3, count: 15});
+        setTimeout(()=>endGame('win'),800);
+      } else {
+        showToast(`✅ ${String(atk.num).padStart(3,'0')}번 공격집 도달!`);
+        // AI 도달: 더 이상 이동 불필요, 턴 스킵 처리
+        atk.zone = 'goal';
+        currentTurn++;
+        setTimeout(processTurn,800);
+      }
+      return;
+    }
+
+    // 단일 경로 (next 존재)
+    const nextZone = routes.next || null;
+    if(!nextZone){
+      // 분기점인데 여기로 오면 안 됨 — 안전장치
+      currentTurn++; setTimeout(processTurn,500); return;
+    }
+
+    atk.zone=nextZone;
+    moveCharToZone(aIdx,nextZone);
+    if(atk.isPlayer) showToast(`✅ 전진! → ${ZONE_NAMES[nextZone]}`);
+    else showToast(`✅ ${String(atk.num).padStart(3,'0')}번 → ${ZONE_NAMES[nextZone]}`);
+
+    // 한 칸 전진 후 다음 캐릭터
+    currentTurn++;
+    setTimeout(processTurn,700);
+
+  } else {
+    SQ.flash('red', 180);
+    SQ.shake(400, atk.isPlayer);
+    if(atk.isPlayer){
+      SQ.vibrate([200,80,200,80,400]);
+      const plEl = document.getElementById(`atk-field-${aIdx}`);
+      const plRect = plEl ? plEl.getBoundingClientRect() : null;
+      SQ.eliminateEffect(plRect ? {x:plRect.left+plRect.width/2, y:plRect.top+plRect.height/2} : {});
+    } else {
+      SQ.vibrate([100,50,100]);
+      const el = document.getElementById(`atk-field-${aIdx}`);
+      if(el){
+        const rect = el.getBoundingClientRect();
+        SQ.particles('blood', {x: rect.left + rect.width/2, y: rect.top, count: 8});
+      }
+      SQ.announce(`💀 ${String(atk.num).padStart(3,'0')}번 탈락`, {type:'danger', duration:1200});
+    }
+    atk.alive=false; fallCharField(aIdx); updateQueueDead(aIdx);
+    if(atk.isPlayer){ showToast('💀 456번 탈락!'); setTimeout(()=>endGame('lose'),1200); return; }
+    showToast(`💀 ${String(atk.num).padStart(3,'0')}번 탈락!`);
+    const aliveCount=attackers.filter(a=>a.alive).length;
+    if(aliveCount===1 && attackers[playerAtkIdx].alive) showToast('⚠️ 마지막 생존자! 456번만 남았다!',2500);
+    if(attackers.every(a=>!a.alive)){ setTimeout(()=>endGame('lose'),1200); return; }
+    currentTurn++;
+    setTimeout(processTurn,1400);
+  }
+}
+
+// ════════════════════════════════════════
+// 캐릭터 이동/낙하
+// ════════════════════════════════════════
+function moveCharToZone(aIdx, zone){
+  const el=document.getElementById(`atk-field-${aIdx}`);
+  if(!el) return;
+  const pos=ZONE_POS[zone];
+  if(!pos) return;
+
+  // 같은 구역 캐릭터 수 계산 (자신 제외, alive 기준)
+  const sameCount = attackers.filter((x,i)=> i!==aIdx && x.alive && x.zone===zone).length;
+  const ox = (sameCount===0?0 : sameCount===1?-10 : sameCount===2?10 : (sameCount%2===0?-14:14));
+
+  el.style.left=(pos.x+ox)+'%';
+  el.style.top=pos.y+'%';
+  el.classList.add('advancing');
+  setTimeout(()=>el.classList.remove('advancing'),500);
+}
+
+function fallCharField(aIdx){
+  const el=document.getElementById(`atk-field-${aIdx}`);
+  if(!el) return;
+  el.classList.add('falling');
+  setTimeout(()=>el.classList.add('dead-char'),800);
+}
+
+// ════════════════════════════════════════
+// 수비 돌진 연출
+// ════════════════════════════════════════
+function triggerDefRush(zone, intense){
+  document.querySelectorAll('.def-char').forEach((el,i)=>{
+    setTimeout(()=>{
+      el.classList.remove('rushing','shaking');
+      void el.offsetWidth;
+      el.classList.add(intense?'rushing':'shaking');
+      setTimeout(()=>el.classList.remove('rushing','shaking'),600);
+    },i*80);
+  });
+}
+
+// ════════════════════════════════════════
+// UI 업데이트
+// ════════════════════════════════════════
+function updateQueueHighlight(curAIdx){
+  turnOrder.forEach(aIdx=>{
+    const el=document.getElementById(`aq-${aIdx}`);
+    if(!el) return;
+    if(!attackers[aIdx].alive) el.className='aq-char atk-dead';
+    else if(aIdx===curAIdx) el.className='aq-char atk-current';
+    else el.className='aq-char atk-alive';
+  });
+}
+function updateQueueDead(aIdx){
+  const el=document.getElementById(`aq-${aIdx}`);
+  if(el) el.className='aq-char atk-dead';
+}
+function updateDefHP(){
+  const pct=(defHP/DEF_HP_MAX)*100;
+  document.getElementById('defHpFill').style.width=pct+'%';
+  document.getElementById('defHpVal').textContent=defHP;
+  const fill=document.getElementById('defHpFill');
+  // 공격팀 시점: 수비 체력 높을수록 위험(빨강), 낮을수록 유리(초록)
+  fill.style.background=pct>60?'linear-gradient(90deg,var(--red),var(--red2))':pct>30?'var(--gold)':'var(--green2)';
+}
+
+// ════════════════════════════════════════
+// 게임 종료
+// ════════════════════════════════════════
+function endGame(outcome){
+  if(phase==='result') return;
+  phase='result'; stopGauge();
+  SQ.pulse(null); SQ.vignette(false);
+  const isWin=outcome==='win';
+  const isNew=gameInfo?gameInfo.isNew:true;
+  sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:isWin?'clear':'fail'}));
+  const survived=attackers.filter(a=>a.alive).length;
+  const arrived=attackers.filter(a=>a.alive && a.zone==='goal').length;
+  const box=document.getElementById('resultBox');
+  box.className=`popup-box ${isWin?'green-top':'lose-top'}`;
+  document.getElementById('rIcon').textContent=isWin?'🏆':'💀';
+  const rt=document.getElementById('rTitle');
+  rt.textContent=isWin?(isNew?'첫 클리어!':'클리어!'):'탈락!';
+  rt.className=`p-title ${isWin?'win':'lose'}`;
+  document.getElementById('rDesc').textContent=isWin
+    ?`오징어 공격집 점령 성공!\n생존 ${survived}명 · 도달 ${arrived}명\n수비 잔여 체력: ${defHP}/${DEF_HP_MAX}`
+    :`456번이 탈락했습니다...\n수비팀의 승리\n수비 잔여 체력: ${defHP}/${DEF_HP_MAX}`;
+  const rr=document.getElementById('rReward');
+  rr.className=`p-reward ${isWin?'earn':'loss'}`;
+  rr.textContent=isWin?'보상은 허브에서 지급됩니다':'입장료가 차감됩니다';
+  if(isWin){
+    SQ.clearEffect();
+    SQ.bigText('통과!', 1500);
+    spawnParticles('🦑');
+    SQ.vibrate([60,40,60,40,60,40,150]);
+  } else {
+    SQ.bigText('탈락!', 1500);
+    SQ.vibrate([200,60,200,60,300]);
+  }
+  // 결과 오버레이 표시 (1.6초 후)
+  setTimeout(()=>{
+    document.getElementById('resultOverlay').classList.remove('hidden');
+  }, 1600);
+}
+
+// ════════════════════════════════════════
+// 유틸
+// ════════════════════════════════════════
+function flashEffect(c){
+  SQ.flash(c === 'green' ? 'green' : 'red', 180);
+}
+function showToast(msg,dur=2000){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),dur);
+}
+function spawnParticles(emoji){
+  for(let i=0;i<12;i++) setTimeout(()=>{
+    const p=document.createElement('div');
+    p.className='particle'; p.textContent=emoji;
+    p.style.left=`${Math.random()*80+10}vw`;
+    p.style.top=`${Math.random()*60+10}vh`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1500);
+  },i*80);
+}
+function goHub(){ SQ.cleanup(); sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html'; }
+function doBack(){
+  stopGauge();
+  SQ.cleanup();
+  if(phase!=='start'&&phase!=='result')
+    sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:'fail'}));
+  sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html';
+}
+init();
+</script>
+</body>
+</html>
