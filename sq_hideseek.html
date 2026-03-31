@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:#0f1724;color:#e8eaf0;'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:#8a91a0;line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🔍 숨바꼭질</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --red:#e8002a;--red2:#ff1a42;--green:#00c853;--green2:#00e676;
+  --gold:#ffd600;--teal:#1a8899;--teal2:#22b8cc;--orange:#ff7020;
+  --text:#f0ece8;--text2:#9a9490;--text3:#4a4642;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;font-family:'Noto Sans KR',sans-serif;}
+
+/* ══ 골목 배경 ══ */
+#bg{
+  position:fixed;inset:0;z-index:0;
+  background:linear-gradient(180deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);
+}
+/* 별 */
+#bg::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(1px 1px at 20% 10%,rgba(255,255,255,.8),transparent),
+    radial-gradient(1px 1px at 60% 5%,rgba(255,255,255,.6),transparent),
+    radial-gradient(1px 1px at 80% 15%,rgba(255,255,255,.7),transparent),
+    radial-gradient(1px 1px at 40% 8%,rgba(255,255,255,.5),transparent),
+    radial-gradient(1px 1px at 90% 3%,rgba(255,255,255,.6),transparent);}
+/* 가로등 효과 */
+#bg::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 120px 200px at 15% 30%,rgba(255,200,50,.08),transparent),
+    radial-gradient(ellipse 120px 200px at 85% 30%,rgba(255,200,50,.08),transparent);}
+
+/* ══ 헤더 ══ */
+#header{position:fixed;top:0;left:0;right:0;z-index:200;height:50px;
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(255,200,50,.2);}
+#backBtn{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--text2);font-size:.9rem;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+#backBtn:active{opacity:.7;}
+.hd-title{font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.06em;color:#ffd600;flex:1;}
+#livesDisp{display:flex;gap:4px;align-items:center;}
+.heart{font-size:1.1rem;}
+#foundDisp{font-family:'Black Han Sans',sans-serif;font-size:.8rem;color:var(--teal2);background:rgba(26,136,153,.15);border:1px solid rgba(26,136,153,.3);border-radius:8px;padding:3px 9px;}
+
+/* ══ 필드 ══ */
+#field{
+  position:fixed;top:50px;left:0;right:0;bottom:120px;
+  z-index:10;overflow:hidden;
+}
+
+/* ══ 그리드 골목 ══ */
+#grid{
+  position:absolute;inset:0;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  grid-template-rows:repeat(4,1fr);
+  gap:2px;padding:4px;
+}
+.cell{
+  background:rgba(30,30,50,.85);
+  border:1px solid rgba(80,80,120,.4);
+  border-radius:4px;
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+}
+/* 골목 질감 */
+.cell::before{content:'';position:absolute;inset:0;border-radius:4px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.015) 0px,rgba(255,255,255,.015) 1px,transparent 1px,transparent 20px);}
+
+/* ══ 숨을장소 ══ */
+.hide-spot{
+  position:absolute;
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  cursor:pointer;z-index:20;
+  transition:transform .15s;
+}
+.hide-spot:active{transform:scale(.9);}
+.spot-icon{font-size:1.8rem;line-height:1;transition:transform .2s;}
+.spot-label{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.32rem;
+  color:rgba(255,255,255,.5);background:rgba(0,0,0,.5);border-radius:3px;padding:1px 3px;}
+/* 오픈 애니메이션 */
+@keyframes spotOpen{0%{transform:scale(1)}40%{transform:scale(1.4) rotate(-10deg)}100%{transform:scale(1) rotate(0)}}
+.hide-spot.opening .spot-icon{animation:spotOpen .35s ease forwards;}
+.hide-spot.empty{opacity:.5;}
+.hide-spot.hit .spot-icon{filter:drop-shadow(0 0 8px var(--green2));}
+
+/* 가로등 */
+.lamp{
+  position:absolute;font-size:1.4rem;opacity:.7;pointer-events:none;
+  filter:drop-shadow(0 0 6px rgba(255,200,50,.6));
+}
+
+/* ══ 플레이어 ══ */
+#player{
+  position:absolute;z-index:30;
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  transition:left .18s ease, top .18s ease;
+  pointer-events:none;
+}
+#playerEmoji{font-size:1.6rem;line-height:1;filter:hue-rotate(20deg) saturate(3.5) brightness(1.1);}
+#playerNum{font-family:'Noto Sans KR',sans-serif;font-weight:700;font-size:.38rem;
+  padding:1px 4px;border-radius:3px;background:#d45000;color:#fff;}
+/* 플레이어 손전등 효과 */
+#playerGlow{
+  position:absolute;width:80px;height:80px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,220,80,.12),transparent 70%);
+  top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:25;
+}
+
+/* ══ 찾기 범위 표시 ══ */
+#searchRange{
+  position:absolute;border-radius:50%;
+  border:1.5px dashed rgba(255,214,0,.4);
+  background:rgba(255,214,0,.04);
+  pointer-events:none;z-index:22;
+  transition:left .18s,top .18s;
+}
+
+/* ══ 히트 이펙트 ══ */
+@keyframes hitPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}60%{transform:translate(-50%,-50%) scale(1.3)}100%{opacity:0;transform:translate(-50%,-50%) scale(1) translateY(-30px)}}
+.hit-effect{
+  position:absolute;font-family:'Black Han Sans',sans-serif;font-size:1rem;
+  color:var(--green2);pointer-events:none;z-index:50;
+  animation:hitPop .8s ease forwards;
+}
+@keyframes missPop{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.5) translateY(-20px)}}
+.miss-effect{
+  position:absolute;font-family:'Black Han Sans',sans-serif;font-size:1rem;
+  color:var(--red2);pointer-events:none;z-index:50;
+  animation:missPop .6s ease forwards;
+}
+
+/* ══ AI 발견 연출 ══ */
+.found-ai{
+  position:absolute;font-size:1.4rem;z-index:35;pointer-events:none;
+  filter:hue-rotate(175deg) saturate(3) brightness(.9);
+  animation:foundAni .5s ease forwards;
+}
+@keyframes foundAni{0%{opacity:0;transform:translate(-50%,-50%) scale(0)}60%{transform:translate(-50%,-50%) scale(1.3)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+
+/* ══ 컨트롤 ══ */
+#controls{position:fixed;bottom:0;left:0;right:0;z-index:200;
+  padding:8px 12px 16px;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);
+  border-top:1px solid rgba(255,255,255,.08);display:flex;gap:8px;align-items:center;}
+.dir-wrap{display:grid;grid-template-columns:50px 50px 50px;grid-template-rows:50px 50px 50px;gap:4px;}
+.dir-btn{border:none;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  color:#fff;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.dir-btn:active{background:rgba(255,255,255,.25);transform:scale(.93);}
+#btnUp{grid-column:2;grid-row:1;}
+#btnLeft{grid-column:1;grid-row:2;}
+#btnRight{grid-column:3;grid-row:2;}
+#btnDown{grid-column:2;grid-row:3;}
+.action-wrap{flex:1;display:flex;flex-direction:column;gap:6px;}
+#searchBtn{width:100%;height:62px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  color:#000;font-family:'Black Han Sans',sans-serif;font-size:1rem;
+  letter-spacing:.04em;box-shadow:0 4px 20px rgba(255,214,0,.4);
+  cursor:pointer;transition:all .15s;}
+#searchBtn:active{transform:scale(.97);}
+#searchBtn:disabled{background:rgba(255,255,255,.08);color:var(--text3);box-shadow:none;pointer-events:none;}
+#searchInfo{font-size:.6rem;color:var(--text2);text-align:center;font-family:'Black Han Sans',sans-serif;}
+
+/* ══ 시작 팝업 ══ */
+#startOverlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.88);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;}
+#startOverlay.hidden{display:none;}
+.popup-box{background:#1a1a2e;border-radius:22px;padding:28px 22px 22px;width:100%;max-width:360px;text-align:center;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.8);}
+.popup-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--teal),var(--gold),var(--orange));}
+.popup-box::after{content:'○  △  □';position:absolute;bottom:10px;right:14px;font-size:.55rem;color:rgba(255,255,255,.06);letter-spacing:.2em;pointer-events:none;}
+.p-icon{font-size:3rem;margin-bottom:10px;display:block;}
+.p-title{font-family:'Black Han Sans',sans-serif;font-size:1.4rem;letter-spacing:.06em;color:var(--gold);margin-bottom:14px;}
+.p-rules{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;margin-bottom:16px;text-align:left;}
+.rule-row{display:flex;gap:8px;font-size:.75rem;color:var(--text2);line-height:1.6;margin-bottom:5px;}
+.rule-row:last-child{margin-bottom:0;}
+.rule-row b{color:#fff;}.hl{color:var(--red2);font-weight:900;}.hlg{color:var(--green2);font-weight:900;}
+.p-btn{width:100%;padding:14px;border:none;border-radius:13px;font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.04em;cursor:pointer;margin-bottom:9px;transition:all .15s;}
+.p-btn:last-child{margin-bottom:0;}
+.p-btn.primary{background:linear-gradient(135deg,var(--gold),var(--orange));color:#000;box-shadow:0 3px 14px rgba(255,214,0,.35);}
+.p-btn.secondary{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.p-btn:active{opacity:.8;}
+
+/* ══ 카운트다운 ══ */
+#countdown{position:fixed;inset:0;z-index:450;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+#countdown.hidden{display:none;}
+#cdNum{font-family:'Black Han Sans',sans-serif;font-size:6rem;color:var(--gold);text-shadow:0 0 40px rgba(255,214,0,.8);animation:cdPop .9s ease infinite;}
+@keyframes cdPop{0%{transform:scale(1.25)}80%{transform:scale(.95)}100%{transform:scale(1.25)}}
+#cdSub{font-size:.85rem;color:rgba(255,255,255,.6);letter-spacing:.12em;}
+
+/* ══ 결과 팝업 ══ */
+#resultOverlay{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:24px;}
+#resultOverlay.show{display:flex;}
+.result-box{background:#1a1a2e;border-radius:22px;padding:28px 22px 22px;width:100%;max-width:360px;text-align:center;position:relative;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.8);animation:popIn .28s ease;}
+@keyframes popIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.result-box::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;}
+.result-box.win::before{background:linear-gradient(90deg,var(--green),var(--green2));}
+.result-box.lose::before{background:linear-gradient(90deg,var(--red),var(--red2));}
+.r-icon{font-size:3.4rem;margin-bottom:10px;display:block;}
+.r-title{font-family:'Black Han Sans',sans-serif;font-size:1.5rem;letter-spacing:.06em;margin-bottom:8px;}
+.r-title.win{color:var(--green2);}.r-title.lose{color:var(--red2);}
+.r-desc{font-size:.78rem;color:var(--text2);line-height:1.75;margin-bottom:14px;white-space:pre-line;}
+.r-reward{border-radius:10px;padding:10px;margin-bottom:18px;font-size:.9rem;font-weight:900;}
+.r-reward.earn{background:rgba(0,200,83,.1);border:1px solid rgba(0,200,83,.22);color:var(--green2);}
+.r-reward.loss{background:rgba(232,0,42,.08);border:1px solid rgba(232,0,42,.2);color:#ff6680;}
+.r-btn{width:100%;padding:14px;border:none;border-radius:13px;font-family:'Black Han Sans',sans-serif;font-size:.95rem;letter-spacing:.04em;cursor:pointer;margin-bottom:10px;}
+.r-btn:last-child{margin-bottom:0;}
+.r-btn.primary{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;box-shadow:0 3px 14px rgba(232,0,42,.4);}
+.r-btn.secondary{background:rgba(255,255,255,.07);color:var(--text2);border:1px solid rgba(255,255,255,.1);}
+.r-btn:active{opacity:.8;}
+
+/* ══ 이펙트 ══ */
+/* ══ 이펙트 → squid_fx.js 대체 ══ */
+#toast{position:fixed;top:58px;left:50%;transform:translateX(-50%) translateY(-8px);background:rgba(8,8,8,.97);border:1px solid rgba(255,214,0,.25);border-radius:10px;padding:8px 18px;font-size:.78rem;color:var(--text);opacity:0;transition:all .28s;pointer-events:none;z-index:400;white-space:nowrap;max-width:88vw;text-align:center;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.particle{position:fixed;pointer-events:none;z-index:700;font-size:1.1rem;animation:pfly 1.4s ease forwards;}
+@keyframes pfly{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(-120px) rotate(360deg)}}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="bgEmoji" style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;opacity:.04;font-size:2rem;letter-spacing:1.3rem;line-height:4.2rem;white-space:nowrap;transform:rotate(-13deg) scale(1.3);color:rgba(255,255,255,.5);">🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀🔍👀🏠🔦💀</div>
+
+<div id="header">
+  <button id="backBtn" onclick="doBack()">←</button>
+  <div class="hd-title">🔍 숨바꼭질</div>
+  <div id="livesDisp">
+    <span class="heart" id="h1">❤️</span>
+    <span class="heart" id="h2">❤️</span>
+    <span class="heart" id="h3">❤️</span>
+  </div>
+  <div id="timerDisp" style="font-family:'Black Han Sans',sans-serif;font-size:1rem;color:var(--gold);min-width:36px;text-align:center;">60</div>
+  <div id="foundDisp">0 / 5명</div>
+</div>
+
+<div id="field">
+  <div id="grid"></div>
+  <div id="playerGlow"></div>
+  <div id="searchRange"></div>
+  <div id="player">
+    <div id="playerEmoji">🧍</div>
+    <div id="playerNum">456</div>
+  </div>
+</div>
+
+<div id="controls">
+  <div class="dir-wrap">
+    <button class="dir-btn" id="btnUp"
+      ontouchstart="startMove('up',event)" ontouchend="stopMove(event)"
+     >▲</button>
+    <button class="dir-btn" id="btnLeft"
+      ontouchstart="startMove('left',event)" ontouchend="stopMove(event)"
+     >◀</button>
+    <button class="dir-btn" id="btnRight"
+      ontouchstart="startMove('right',event)" ontouchend="stopMove(event)"
+     >▶</button>
+    <button class="dir-btn" id="btnDown"
+      ontouchstart="startMove('down',event)" ontouchend="stopMove(event)"
+     >▼</button>
+  </div>
+  <div class="action-wrap">
+    <button id="searchBtn" onclick="doSearch()" disabled>🔍 찾기!</button>
+    <div id="searchInfo">숨을 장소 근처로 이동하세요!</div>
+  </div>
+</div>
+
+<div id="startOverlay">
+  <div class="popup-box">
+    <span class="p-icon">🔍</span>
+    <div class="p-title">숨바꼭질</div>
+    <div class="p-rules">
+      <div class="rule-row">🏃 <span>방향키로 골목을 이동하세요!</span></div>
+      <div class="rule-row">🗑️ <span>숨을 장소 <b>근처</b>에서 찾기 버튼!</span></div>
+      <div class="rule-row">✅ <span>상대가 있으면 <span class="hlg">히트!</span></span></div>
+      <div class="rule-row">❌ <span>없으면 <span class="hl">기회 -1</span> (3번 실수하면 탈락)</span></div>
+      <div class="rule-row">🏆 <span><b>5명</b>을 모두 찾으면 클리어!</span></div>
+    </div>
+    <button class="p-btn primary" onclick="startCountdown()">🔍 게임 시작!</button>
+    <button class="p-btn secondary" onclick="doBack()">돌아가기</button>
+  </div>
+</div>
+
+<div id="countdown" class="hidden">
+  <div id="cdNum">3</div>
+  <div id="cdSub">골목을 수색하라!</div>
+</div>
+
+<div id="resultOverlay">
+  <div class="result-box" id="resultBox">
+    <span class="r-icon" id="rIcon">🏆</span>
+    <div class="r-title" id="rTitle">클리어!</div>
+    <div class="r-desc" id="rDesc"></div>
+    <div class="r-reward" id="rReward"></div>
+    <button class="r-btn primary" onclick="goHub()">결과 확인</button>
+    <button class="r-btn secondary" onclick="goHub()">허브로 돌아가기</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="squid_fx.js"></script>
+<script>
+// ════════════════════════════
+// 상수
+// ════════════════════════════
+const GAME_ID   = 'sq_hideseek';
+const GRID_COLS = 4;
+const GRID_ROWS = 4;
+const TOTAL_AI  = 5;
+const MAX_LIVES = 3;
+const SPOT_COUNT_MIN = 10;
+const SPOT_COUNT_MAX = 13;
+const SEARCH_RADIUS_PCT = 12; // 찾기 범위 (셀 크기 대비 %)
+const MOVE_SPD  = 5.5; // px/tick (3.5→5.5)
+
+const SPOT_TYPES = [
+  {icon:'🗑️', name:'쓰레기통'},
+  {icon:'🪣', name:'물통'},
+  {icon:'📦', name:'박스'},
+  {icon:'🌿', name:'덤불'},
+  {icon:'🚗', name:'차량'},
+  {icon:'🛢️', name:'드럼통'},
+];
+
+// ════════════════════════════
+// 상태
+// ════════════════════════════
+let gameInfo = null;
+let phase    = 'start';
+let lives    = MAX_LIVES;
+let found    = 0;
+let moveDir  = null;
+let moveIv   = null;
+let timerIv  = null;
+let timeLeft = 60;
+
+// 필드 크기
+let FW=0, FH=0;
+let cellW=0, cellH=0;
+
+// 플레이어 위치 (px)
+let playerX=0, playerY=0;
+
+// 숨을장소 배열
+// {id, x, y, hasAI, icon, opened}
+let spots = [];
+
+// 찾기 반경 (px)
+let searchRadius = 0;
+
+// ════════════════════════════
+// 진동
+// ════════════════════════════
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+
+// ════════════════════════════
+// 초기화
+// ════════════════════════════
+function init(){
+  const raw = sessionStorage.getItem('SQ_CURRENT_GAME');
+  if(raw) gameInfo = JSON.parse(raw);
+}
+
+// ════════════════════════════
+// 카운트다운
+// ════════════════════════════
+function startCountdown(){
+  document.getElementById('startOverlay').classList.add('hidden');
+  document.getElementById('countdown').classList.remove('hidden');
+  let n=3; document.getElementById('cdNum').textContent=n; SQ.vignette(true, true);
+  SQ.vibrate([100,50,100]);
+  const tick=setInterval(()=>{
+    n--;
+    if(n>0){ document.getElementById('cdNum').textContent=n; vib(n===2?[120,50,120]:[150,50,150]); }
+    else{
+      clearInterval(tick);
+      SQ.vignette(false);
+      SQ.flash('white', 120);
+      document.getElementById('cdNum').textContent='GO!';
+      document.getElementById('cdSub').textContent='어디 숨었나~!';
+      vib([80,40,80,40,80,40,200]);
+      setTimeout(()=>{
+        document.getElementById('countdown').classList.add('hidden');
+        startGame();
+      },700);
+    }
+  },900);
+}
+
+// ════════════════════════════
+// 게임 시작
+// ════════════════════════════
+function startGame(){
+  phase='playing';
+  SQ.announce('시즌3 첫 번째 게임', {type:'system', duration:1800});
+  setTimeout(()=>{ SQ.announce('🔍 숨바꼭질 — 찾아내라!', {type:'guard', duration:2500, typing:true}); }, 2000);
+  const field = document.getElementById('field');
+  FW = field.clientWidth;
+  FH = field.clientHeight;
+  cellW = FW / GRID_COLS;
+  cellH = FH / GRID_ROWS;
+  searchRadius = Math.min(cellW, cellH) * 0.55; // 셀 절반 조금 넘는 범위
+
+  buildGrid();
+  buildSpots();
+  // 플레이어 중앙 출발
+  playerX = FW/2;
+  playerY = FH/2;
+  updatePlayerPos();
+  updateSearchRange();
+
+  document.getElementById('searchBtn').disabled = false;
+  startMoveLoop();
+  startTimer();
+}
+
+function startTimer(){
+  timeLeft=60;
+  clearInterval(timerIv);
+  timerIv=setInterval(()=>{
+    timeLeft--;
+    const td=document.getElementById('timerDisp');
+    if(td){
+      td.textContent=timeLeft;
+    if(timeLeft<=10){
+      td.style.color='var(--red2)';
+      SQ.timerUrgent(timeLeft);
+    } else if(timeLeft<=30){
+      SQ.vignette(true, false);
+      td.style.color='var(--gold)';
+      if(timeLeft===30) SQ.announce('서두르세요!', {type:'system', duration:1500});
+    } else {
+      td.style.color='var(--gold)';
+    }
+    }
+    if(timeLeft<=0){
+      clearInterval(timerIv);
+      SQ.flash('red', 200); SQ.shake(500); SQ.bigText('시간 초과!', 1200);
+      SQ.vibrate([100,50,100,50,200]);
+      endGame('lose','timeout');
+    }
+  },1000);
+}
+
+// ════════════════════════════
+// 그리드 생성
+// ════════════════════════════
+function buildGrid(){
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  // 가로등 랜덤 배치
+  const lampPositions = [[0,0],[3,0],[1,3],[2,1]];
+  for(let r=0;r<GRID_ROWS;r++){
+    for(let c=0;c<GRID_COLS;c++){
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      // 가로등
+      if(lampPositions.some(([lr,lc])=>lr===r&&lc===c)){
+        const lamp = document.createElement('div');
+        lamp.className = 'lamp';
+        lamp.textContent = '🏮';
+        lamp.style.cssText='position:absolute;top:4px;right:4px;font-size:1rem;';
+        cell.appendChild(lamp);
+      }
+      grid.appendChild(cell);
+    }
+  }
+}
+
+// ════════════════════════════
+// 숨을장소 + AI 배치
+// ════════════════════════════
+function buildSpots(){
+  spots = [];
+  const field = document.getElementById('field');
+  const count = SPOT_COUNT_MIN + Math.floor(Math.random()*(SPOT_COUNT_MAX-SPOT_COUNT_MIN+1));
+
+  // 전체 셀 후보
+  const cells = [];
+  for(let r=0;r<GRID_ROWS;r++)
+    for(let c=0;c<GRID_COLS;c++)
+      cells.push({r,c});
+
+  // 랜덤 셔플
+  cells.sort(()=>Math.random()-.5);
+  const chosen = cells.slice(0, count);
+
+  // AI 배치할 인덱스
+  const aiIdxSet = new Set();
+  while(aiIdxSet.size < TOTAL_AI) aiIdxSet.add(Math.floor(Math.random()*count));
+
+  chosen.forEach((cell,i)=>{
+    const type = SPOT_TYPES[Math.floor(Math.random()*SPOT_TYPES.length)];
+    // 셀 안 랜덤 위치 (가장자리 제외)
+    const x = cell.c*cellW + cellW*0.25 + Math.random()*cellW*0.5;
+    const y = cell.r*cellH + cellH*0.25 + Math.random()*cellH*0.5;
+    const hasAI = aiIdxSet.has(i);
+
+    const el = document.createElement('div');
+    el.className = 'hide-spot';
+    el.id = `spot${i}`;
+    el.style.left = x+'px';
+    el.style.top  = y+'px';
+    el.style.transform = 'translate(-50%,-50%)';
+    el.innerHTML = `<div class="spot-icon">${type.icon}</div>`;
+    el.setAttribute('data-idx', i);
+    field.appendChild(el);
+
+    spots.push({id:i, x, y, hasAI, icon:type.icon, opened:false, el});
+  });
+}
+
+// ════════════════════════════
+// 플레이어 이동
+// ════════════════════════════
+function startMoveLoop(){
+  clearInterval(moveIv);
+  moveIv = setInterval(()=>{
+    if(phase!=='playing'||!moveDir) return;
+    const spd = MOVE_SPD;
+    if(moveDir==='up')    playerY = Math.max(16, playerY-spd);
+    if(moveDir==='down')  playerY = Math.min(FH-16, playerY+spd);
+    if(moveDir==='left')  playerX = Math.max(16, playerX-spd);
+    if(moveDir==='right') playerX = Math.min(FW-16, playerX+spd);
+    updatePlayerPos();
+    updateSearchRange();
+    checkNearby();
+  },16);
+}
+
+function startMove(dir,e){ e.preventDefault(); if(phase==='playing') moveDir=dir; }
+function stopMove(e){ e.preventDefault(); moveDir=null; }
+
+function updatePlayerPos(){
+  const pl = document.getElementById('player');
+  if(pl){ pl.style.left=playerX+'px'; pl.style.top=playerY+'px'; pl.style.transform='translate(-50%,-50%)'; }
+  const glow = document.getElementById('playerGlow');
+  if(glow){ glow.style.left=playerX+'px'; glow.style.top=playerY+'px'; }
+}
+
+function updateSearchRange(){
+  const sr = document.getElementById('searchRange');
+  if(!sr) return;
+  const r = searchRadius;
+  sr.style.width  = r*2+'px';
+  sr.style.height = r*2+'px';
+  sr.style.left   = (playerX-r)+'px';
+  sr.style.top    = (playerY-r)+'px';
+}
+
+// ════════════════════════════
+// 근처 체크
+// ════════════════════════════
+function checkNearby(){
+  const nearby = getNearbySpots();
+  const btn = document.getElementById('searchBtn');
+  const info = document.getElementById('searchInfo');
+  if(nearby.length>0){
+    btn.textContent = `🔍 찾기! (${nearby.length}곳 근처)`;
+    btn.style.background = 'linear-gradient(135deg,var(--gold),var(--orange))';
+    const icons = nearby.map(s=>s.icon).join(' ');
+    const remaining = TOTAL_AI - found;
+    const unopened = spots.filter(s=>!s.opened).length;
+    const hint = remaining > 0 ? ` · 남은 ${remaining}명 / ${unopened}곳` : '';
+    info.textContent = `${icons} 근처!${hint}`;
+  } else {
+    btn.textContent = '🔍 찾기!';
+    btn.style.background = '';
+    const remaining = TOTAL_AI - found;
+    const unopened = spots.filter(s=>!s.opened).length;
+    info.textContent = `숨을 장소 근처로! (남은 ${remaining}명 / ${unopened}곳)`;
+  }
+}
+
+function getNearbySpots(){
+  return spots.filter(s=>{
+    if(s.opened) return false;
+    const dx=s.x-playerX, dy=s.y-playerY;
+    return Math.sqrt(dx*dx+dy*dy) <= searchRadius;
+  });
+}
+
+// ════════════════════════════
+// 찾기 버튼
+// ════════════════════════════
+function doSearch(){
+  if(phase!=='playing') return;
+  const nearby = getNearbySpots();
+  if(nearby.length===0){
+    showToast('근처에 숨을 장소가 없어요!');
+    vib([60,30,60]);
+    return;
+  }
+
+  // 가장 가까운 장소 오픈
+  nearby.sort((a,b)=>{
+    const da=Math.sqrt((a.x-playerX)**2+(a.y-playerY)**2);
+    const db=Math.sqrt((b.x-playerX)**2+(b.y-playerY)**2);
+    return da-db;
+  });
+  const spot = nearby[0];
+  openSpot(spot);
+}
+
+function openSpot(spot){
+  spot.opened = true;
+  const el = spot.el;
+  el.classList.add('opening');
+
+  vib(30);
+
+  setTimeout(()=>{
+    if(spot.hasAI){
+      // 히트!
+      el.classList.add('hit');
+      el.querySelector('.spot-icon').textContent = spot.icon + '💥';
+      found++;
+      flashEffect('green');
+      vib([40,20,60,20,80]);
+      spawnEffect(spot.x, spot.y, true);
+      spawnFoundAI(spot.x, spot.y);
+      document.getElementById('foundDisp').textContent = `${found} / ${TOTAL_AI}명`;
+      if(found === TOTAL_AI - 1) showToast('🔥 마지막 1명! 어디 숨었나!', 2500);
+      else showToast(`✅ 발견! (${found}/${TOTAL_AI}명)`);
+      if(found>=TOTAL_AI){
+        setTimeout(()=>endGame('win'), 800);
+      }
+    } else {
+      // 없음 — 감점
+      el.classList.add('empty');
+      el.querySelector('.spot-icon').textContent = spot.icon + '❌';
+      flashEffect('red');
+      vib([150,60,150]);
+      spawnEffect(spot.x, spot.y, false);
+      lives--;
+      updateLives();
+      if(lives===1) showToast('⚠️ 마지막 기회! 신중하게!', 2500);
+      else showToast(`❌ 없어요! 기회 ${lives}번 남았습니다`);
+      if(lives<=0){
+        setTimeout(()=>endGame('lose'), 800);
+      }
+    }
+    checkNearby();
+  }, 350);
+}
+
+// ════════════════════════════
+// AI 발견 연출
+// ════════════════════════════
+function spawnFoundAI(x, y){
+  const field = document.getElementById('field');
+  const el = document.createElement('div');
+  el.className = 'found-ai';
+  el.textContent = '🧍';
+  el.style.left = x+'px';
+  el.style.top  = y+'px';
+  el.style.transform = 'translate(-50%,-50%)';
+  field.appendChild(el);
+  setTimeout(()=>el.remove(), 1000);
+}
+
+// ════════════════════════════
+// 히트/미스 이펙트
+// ════════════════════════════
+function spawnEffect(x, y, isHit){
+  const field = document.getElementById('field');
+  const el = document.createElement('div');
+  el.className = isHit ? 'hit-effect' : 'miss-effect';
+  el.textContent = isHit ? '✅ 발견!' : '❌ 없음!';
+  el.style.left = x+'px';
+  el.style.top  = y+'px';
+  field.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+// ════════════════════════════
+// 하트 업데이트
+// ════════════════════════════
+function updateLives(){
+  for(let i=1;i<=MAX_LIVES;i++){
+    const el = document.getElementById(`h${i}`);
+    if(el) el.textContent = i<=lives ? '❤️' : '🖤';
+  }
+}
+
+// ════════════════════════════
+// 게임 종료
+// ════════════════════════════
+function endGame(outcome, reason=''){
+  phase='result';
+  clearInterval(moveIv); moveIv=null;
+  clearInterval(timerIv); timerIv=null;
+  const isWin = outcome==='win';
+  const isNew = gameInfo?gameInfo.isNew:true;
+
+  sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({
+    gameId:GAME_ID, outcome:isWin?'clear':'fail'
+  }));
+
+  const box = document.getElementById('resultBox');
+  box.className = `result-box ${isWin?'win':'lose'}`;
+  document.getElementById('rIcon').textContent = isWin?'🏆':'💀';
+  const rt = document.getElementById('rTitle');
+  rt.textContent = isWin?(isNew?'첫 클리어!':'클리어!'):'탈락!';
+  rt.className = `r-title ${isWin?'win':'lose'}`;
+
+  document.getElementById('rDesc').textContent = isWin
+    ? `${TOTAL_AI}명 전원 발견!\n기회 ${lives}번 남음 · ${timeLeft}초 남음`
+    : reason==='timeout'
+      ? `${found}/${TOTAL_AI}명 발견 후 탈락\n제한시간 1분 초과!`
+      : `${found}/${TOTAL_AI}명 발견 후 탈락\n기회를 모두 소진했습니다 (${timeLeft}초 남음)`;
+
+  const rr     = document.getElementById('rReward');
+  rr.className   = `r-reward ${isWin?'earn':'loss'}`;
+  rr.textContent = isWin ? '보상은 허브에서 지급됩니다' : '입장료가 차감됩니다';
+
+  if(isWin){ SQ.clearEffect(); SQ.bigText('통과!', 1500); spawnParticles('🔍'); SQ.vibrate([60,40,60,40,60,40,150]); }
+  else {
+    const pl = document.getElementById('player');
+    const rect = pl ? pl.getBoundingClientRect() : null;
+    SQ.eliminateEffect(rect ? {x:rect.left+rect.width/2, y:rect.top+rect.height/2} : {});
+    SQ.bigText('탈락!', 1500); SQ.vibrate([200,60,200,60,300]);
+  }
+
+  // 결과 오버레이 표시 (1.6초 후)
+  setTimeout(()=>{
+    document.getElementById('resultOverlay').classList.add('show');
+  }, 1600);
+}
+
+// ════════════════════════════
+// 유틸
+// ════════════════════════════
+function flashEffect(c){
+  SQ.flash(c === 'green' ? 'green' : c === 'blue' ? 'blue' : c === 'gold' ? 'gold' : 'red', 180);
+}
+function showToast(msg,dur=2200){
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),dur);
+}
+function spawnParticles(emoji){
+  for(let i=0;i<10;i++) setTimeout(()=>{
+    const p=document.createElement('div');
+    p.className='particle'; p.textContent=emoji;
+    p.style.left=`${Math.random()*80+10}vw`;
+    p.style.top=`${Math.random()*60+10}vh`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(),1500);
+  },i*80);
+}
+function goHub(){ SQ.cleanup(); sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html'; }
+function doBack(){
+  SQ.cleanup();
+  clearInterval(moveIv);
+  clearInterval(timerIv);
+  if(phase==='playing')
+    sessionStorage.setItem('SQ_GAME_RESULT',JSON.stringify({gameId:GAME_ID,outcome:'fail'}));
+  sessionStorage.setItem('ORACLE_ENTRY',Date.now());window.location.href='squid_hub.html';
+}
+
+init();
+</script>
+</body>
+</html>
