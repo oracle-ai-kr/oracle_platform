@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  if(ok) return;
+  function _show404(){
+    var isLight=localStorage.getItem('ORACLE_LIGHT')!=='0';
+    var bg404=isLight?'#f2f3f5':'#0f1724';
+    var fg404=isLight?'#1a1a1a':'#e8eaf0';
+    var sub404=isLight?'#5a6070':'#8a91a0';
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:'+bg404+';color:'+fg404+';'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:'+sub404+';line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🍊 ORACLE · 워치리스트 사용 가이드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e14;--surface:#111820;--surface2:#151d28;--border:#1a2535;
+  --text:#c8d0d8;--muted:#607080;--orange:#ff6b00;--green:#00d4a0;
+  --blue:#4488ff;--red:#ff4060;--yellow:#ffc040;--purple:#9966ff;
+  --mono:'JetBrains Mono',monospace;--sans:'Noto Sans KR',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.8;min-height:100vh;}
+
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;color:var(--green);font-family:var(--mono);font-size:13px;font-weight:700;text-decoration:none;letter-spacing:1px;}
+
+.hero{text-align:center;padding:32px 20px 24px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60%;left:-30%;width:160%;height:160%;background:radial-gradient(ellipse at center,rgba(153,102,255,.08) 0%,transparent 60%);pointer-events:none;}
+.hero-icon{font-size:3.2rem;margin-bottom:12px;display:block;animation:float 3s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero-title{font-size:1.5rem;font-weight:900;letter-spacing:-.5px;color:#fff;}
+.hero-title span{color:var(--purple);}
+.hero-sub{font-size:.82rem;color:var(--muted);margin-top:6px;letter-spacing:.02em;}
+
+.content{max-width:640px;margin:0 auto;padding:0 18px 60px;}
+
+.section{margin-top:32px;}
+.section-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--purple);color:#fff;font-family:var(--mono);font-size:.82rem;font-weight:700;margin-right:8px;flex-shrink:0;}
+.section-title{font-size:1.1rem;font-weight:900;color:#fff;display:flex;align-items:center;margin-bottom:14px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;margin-bottom:14px;position:relative;}
+.card.highlight{border-color:rgba(153,102,255,.3);background:linear-gradient(135deg,var(--surface) 0%,rgba(153,102,255,.04) 100%);}
+.card-label{font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+
+.flow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;padding:12px 0;}
+.flow-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-family:var(--mono);font-size:.78rem;color:var(--green);text-align:center;}
+.flow-box.purple{color:var(--purple);border-color:rgba(153,102,255,.3);}
+.flow-box.orange{color:var(--orange);border-color:rgba(255,107,0,.3);}
+.flow-box.red{color:var(--red);border-color:rgba(255,64,96,.3);}
+.flow-box.yellow{color:var(--yellow);border-color:rgba(255,192,64,.3);}
+.flow-arrow{color:var(--muted);font-size:1.2rem;}
+
+.tag-demo{display:inline-block;font-family:var(--mono);font-size:10px;padding:2px 7px;border-radius:4px;margin:2px;}
+.tag-green{border:1px solid rgba(0,212,160,.3);color:var(--green);background:rgba(0,212,160,.08);}
+.tag-red{border:1px solid rgba(255,64,96,.3);color:var(--red);background:rgba(255,64,96,.08);}
+.tag-purple{border:1px solid rgba(153,102,255,.3);color:var(--purple);background:rgba(153,102,255,.08);}
+.tag-yellow{border:1px solid rgba(255,192,64,.3);color:var(--yellow);background:rgba(255,192,64,.08);}
+.tag-blue{border:1px solid rgba(68,136,255,.3);color:var(--blue);background:rgba(68,136,255,.08);}
+.tag-orange{border:1px solid rgba(255,140,0,.3);color:var(--orange);background:rgba(255,140,0,.08);}
+.tag-muted{border:1px solid rgba(96,112,128,.3);color:var(--muted);background:rgba(96,112,128,.08);}
+
+.alert-demo{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:10px;margin:6px 0;font-size:.85rem;}
+.alert-badge{font-family:var(--mono);font-size:12px;font-weight:700;padding:3px 10px;border-radius:6px;}
+.alert-badge.buy{background:rgba(0,212,160,.15);color:var(--green);}
+.alert-badge.sell{background:rgba(255,64,96,.15);color:var(--red);}
+.alert-badge.hold{background:rgba(255,192,64,.12);color:var(--yellow);}
+
+.tip{background:rgba(153,102,255,.06);border:1px solid rgba(153,102,255,.2);border-radius:10px;padding:14px 16px;margin:12px 0;font-size:.85rem;line-height:1.7;}
+.tip-icon{margin-right:6px;}
+.tip.warn{background:rgba(255,64,96,.06);border-color:rgba(255,64,96,.2);}
+
+.w-mark-demo{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;font-weight:900;font-size:14px;font-family:var(--mono);vertical-align:middle;}
+.w-inactive{background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.w-analyzed{background:rgba(153,102,255,.08);color:var(--purple);border:1px dashed var(--purple);opacity:.7;}
+.w-active{background:rgba(153,102,255,.2);color:var(--purple);border:1px solid var(--purple);text-shadow:0 0 6px rgba(153,102,255,.5);}
+
+.level-table{width:100%;font-size:.82rem;border-collapse:collapse;}
+.level-table th{text-align:left;padding:8px 6px;color:var(--muted);font-weight:400;border-bottom:1px solid var(--border);}
+.level-table td{padding:8px 6px;border-bottom:1px solid var(--border);}
+.level-table tr:last-child td{border-bottom:none;}
+
+.filter-table{width:100%;font-size:.8rem;border-collapse:collapse;margin-top:8px;}
+.filter-table th{text-align:left;padding:6px;color:var(--muted);font-weight:400;border-bottom:1px solid var(--border);}
+.filter-table td{padding:6px;border-bottom:1px solid var(--border);}
+
+.pulse-demo{border:3px solid var(--purple);border-radius:12px;padding:16px;text-align:center;animation:pulseBorder 1.5s ease-in-out infinite;margin:10px 0;}
+@keyframes pulseBorder{0%,100%{border-color:var(--purple);box-shadow:inset 0 0 15px rgba(153,102,255,.15)}50%{border-color:transparent;box-shadow:none}}
+
+.modal-demo{background:var(--surface);border:2px solid rgba(255,64,96,.9);border-radius:16px;padding:20px;text-align:center;box-shadow:0 0 30px rgba(255,64,96,.3);margin:10px 0;}
+
+.footer{text-align:center;padding:24px;font-family:var(--mono);font-size:.7rem;color:var(--muted);letter-spacing:1px;}
+
+/* ══════════════ 라이트모드 ══════════════ */
+body.light{--bg:#f2f3f5;--surface:#ffffff;--surface2:#ebedf0;--border:#d0d3d8;--text:#1a1a1a;--text2:#5a6070;--muted:#8090a0;}
+body.light .hero{background:linear-gradient(180deg,#ebedf0,#f2f3f5);}
+body.light .card{background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.06);}
+body.light .section{background:var(--surface);}
+body.light code{background:var(--surface2);color:var(--text);}
+body.light .modal-demo{background:var(--surface);}
+.light-toggle{background:none;border:1px solid var(--border);color:var(--text2);font-size:16px;width:32px;height:32px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:8px;}
+.light-toggle:active{filter:brightness(.85);}
+</style>
+</head>
+<body>
+<script>if(localStorage.getItem('ORACLE_LIGHT')!=='0')document.body.classList.add('light');</script>
+
+<a href="explorer_hub.html" class="back-btn" onclick="sessionStorage.setItem('ORACLE_ENTRY',Date.now())">← ORACLE</a>
+
+<div class="hero">
+  <span class="hero-icon">👁️</span>
+  <h1 class="hero-title">워치리스트 <span>사용 가이드</span> <button type="button" class="light-toggle" id="lightToggle" onclick="toggleLight()">🌙</button></h1>
+  <p class="hero-sub">관심 종목 자동 감시 · 스마트필터 점수화 · 3단계 알림 시스템</p>
+</div>
+
+<div class="content">
+
+  <!-- 0. 전체 흐름 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">0</span> 전체 흐름</div>
+    <div class="card highlight">
+      <p>관심 종목을 <strong>분석기에서 분석 후 W 버튼</strong>으로 등록하면, 설정한 주기마다 <strong>자동 분석</strong>이 실행됩니다.</p>
+      <p style="margin-top:8px;">스마트필터 12개가 종목 상태를 점수화하고, 조건 충족 시 <strong>3단계 알림</strong>으로 알려줍니다.</p>
+      <div class="flow">
+        <div class="flow-box purple">분석기에서<br>종목 분석</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box purple">W 버튼<br>등록</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box">자동 스캔<br>(주기 반복)</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box orange">스마트필터<br>점수화</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-box yellow">3단계<br>알림 발송</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 종목 등록 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">1</span> 종목 등록하기</div>
+    <div class="card">
+      <div class="card-label">W 마크 버튼</div>
+      <p>분석기 탭에서 타임프레임(TF) 칩 오른쪽에 있는 <strong style="color:var(--purple);">W</strong> 버튼으로 등록합니다.</p>
+      <div style="display:flex;align-items:center;gap:16px;margin:14px 0;justify-content:center;">
+        <div style="text-align:center;">
+          <div class="w-mark-demo w-inactive">W</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">미분석</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div style="text-align:center;">
+          <div class="w-mark-demo w-analyzed">W</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">분석 완료</div>
+        </div>
+        <span class="flow-arrow">→</span>
+        <div style="text-align:center;">
+          <div class="w-mark-demo w-active">W</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;">등록됨</div>
+        </div>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted);">① 종목 분석 실행 → W가 <strong>보라 점선</strong>으로 활성화<br>② W 클릭 → <strong>보라 실선</strong>으로 등록 완료<br>③ 다시 클릭하면 등록 해제</p>
+    </div>
+    <div class="card">
+      <div class="card-label">TF (타임프레임) 자동 저장</div>
+      <p>등록할 때 현재 선택된 TF가 <strong>종목과 함께 저장</strong>됩니다.</p>
+      <p style="margin-top:6px;">예: BTC를 1시간봉으로 분석 후 등록 → 자동 스캔도 1시간봉으로 실행</p>
+      <p style="margin-top:6px;">워치리스트에서 종목을 탭하면 해당 TF로 분석기가 세팅됩니다.</p>
+      <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="tag-demo tag-purple">5M</span>
+        <span class="tag-demo tag-purple">15M</span>
+        <span class="tag-demo tag-purple">30M</span>
+        <span class="tag-demo tag-purple">1H</span>
+        <span class="tag-demo tag-purple">4H</span>
+        <span class="tag-demo tag-purple">1D</span>
+        <span class="tag-demo tag-purple">1W</span>
+        <span class="tag-demo tag-purple">1M</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">즉시 스캔</div>
+      <p>모니터링 ON 상태에서 종목을 등록하면 <strong>즉시 1회 스캔</strong>이 실행됩니다.</p>
+      <p style="margin-top:4px;font-size:.85rem;color:var(--muted);">전체 스캔 주기 카운트다운은 변하지 않습니다.</p>
+    </div>
+    <div class="tip"><span class="tip-icon">💡</span> 최대 <strong>30개</strong>까지 등록 가능. 종목마다 다른 TF를 설정할 수 있어서, BTC는 일봉, 알트는 1시간봉 식으로 관리하면 효과적입니다.</div>
+  </div>
+
+  <!-- 2. 모니터링 설정 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">2</span> 모니터링 설정</div>
+    <div class="card">
+      <div class="card-label">모니터링 ON/OFF</div>
+      <p>토글을 켜면 즉시 첫 전체 스캔이 실행되고, 이후 설정한 주기마다 자동 반복합니다.</p>
+      <p style="margin-top:8px;font-family:var(--mono);font-size:13px;color:var(--muted);">스캔 주기: 5분 · 15분 · 30분 · 60분</p>
+    </div>
+    <div class="card">
+      <div class="card-label">카운트다운</div>
+      <p>스캔 완료 후 다음 스캔까지 남은 시간이 실시간으로 표시됩니다.</p>
+      <p style="margin-top:6px;font-family:var(--mono);font-size:13px;color:var(--purple);">다음 스캔 12:34</p>
+      <p style="margin-top:6px;font-family:var(--mono);font-size:12px;color:var(--muted);">마지막 스캔 22:30 · 2건 감지</p>
+    </div>
+    <div class="card">
+      <div class="card-label">모드 연동</div>
+      <p>상단의 매매 모드(🔥공격적 / ⚖️스윙 / 🛡보수적)가 워치리스트 스캔에도 적용됩니다.</p>
+      <p style="margin-top:6px;font-size:.85rem;color:var(--muted);">공격적 모드 → BUY 임계값 낮아져 더 많은 BUY 신호 감지<br>보수적 모드 → BUY 임계값 높아져 확실한 신호만 감지</p>
+    </div>
+    <div class="tip"><span class="tip-icon">⚠️</span> <strong>브라우저 탭이 활성 상태</strong>여야 정상 작동합니다. 다른 앱으로 전환하면 스캔이 지연될 수 있습니다. 화면 분할 모드에서는 정상 작동합니다.</div>
+  </div>
+
+  <!-- 3. 미니현황 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">3</span> 미니현황 읽는 법</div>
+    <div class="card highlight">
+      <div class="card-label">종목 카드 구성</div>
+      <p>스캔 완료된 종목은 아래와 같이 표시됩니다:</p>
+      <div style="background:var(--surface2);border-radius:10px;padding:14px;margin-top:12px;">
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+          <span style="font-weight:700;font-size:15px;">SOL</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">SOL</span>
+          <span class="tag-demo tag-purple" style="margin:0;">1H</span>
+          <span class="alert-badge hold" style="font-size:10px;padding:2px 6px;">HOLD</span>
+          <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--yellow);">79점</span>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">RSI 28</span>
+          <span style="font-family:var(--mono);font-size:10px;font-weight:700;color:var(--green);">필터+1</span>
+        </div>
+        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:3px;">
+          <span class="tag-demo tag-yellow">눌림 77</span>
+          <span class="tag-demo tag-purple">RSI 28</span>
+          <span class="tag-demo tag-purple">역배열</span>
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px;">방금 스캔</div>
+      </div>
+      <div style="margin-top:14px;font-size:.82rem;line-height:2;">
+        <strong style="color:var(--purple);">TF 배지</strong> — 등록된 타임프레임<br>
+        <strong>신호 배지</strong> — BUY(초록) / SELL(빨강) / HOLD(노랑)<br>
+        <strong>점수</strong> — 기술적 분석 종합 점수 (0~100)<br>
+        <strong>RSI</strong> — 현재 RSI 값<br>
+        <strong style="color:var(--green);">필터 점수</strong> — 스마트필터 긍정/부정 합산 (양수=긍정 우세, 음수=부정 우세)<br>
+        <strong>태그</strong> — 현재 감지된 스마트필터 상세
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">🚨 알림 종목 표시</div>
+      <p>알림 조건을 충족한 종목은 <strong>🚨 아이콘</strong>과 <strong>좌측 컬러 테두리</strong>로 강조 표시됩니다.</p>
+      <div style="background:var(--surface2);border-left:3px solid var(--green);border-radius:10px;padding:12px 12px 12px 14px;margin-top:10px;">
+        <span style="font-weight:700;">🚨 BTC</span>
+        <span class="alert-badge buy" style="font-size:10px;padding:2px 6px;margin-left:6px;">BUY</span>
+        <div style="font-size:9px;color:var(--green);margin-top:4px;">⚡ Lv2 점수72 필터+3 · 정배열 MA60↑ RSI 28 MACD↑</div>
+      </div>
+      <p style="margin-top:10px;font-size:.85rem;color:var(--muted);">다음 스캔 주기에서 조건이 미충족되면 자동으로 표시가 해제됩니다.</p>
+    </div>
+  </div>
+
+  <!-- 4. 스마트필터 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">4</span> 스마트필터 12개</div>
+    <div class="card highlight">
+      <div class="card-label">필터 점수화 시스템</div>
+      <p>각 필터는 <strong>긍정(+1)</strong>, <strong>부정(-1)</strong>, <strong>중립(0)</strong>으로 점수화되어 합산됩니다.</p>
+      <table class="filter-table">
+        <tr><th>방향</th><th>필터</th><th>점수</th></tr>
+        <tr>
+          <td><span class="tag-demo tag-green" style="font-size:9px;">긍정</span></td>
+          <td>MA 정배열</td>
+          <td style="color:var(--green);font-family:var(--mono);">+1</td>
+        </tr>
+        <tr>
+          <td><span class="tag-demo tag-green" style="font-size:9px;">긍정</span></td>
+          <td>거래량 증가 (2배 이상)</td>
+          <td style="color:var(--green);font-family:var(--mono);">+1</td>
+        </tr>
+        <tr>
+          <td><span class="tag-demo tag-green" style="font-size:9px;">긍정</span></td>
+          <td>MA60선 위 (60일 이동평균 위)</td>
+          <td style="color:var(--green);font-family:var(--mono);">+1</td>
+        </tr>
+        <tr>
+          <td><span class="tag-demo tag-green" style="font-size:9px;">긍정</span></td>
+          <td>스퀴즈 진입 (BB 수축, 에너지 축적)</td>
+          <td style="color:var(--green);font-family:var(--mono);">+1</td>
+        </tr>
+        <tr>
+          <td><span class="tag-demo tag-green" style="font-size:9px;">긍정</span></td>
+          <td>눌림목 (50점 이상, 반등 포인트)</td>
+          <td style="color:var(--green);font-family:var(--mono);">+1</td>
+        </tr>
+        <tr>
+          <td><span class="tag-demo tag-green" style="font-size:9px;">긍정</span></td>
+          <td>RSI 과매도 (≤30, 바닥권)</td>
+          <td style="color:var(--green);font-family:var(--mono);">+1</td>
+        </tr>
+        <tr>
+          <td><span class="tag-demo tag-green" style="font-size:9px;">긍정</span></td>
+          <td>MACD↑ (히스토그램 음→양 전환)</td>
+          <td style="color:var(--green);font-family:var(--mono);">+1</td>
+        </tr>
+        <tr style="background:rgba(255,64,96,.03);">
+          <td><span class="tag-demo tag-red" style="font-size:9px;">부정</span></td>
+          <td>MA 역배열</td>
+          <td style="color:var(--red);font-family:var(--mono);">-1</td>
+        </tr>
+        <tr style="background:rgba(255,64,96,.03);">
+          <td><span class="tag-demo tag-red" style="font-size:9px;">부정</span></td>
+          <td>거래량 감소 (0.3배 이하)</td>
+          <td style="color:var(--red);font-family:var(--mono);">-1</td>
+        </tr>
+        <tr style="background:rgba(255,64,96,.03);">
+          <td><span class="tag-demo tag-red" style="font-size:9px;">부정</span></td>
+          <td>RSI 과매수 (≥70, 과열)</td>
+          <td style="color:var(--red);font-family:var(--mono);">-1</td>
+        </tr>
+        <tr style="background:rgba(255,64,96,.03);">
+          <td><span class="tag-demo tag-red" style="font-size:9px;">부정</span></td>
+          <td>MACD↓ (히스토그램 양→음 전환)</td>
+          <td style="color:var(--red);font-family:var(--mono);">-1</td>
+        </tr>
+        <tr style="background:rgba(255,192,64,.03);">
+          <td><span class="tag-demo tag-yellow" style="font-size:9px;">중립</span></td>
+          <td>스퀴즈 해제 (BB 확장 시작)</td>
+          <td style="color:var(--yellow);font-family:var(--mono);">0</td>
+        </tr>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-label">알림 발동 조건</div>
+      <p>필터가 <strong>최소 2개 이상</strong> 감지되어야 하며, 신호별 합산 조건을 충족해야 합니다.</p>
+      <table class="filter-table" style="margin-top:12px;">
+        <tr><th>신호</th><th>조건</th><th>예시</th></tr>
+        <tr>
+          <td><span class="alert-badge buy" style="font-size:10px;padding:2px 6px;">BUY</span></td>
+          <td>합산 ≥ +2</td>
+          <td style="font-size:11px;">정배열(+1) + MA60↑(+1) = +2 ✓</td>
+        </tr>
+        <tr>
+          <td><span class="alert-badge sell" style="font-size:10px;padding:2px 6px;">SELL</span></td>
+          <td>합산 ≤ -2</td>
+          <td style="font-size:11px;">역배열(-1) + MACD↓(-1) = -2 ✓</td>
+        </tr>
+        <tr>
+          <td><span class="alert-badge hold" style="font-size:10px;padding:2px 6px;">HOLD</span></td>
+          <td>|합산| ≥ 3</td>
+          <td style="font-size:11px;">정배열(+1) + MA60↑(+1) + RSI과매도(+1) = +3 ✓</td>
+        </tr>
+      </table>
+      <p style="margin-top:10px;font-size:.82rem;color:var(--muted);">BUY + 부정 필터만 → 알림 안 함 (오판 방지)<br>SELL + 긍정 필터만 → 알림 안 함<br>HOLD는 더 엄격 (|합산| 3 이상 필요)</p>
+    </div>
+    <div class="tip"><span class="tip-icon">🎯</span> 추천기 스마트필터는 <strong>AND</strong>(모두 충족), 워치리스트는 <strong>점수화 OR</strong>(합산 기준) — 워치리스트가 더 빠르게 알림을 줍니다.</div>
+  </div>
+
+  <!-- 5. 3단계 알림 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">5</span> 3단계 알림 시스템</div>
+    <div class="card">
+      <div class="card-label">Lv1 · 필터 2~4개</div>
+      <p><strong>토스트 알림</strong> + <strong>진동</strong></p>
+      <div class="alert-demo">
+        <span>📢</span>
+        <span style="font-weight:700;">ETH</span>
+        <span>→</span>
+        <span class="alert-badge buy">BUY</span>
+        <span style="font-size:10px;color:var(--muted);">⚡ Lv1 점수72 필터+2</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Lv2 · 필터 5~8개</div>
+      <p><strong>토스트 + 진동 + 워치리스트 탭 펄스</strong></p>
+      <p style="margin-top:6px;font-size:.85rem;">어떤 탭에 있든 워치리스트 탭 글자가 색상 펄스로 깜빡입니다.</p>
+      <div class="pulse-demo">
+        <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--blue);">BUY 강 → 파랑 펄스</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--orange);">SELL 강 → 주황 펄스</span>
+        </div>
+        <div style="display:flex;justify-content:center;gap:16px;flex-wrap:wrap;margin-top:6px;">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--yellow);">HOLD 양수 → 노랑 펄스</span>
+          <span style="font-family:var(--mono);font-size:11px;color:#ff69b4;">HOLD 음수 → 핑크 펄스</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Lv3 · 필터 9~12개 🔥</div>
+      <p><strong>토스트 + 진동 + 펄스 + 풀스크린 모달</strong></p>
+      <p style="margin-top:6px;font-size:.85rem;">매우 강한 신호일 때 전체 화면 모달이 뜹니다.</p>
+      <div class="modal-demo">
+        <div style="font-size:24px;font-weight:900;color:var(--red);">🔥 Lv3 알림</div>
+        <div style="font-size:16px;font-weight:700;margin-top:6px;">BTC</div>
+        <div style="font-size:12px;font-weight:700;color:var(--red);margin-top:4px;">SELL</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px;">🔥 Lv3 점수18 필터-5 · 역배열 Vol↓ RSI 82 MACD↓ 거래량감소</div>
+        <div style="margin-top:12px;"><span style="background:var(--red);color:#000;padding:8px 24px;border-radius:8px;font-weight:700;font-size:13px;">확인</span></div>
+      </div>
+      <p style="font-size:.82rem;color:var(--muted);margin-top:8px;">여러 종목이 동시에 Lv3이면 <strong>선착순 표시</strong> — 확인 클릭 시 다음 모달이 나타납니다.</p>
+    </div>
+  </div>
+
+  <!-- 6. 주기 단위 갱신 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">6</span> 알림 주기 갱신 방식</div>
+    <div class="card">
+      <p>워치리스트 알림은 <strong>주기 단위로 갱신</strong>됩니다. 쌓이지 않습니다.</p>
+      <div style="margin-top:12px;font-size:.85rem;line-height:2;">
+        <strong>매 스캔 주기마다:</strong><br>
+        ① 모든 종목을 순서대로 분석<br>
+        ② 조건 충족 → 🚨 표시 + 알림 발송<br>
+        ③ 조건 미충족 → 🚨 해제<br>
+        ④ 다음 주기에 다시 재평가
+      </div>
+      <p style="margin-top:10px;font-size:.85rem;color:var(--muted);">사용자가 확인하지 않아도 다음 주기에서 자동으로 리셋됩니다. "지금 현재" 조건을 충족하는 종목만 알림 표시됩니다.</p>
+    </div>
+  </div>
+
+  <!-- 7. 분석기 연동 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">7</span> 분석기 연동</div>
+    <div class="card">
+      <div class="card-label">종목 탭 → 분석기 이동</div>
+      <p>워치리스트에서 <strong>종목을 탭</strong>하면 즉시 분석기 탭으로 이동합니다.</p>
+      <p style="margin-top:6px;font-size:.85rem;color:var(--muted);">종목명 + 등록된 TF가 자동 세팅되어 바로 상세 분석할 수 있습니다.</p>
+    </div>
+    <div class="card">
+      <div class="card-label">독립 동작</div>
+      <p>워치리스트 스캔은 분석기와 <strong>독립적</strong>으로 작동합니다. 분석기에서 다른 종목을 분석하는 중에도 워치리스트 스캔은 정상 실행됩니다.</p>
+    </div>
+  </div>
+
+  <!-- 8. 추천기 vs 워치리스트 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">8</span> 추천기 vs 워치리스트</div>
+    <div class="card">
+      <table class="level-table">
+        <tr style="border-bottom:1px solid var(--border);">
+          <th></th>
+          <th style="text-align:center;color:var(--green);font-weight:700;">추천기</th>
+          <th style="text-align:center;color:var(--purple);font-weight:700;">워치리스트</th>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">대상</td>
+          <td style="text-align:center;">전체 유니버스</td>
+          <td style="text-align:center;">등록 종목 (최대 30)</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">실행</td>
+          <td style="text-align:center;">수동 (버튼 클릭)</td>
+          <td style="text-align:center;">자동 (5~60분 주기)</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">필터 방식</td>
+          <td style="text-align:center;"><strong>AND</strong> (전부 충족)</td>
+          <td style="text-align:center;"><strong>점수화</strong> (합산 기준)</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">알림</td>
+          <td style="text-align:center;">결과 목록 표시</td>
+          <td style="text-align:center;">3단계 (토스트/펄스/모달)</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">성격</td>
+          <td style="text-align:center;">넓게 탐색 (엄격)</td>
+          <td style="text-align:center;">관심 감시 (빠른 알림)</td>
+        </tr>
+      </table>
+    </div>
+    <div class="tip"><span class="tip-icon">🎯</span> <strong>추천 사용법:</strong> 추천기로 넓게 탐색 → 유망 종목 발견 → 분석기에서 상세 분석 → 워치리스트에 W 등록 → 자동 감시</div>
+  </div>
+
+  <!-- 9. 분석 범위 -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">9</span> 분석 범위 안내</div>
+    <div class="card">
+      <div class="card-label">워치리스트 스캔 vs 분석기</div>
+      <table class="level-table">
+        <tr>
+          <th></th>
+          <th style="text-align:center;">워치리스트 스캔</th>
+          <th style="text-align:center;">분석기 (상세)</th>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">기술 지표</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">레짐 판정</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">안전 필터</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">매매 모드</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">감독관 제동</td>
+          <td style="text-align:center;color:var(--red);">❌</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+        </tr>
+        <tr>
+          <td style="color:var(--muted);">MTF 분석</td>
+          <td style="text-align:center;color:var(--red);">❌</td>
+          <td style="text-align:center;color:var(--green);">✅</td>
+        </tr>
+      </table>
+      <p style="margin-top:10px;font-size:.82rem;color:var(--muted);">워치리스트는 빠른 1차 필터 역할입니다. 알림이 뜨면 분석기에서 상세 분석 후 최종 판단하세요.</p>
+    </div>
+  </div>
+
+  <!-- 10. FAQ -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">10</span> 자주 묻는 질문</div>
+    <div class="card">
+      <p style="font-weight:700;color:#fff;margin-bottom:4px;">다른 탭에 있어도 알림이 오나요?</p>
+      <p style="font-size:.85rem;">네, ORACLE 탭이 브라우저에서 활성 상태이면 어떤 탭(추천기/분석기/감독관)에 있어도 토스트+진동이 옵니다. Lv2 이상이면 워치리스트 탭에 펄스가 표시됩니다.</p>
+    </div>
+    <div class="card">
+      <p style="font-weight:700;color:#fff;margin-bottom:4px;">점수는 높은데 HOLD인 이유는?</p>
+      <p style="font-size:.85rem;">BUY/SELL 판정에는 점수 외에도 여러 안전 필터(momOsc, 변동성, 저항선, 다이버전스 등)가 작동합니다. 79점이어도 안전 필터에서 "아직 확실하지 않다"고 판단하면 HOLD가 됩니다. 이는 오판 방지를 위한 정상 동작입니다.</p>
+    </div>
+    <div class="card">
+      <p style="font-weight:700;color:#fff;margin-bottom:4px;">다른 앱으로 전환하면요?</p>
+      <p style="font-size:.85rem;">모바일에서 다른 앱으로 전환하면 백그라운드 제한으로 스캔이 지연됩니다. <strong>화면 분할</strong> 모드에서는 정상 작동합니다.</p>
+    </div>
+    <div class="card">
+      <p style="font-weight:700;color:#fff;margin-bottom:4px;">종목을 삭제하면 스캔에서 바로 빠지나요?</p>
+      <p style="font-size:.85rem;">네, ✕ 버튼으로 즉시 삭제됩니다. 다음 스캔에서 해당 종목은 제외됩니다.</p>
+    </div>
+    <div class="card">
+      <p style="font-weight:700;color:#fff;margin-bottom:4px;">같은 종목을 다른 TF로 등록할 수 있나요?</p>
+      <p style="font-size:.85rem;">아니요, 종목당 1개만 등록됩니다. TF를 변경하려면 삭제 후 원하는 TF로 다시 분석하고 재등록하세요.</p>
+    </div>
+    <div class="card">
+      <p style="font-weight:700;color:#fff;margin-bottom:4px;">알림이 안 뜹니다.</p>
+      <p style="font-size:.85rem;">필터가 2개 미만이거나 합산 점수가 조건 미달이면 알림이 안 뜹니다. 예: BUY인데 긍정 필터 1개 + 부정 필터 1개 = 합산 0 → 알림 안 뜸. 이는 오판 방지를 위한 정상 동작입니다.</p>
+    </div>
+    <div class="card">
+      <p style="font-weight:700;color:#fff;margin-bottom:4px;">API 제한에 걸리나요?</p>
+      <p style="font-size:.85rem;">코인은 Binance/Upbit, 주식은 Yahoo Finance를 사용하므로 한투 API 제한과 무관합니다. 종목 간 0.8초 간격을 두어 안전합니다.</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">ORACLE PLATFORM · WATCHLIST GUIDE · v2</div>
+
+<script>
+function toggleLight(){const on=!document.body.classList.contains('light');document.body.classList.toggle('light',on);localStorage.setItem('ORACLE_LIGHT',on?'1':'0');const b=document.getElementById('lightToggle');if(b)b.textContent=on?'🌙':'☀️';}
+(function(){const b=document.getElementById('lightToggle');if(b)b.textContent=document.body.classList.contains('light')?'🌙':'☀️';})();
+</script>
+</body>
+</html>
