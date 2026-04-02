@@ -1,0 +1,2376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><script>
+// ── ORACLE 토큰가드 ──
+(function(){
+  var t=sessionStorage.getItem('ORACLE_ENTRY');
+  var ok=t&&(Date.now()-Number(t)<5000);
+  if(ok) sessionStorage.removeItem('ORACLE_ENTRY');
+  var pg='ORACLE_PG_'+location.pathname.split('/').pop();
+  if(!ok) ok=!!sessionStorage.getItem(pg);
+  if(ok){sessionStorage.setItem(pg,'1');return;}
+  function _show404(){
+    var isLight=localStorage.getItem('ORACLE_LIGHT')!=='0';
+    var bg404=isLight?'#f2f3f5':'#0f1724';
+    var fg404=isLight?'#1a1a1a':'#e8eaf0';
+    var sub404=isLight?'#3a4555':'#9aa1b0';
+    document.body.style.cssText='margin:0;padding:0;overflow:hidden';
+    Array.from(document.body.children).forEach(function(el){el.style.display='none'});
+    var d=document.createElement('div');
+    d.id='_oracle404';
+    d.innerHTML='<div style="position:fixed;inset:0;z-index:999999;background:'+bg404+';color:'+fg404+';'
+      +'font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;'
+      +'justify-content:center;text-align:center;padding:20px">'
+      +'<div style="max-width:360px">'
+      +'<div style="width:120px;height:120px;background:#fff;border-radius:50%;margin:0 auto 32px;'
+      +'display:flex;align-items:center;justify-content:center">'
+      +'<div style="width:72px;height:52px;border:3px solid #333;border-radius:6px;position:relative;'
+      +'display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:24px;'
+      +'font-weight:700;color:#d32f2f">404</div></div>'
+      +'<h1 style="font-size:20px;font-weight:700;margin:0 0 12px">페이지를 찾을 수 없습니다.</h1>'
+      +'<p style="font-size:14px;color:'+sub404+';line-height:1.6;margin:0 0 32px">'
+      +'존재하지 않는 주소를 입력하셨거나,<br>'
+      +'요청하신 페이지의 주소가 변경/삭제되어 찾을 수 없습니다.</p>'
+      +'<a href="index.html" style="display:block;width:100%;padding:16px;background:#d32f2f;color:#fff;'
+      +'font-size:16px;font-weight:700;border:none;border-radius:8px;cursor:pointer;text-decoration:none;'
+      +'text-align:center">홈으로 이동</a>'
+      +'</div></div>';
+    document.body.appendChild(d);
+  }
+  if(document.body) _show404();
+  else document.addEventListener('DOMContentLoaded', _show404);
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>⚫ 오목 — Gomoku</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Teko:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --wood:#C8935A;--wood-dark:#8B5E3C;--wood-light:#E8B87A;
+  --gold:#D4A843;--gold-dark:#9A7020;
+  --bg:#1a0f05;--panel:#0f0905;
+  --red:#E03030;--green:#22CC55;--blue:#4A90E2;
+  --beg:#4ade80;--mid:#facc15;--mas:#f87171;
+}
+
+/* ★ 스크롤 허용 */
+html,body{
+  background:var(--bg);
+  font-family:'Noto Serif KR',serif;
+  color:var(--wood-light);
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  height:100%;
+  width:100%;
+}
+
+/* ── 탭바 (공용 탭바 사용 → 숨김) ── */
+.tab-bar{display:none!important;}
+.tab-btn{flex:1;background:none;border:none;color:#553c1e;font-family:'Teko',sans-serif;font-size:0.9rem;letter-spacing:2px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:5px;border-bottom:2px solid transparent;-webkit-tap-highlight-color:transparent;}
+.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);}
+.tab-content{display:none;position:relative;top:0;}
+.tab-content.active{display:block;} #tab-game{display:block!important;}
+#tab-game{
+  background:radial-gradient(ellipse at 50% 30%,rgba(200,147,90,0.06) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 80%,rgba(139,94,60,0.08) 0%,transparent 50%),
+             var(--bg);
+  /* ★ 수정: 화면 전체 채우기 */
+  min-height:100vh;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ★ 제거: .header 관련 CSS 삭제 (HTML에 존재하지 않는 dead code) */
+/* .header 블록 완전 제거 */
+
+/* ── 모드/난이도 ── */
+.mode-row{display:flex;gap:5px;padding:3px 8px 0;flex:1;}
+.mode-btn{flex:1;padding:4px 3px;border-radius:6px;border:1px solid #2a1a08;background:transparent;color:#553c1e;font-family:'Teko',sans-serif;font-size:0.75rem;letter-spacing:.5px;cursor:pointer;transition:all 0.2s;text-align:center;-webkit-tap-highlight-color:transparent;}
+.mode-btn.active{background:rgba(212,168,67,0.12);border-color:var(--gold-dark);color:var(--gold);}
+.diff-row{display:flex;gap:4px;padding:3px 8px 0;flex:1;align-items:center;}
+.diff-label{display:none;}
+.diff-btn{flex:1;padding:4px 2px;border-radius:6px;border:1px solid #2a1a08;background:transparent;color:#553c1e;font-family:'Teko',sans-serif;font-size:0.82rem;letter-spacing:.5px;cursor:pointer;transition:all 0.2s;text-align:center;-webkit-tap-highlight-color:transparent;line-height:1.1;font-weight:600;}
+.diff-btn .dsub{display:none;}
+#diffBeg{color:var(--beg);border-color:rgba(74,222,128,0.35);}
+#diffMid{color:var(--mid);border-color:rgba(250,204,21,0.35);}
+#diffMas{color:var(--mas);border-color:rgba(248,113,113,0.35);}
+#diffBeg.active{background:rgba(74,222,128,0.12);border-color:var(--beg);color:var(--beg);}
+#diffMid.active{background:rgba(250,204,21,0.12);border-color:var(--mid);color:var(--mid);}
+#diffMas.active{background:rgba(248,113,113,0.12);border-color:var(--mas);color:var(--mas);animation:mpulse 2s ease infinite;}
+#diffBeg.practice-disabled,#diffMid.practice-disabled,#diffMas.practice-disabled{opacity:0.3;cursor:not-allowed;pointer-events:none;}
+@keyframes mpulse{0%,100%{box-shadow:none}50%{box-shadow:0 0 10px rgba(248,113,113,0.35)}}
+
+/* ── API 입력 ── */
+.api-box{display:none;margin:2px 14px 6px;background:#0a0400;border:1px solid rgba(248,113,113,0.3);border-radius:10px;padding:10px 12px;animation:fadein 0.3s ease;}
+.api-box.show{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.api-head{font-family:'Teko',sans-serif;font-size:0.75rem;letter-spacing:2px;color:rgba(248,113,113,0.9);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.api-badge{font-size:0.6rem;background:rgba(248,113,113,0.15);border:1px solid rgba(248,113,113,0.3);border-radius:4px;padding:1px 6px;}
+.api-row{display:flex;gap:6px;}
+.api-input{flex:1;height:34px;border-radius:7px;border:1px solid rgba(248,113,113,0.25);background:#060200;color:var(--wood-light);font-size:0.76rem;padding:0 10px;outline:none;font-family:monospace;transition:border-color 0.2s;}
+.api-input:focus{border-color:rgba(248,113,113,0.6);}
+.api-save{height:34px;padding:0 12px;border-radius:7px;border:none;background:rgba(248,113,113,0.18);color:var(--mas);font-family:'Teko',sans-serif;font-size:0.85rem;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.api-save:hover{background:rgba(248,113,113,0.3);}
+.api-msg{font-size:0.67rem;margin-top:5px;min-height:15px;transition:color 0.3s;}
+.api-msg.ok{color:var(--green);}
+.api-msg.err{color:var(--red);}
+.api-msg.wait{color:var(--mid);}
+
+/* ── 생각 중 바 ── */
+.think-bar{height:3px;display:none;background:linear-gradient(90deg,transparent,var(--gold),transparent);background-size:200%;animation:tscroll 1.2s linear infinite;}
+.think-bar.show{display:block;}
+@keyframes tscroll{0%{background-position:100%}100%{background-position:-100%}}
+
+/* ── 상태바 ── */
+.status-bar{display:flex;align-items:center;justify-content:space-between;padding:4px 10px;background:rgba(0,0,0,0.3);gap:6px;}
+.turn-ind{display:flex;align-items:center;gap:9px;}
+.stone-prev{width:20px;height:20px;border-radius:50%;flex-shrink:0;transition:all 0.3s;}
+.stone-prev.black{background:radial-gradient(circle at 35% 35%,#555,#111);box-shadow:0 2px 8px rgba(0,0,0,0.8),inset 0 1px 3px rgba(255,255,255,0.2);}
+.stone-prev.white{background:radial-gradient(circle at 35% 35%,#fff,#d0cdc8);box-shadow:0 2px 8px rgba(0,0,0,0.5),inset 0 1px 3px rgba(255,255,255,0.8);}
+.turn-txt{font-family:'Teko',sans-serif;font-size:.9rem;letter-spacing:1px;color:var(--wood-light);}
+.move-cnt{font-family:'Teko',sans-serif;font-size:0.75rem;color:#a07850;letter-spacing:.5px;}
+
+/* ── 보드 ── */
+.board-outer{background:linear-gradient(135deg,#c8935a,#a8733a,#c8935a);border-radius:8px;padding:7px;box-shadow:0 0 30px rgba(200,147,90,0.2),0 8px 32px rgba(0,0,0,0.8);position:relative;}
+.board-outer::before{content:'';position:absolute;inset:0;border-radius:8px;background:repeating-linear-gradient(8deg,transparent,transparent 14px,rgba(0,0,0,0.03) 14px,rgba(0,0,0,0.03) 15px),repeating-linear-gradient(172deg,transparent,transparent 20px,rgba(255,255,255,0.02) 20px,rgba(255,255,255,0.02) 21px);pointer-events:none;}
+canvas#boardCanvas{display:block;border-radius:4px;cursor:crosshair;touch-action:none;}
+
+/* ── 컨트롤 ── */
+.controls{display:flex;gap:8px;padding:4px 14px 8px;}
+.ctrl-btn{flex:1;height:40px;border-radius:8px;border:1px solid #333;background:#0f0905;color:var(--wood);font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:2px;cursor:pointer;transition:all 0.2s;-webkit-tap-highlight-color:transparent;}
+.ctrl-btn:active{transform:scale(0.96);}
+.ctrl-btn.primary{border-color:var(--gold-dark);color:var(--gold);}
+.ctrl-btn.danger{border-color:#552020;color:var(--red);}
+.ctrl-btn.disabled{opacity:0.35;cursor:not-allowed;pointer-events:none;filter:grayscale(0.5);}
+
+/* ── 오버레이 ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:300;display:none;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.ov-box{background:linear-gradient(160deg,#1e1005,#120800);border:2px solid var(--gold-dark);border-radius:16px;padding:26px 30px;text-align:center;max-width:290px;width:90%;box-shadow:0 0 40px rgba(212,168,67,0.2);}
+.ov-icon{font-size:2.8rem;margin-bottom:8px;}
+.ov-badge{display:inline-block;font-family:'Teko',sans-serif;font-size:0.72rem;letter-spacing:2px;padding:3px 10px;border-radius:10px;margin-bottom:8px;}
+.ov-title{font-family:'Teko',sans-serif;font-size:1.8rem;letter-spacing:4px;color:var(--gold);margin-bottom:6px;}
+.ov-sub{font-size:0.82rem;color:var(--wood);margin-bottom:20px;line-height:1.6;}
+.ov-btn{width:100%;height:46px;border-radius:10px;border:none;background:linear-gradient(135deg,#6a3a10,#9a5520,#c8730a,#9a5520,#6a3a10);color:#fff;font-family:'Teko',sans-serif;font-size:1.3rem;letter-spacing:4px;cursor:pointer;}
+.ov-btn:active{transform:scale(0.97);}
+
+/* CONFETTI */
+.cf{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden;}
+.cp{position:absolute;top:-12px;animation:cffall linear forwards;}
+@keyframes cffall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(105vh) rotate(720deg);opacity:0}}
+
+/* ── 타이머 바 ── */
+#timerBar{height:3px;width:100%;background:rgba(255,255,255,.08);overflow:hidden;transition:none;}
+#timerFill{height:100%;width:100%;border-radius:2px;transition:width .25s linear,background .5s;}
+#timerTxt{font-family:'Teko',sans-serif;font-size:.72rem;letter-spacing:1px;color:var(--gold);min-width:28px;text-align:right;}
+.timer-wrap{display:flex;align-items:center;gap:6px;padding:2px 10px 0;}
+
+/* ── 힌트 버튼 ── */
+#hintBtn{
+  padding:3px 10px;border-radius:6px;
+  border:1px solid rgba(74,222,128,.4);
+  background:rgba(74,222,128,.08);
+  color:#4ade80;font-family:'Teko',sans-serif;font-size:.72rem;
+  letter-spacing:.5px;cursor:pointer;white-space:nowrap;
+  transition:all .2s;-webkit-tap-highlight-color:transparent;
+}
+#hintBtn:disabled{opacity:.3;cursor:not-allowed;}
+#hintBtn.used1{border-color:rgba(250,204,21,.4);color:#facc15;background:rgba(250,204,21,.08);}
+#hintBtn.used2{border-color:rgba(248,113,113,.4);color:#f87171;background:rgba(248,113,113,.08);}
+.hint-dot{
+  position:absolute;border:2.5px solid #4ade80;border-radius:50%;
+  pointer-events:none;z-index:10;
+  animation:hint-pulse 1.2s ease-in-out infinite;
+}
+@keyframes hint-pulse{0%,100%{opacity:1;transform:translate(-50%,-50%) scale(1)}50%{opacity:.5;transform:translate(-50%,-50%) scale(1.15)}}
+
+/* ── 돌 이펙트: 마지막 돌 반짝이기 ── */
+@keyframes stone-ring-pulse{
+  0%{opacity:1;transform:translate(-50%,-50%) scale(.6)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(1.6)}
+}
+.stone-ring{
+  position:absolute;border-radius:50%;border:2px solid;
+  pointer-events:none;z-index:9;
+  animation:stone-ring-pulse .55s ease-out forwards;
+}
+
+/* ── 5목 완성 빛 효과 ── */
+@keyframes win-beam{
+  0%{opacity:0;filter:blur(2px)}
+  30%{opacity:1;filter:blur(0)}
+  80%{opacity:1}
+  100%{opacity:0}
+}
+.win-beam{
+  position:absolute;height:4px;border-radius:2px;
+  background:linear-gradient(90deg,transparent,#ffd700,#fff,#ffd700,transparent);
+  pointer-events:none;z-index:11;
+  animation:win-beam 1.4s ease-out forwards;
+  transform-origin:left center;
+}
+
+/* ── 핸디캡 배지 ── */
+#handicapBadge{
+  font-family:'Teko',sans-serif;font-size:.65rem;letter-spacing:.5px;
+  padding:1px 6px;border-radius:4px;display:none;
+  background:rgba(251,146,60,.15);border:1px solid rgba(251,146,60,.4);color:#fb923c;
+}
+
+/* ── 베팅 패널 난이도 테두리 ── */
+#betPanel.diff-beg{border-color:rgba(74,222,128,.45);}
+#betPanel.diff-mid{border-color:rgba(250,204,21,.45);}
+#betPanel.diff-mas{border-color:rgba(248,113,113,.45);}
+
+/* ── sizeCanvas offset 관련 — board-wrap 고정 ── */
+.board-wrap{display:flex;justify-content:center;padding:3px 6px 2px;}
+
+/* ── 연습모드 버튼 ── */
+#practiceBtn{
+  padding:4px 8px;
+  border-radius:6px;
+  border:1.5px solid rgba(100,180,255,0.45);
+  background:transparent;
+  color:rgba(100,180,255,0.65);
+  font-family:'Teko',sans-serif;
+  font-size:0.75rem;
+  letter-spacing:.5px;
+  cursor:pointer;
+  transition:all 0.2s;
+  white-space:nowrap;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;
+  z-index:1;
+  user-select:none;
+}
+#practiceBtn.active{
+  background:rgba(80,160,255,0.18);
+  border:2.5px solid rgba(120,200,255,1);
+  color:rgba(160,225,255,1);
+  box-shadow:0 0 8px rgba(100,180,255,0.5);
+}
+/* 잔액 없을 때 전체 비활성화 */
+.diff-btn.no-balance{
+  opacity:0.28;
+  cursor:not-allowed;
+  color:#555 !important;
+  border-color:#333 !important;
+  background:transparent !important;
+  pointer-events:none;
+}
+/* 연습모드일 때 중수/고수 비활성화 */
+#diffBeg.practice-disabled,#diffMid.practice-disabled,#diffMas.practice-disabled{
+  opacity:0.28;
+  cursor:not-allowed;
+  color:#555 !important;
+  border-color:#333 !important;
+  background:transparent !important;
+  pointer-events:none;
+}
+
+
+
+
+
+/* ── 카지노 단일 테마 업그레이드 ── */
+.bet-panel{background:linear-gradient(180deg,rgba(18,10,5,.94),rgba(10,5,1,.88));border:1px solid rgba(212,168,67,.28);box-shadow:inset 0 1px 0 rgba(255,224,162,.06),0 6px 18px rgba(0,0,0,.18);}
+.bet-amount-lbl,.bet-odds-lbl,.bet-payout-val,.bet-status-txt{color:#e1d0bc;}
+.bet-amount-val{color:#44df8a;text-shadow:0 0 8px rgba(68,223,138,.08);}
+.bet-odds-val{color:#52e29a;font-weight:700;text-shadow:0 0 10px rgba(82,226,154,.1);}
+.turn-txt{color:#fff4e6;font-weight:700;text-shadow:0 0 8px rgba(255,244,230,.08);}
+.move-cnt{color:#f0dcc0;font-weight:700;}
+.mode-btn{color:#e4cfae;border-color:rgba(212,168,67,.22);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.04));}
+.mode-btn.active{background:linear-gradient(180deg,rgba(212,168,67,.18),rgba(212,168,67,.08));border-color:rgba(212,168,67,.5);color:#ffd978;box-shadow:inset 0 1px 0 rgba(255,230,180,.08),0 4px 12px rgba(0,0,0,.16);}
+.diff-btn{border-color:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.02);}
+.diff-btn.no-balance,#diffBeg.practice-disabled,#diffMid.practice-disabled,#diffMas.practice-disabled{opacity:.56;color:#a7acb3 !important;border-color:rgba(167,172,179,.22) !important;}
+.status-bar{background:linear-gradient(90deg,rgba(19,10,5,.9),rgba(33,19,10,.72));border-top:1px solid rgba(255,221,170,.05);border-bottom:1px solid rgba(212,168,67,.1);}
+.timer-wrap{background:linear-gradient(180deg,rgba(255,255,255,.015),rgba(0,0,0,.02));}
+.board-outer{background:linear-gradient(135deg,#d2a26b,#b57a42,#d6a168);box-shadow:0 0 26px rgba(212,168,67,.14),0 10px 34px rgba(0,0,0,.72);}
+.ctrl-btn{background:linear-gradient(180deg,#110904,#090401);border-color:rgba(212,168,67,.16);color:#deb07b;box-shadow:inset 0 1px 0 rgba(255,228,180,.04);}
+.ctrl-btn.primary{border-color:rgba(212,168,67,.42);color:#ffd978;box-shadow:inset 0 1px 0 rgba(255,228,180,.06),0 0 0 1px rgba(212,168,67,.05);}
+#hintBtn,#practiceBtn{font-weight:700;}
+#gmToast{background:rgba(10,4,0,.96);border-color:rgba(212,168,67,.3);color:#f6dfb7;}
+
+/* ── 가독성/2인전 배너 개선 ── */
+.bet-amount-lbl,.bet-odds-lbl{color:#f6e7cf !important;font-weight:700;text-shadow:0 0 8px rgba(255,235,200,.10);}
+.bet-payout-val{color:#d8c2a2 !important;}
+.bet-amount-val,.bet-odds-val{filter:drop-shadow(0 0 6px rgba(255,255,255,.05));}
+.mode-divider{width:1px;height:20px;background:rgba(255,255,255,.1);flex-shrink:0;}
+#pvpTurnBanner{display:none;align-items:center;justify-content:center;min-width:0;flex:1;height:34px;border-radius:10px;border:1px solid rgba(212,168,67,.20);background:linear-gradient(180deg,rgba(255,248,230,.04),rgba(0,0,0,.08));font-family:'Teko',sans-serif;font-size:1rem;letter-spacing:1px;font-weight:700;padding:0 12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:inset 0 1px 0 rgba(255,240,205,.05);}
+#pvpTurnBanner.show{display:flex;}
+#pvpTurnBanner.black-turn{color:#ffd978;border-color:rgba(212,168,67,.42);text-shadow:0 0 10px rgba(255,217,120,.20);}
+#pvpTurnBanner.white-turn{color:#eef4ff;border-color:rgba(140,180,255,.38);text-shadow:0 0 10px rgba(190,220,255,.18);}
+#pvpTurnBanner.flash{animation:pvpFlash .65s ease 1;}
+@keyframes pvpFlash{0%{transform:scale(.98);opacity:.72;box-shadow:0 0 0 rgba(255,255,255,0)}40%{transform:scale(1.01);opacity:1;box-shadow:0 0 14px rgba(255,220,140,.12)}100%{transform:scale(1);opacity:1;box-shadow:none;}}
+
+#spectatorCommentary{display:none;flex-direction:column;align-items:stretch;min-height:40px;margin:0 8px 4px;padding:8px 12px;border-radius:10px;border:1px solid rgba(212,168,67,.16);background:linear-gradient(180deg,rgba(255,248,230,.06),rgba(0,0,0,.12));font-size:.78rem;letter-spacing:.3px;color:#f6e7cf;box-shadow:inset 0 1px 0 rgba(255,240,205,.05);line-height:1.5;}
+#spectatorCommentary.show{display:flex;}
+.sc-title{font-family:'Teko',sans-serif;font-size:.92rem;letter-spacing:1px;font-weight:700;margin-bottom:2px;}
+.sc-body{font-family:'Noto Serif KR',serif;font-size:.72rem;color:#d8c2a2;line-height:1.55;}
+#spectatorCommentary.black-note{border-color:rgba(212,168,67,.38);}
+#spectatorCommentary.black-note .sc-title{color:#ffd978;text-shadow:0 0 10px rgba(255,217,120,.16);}
+#spectatorCommentary.white-note{border-color:rgba(140,180,255,.34);}
+#spectatorCommentary.white-note .sc-title{color:#eef4ff;text-shadow:0 0 10px rgba(190,220,255,.14);}
+#spectatorCommentary.note-flash{animation:commentaryFlash .75s ease 1;}
+@keyframes commentaryFlash{0%{transform:translateY(-1px);opacity:.7}45%{transform:translateY(0);opacity:1;box-shadow:0 0 14px rgba(255,220,140,.10)}100%{transform:translateY(0);opacity:1;box-shadow:none}}
+
+/* ── 관전 해설 라인 오버레이 ── */
+.spec-line-overlay{position:absolute;top:7px;left:7px;pointer-events:none;z-index:12;}
+
+
+/* ── 관전모드 클릭 알림 배너 ── */
+#specClickBanner{
+  position:fixed;bottom:60px;left:0;right:0;z-index:450;
+  display:flex;align-items:center;justify-content:center;
+  pointer-events:none;overflow:hidden;height:36px;
+}
+#specClickBanner .scb-inner{
+  white-space:nowrap;
+  font-family:'Teko',sans-serif;font-size:.92rem;letter-spacing:1px;
+  color:#ffd978;text-shadow:0 0 8px rgba(255,217,120,.25);
+  padding:6px 20px;
+  background:linear-gradient(90deg,transparent,rgba(212,168,67,.18) 15%,rgba(212,168,67,.22) 50%,rgba(212,168,67,.18) 85%,transparent);
+  border-top:1px solid rgba(212,168,67,.25);border-bottom:1px solid rgba(212,168,67,.25);
+  transform:translateX(100vw);
+  animation:scbSlide 4s linear forwards;
+}
+@keyframes scbSlide{
+  0%{transform:translateX(100vw)}
+  100%{transform:translateX(-100%)}
+}
+.bet-panel{padding:4px clamp(8px,2.2vw,14px);} 
+.bet-panel-row{gap:clamp(6px,1.8vw,12px);} 
+.bet-info,.bet-odds-col{min-width:0;} 
+.bet-amount-lbl,.bet-odds-lbl{font-size:.66rem;opacity:.98;} 
+.bet-amount-val,.bet-odds-val{font-size:1rem;} 
+.bet-payout-val{font-size:.68rem;white-space:nowrap;} 
+@media (max-width:390px){
+  .bet-panel{padding:4px 8px;}
+  .bet-panel-row{gap:6px;}
+  .bet-amount-lbl,.bet-odds-lbl,.bet-payout-val{font-size:.62rem;}
+  .bet-amount-val,.bet-odds-val{font-size:.95rem;}
+}
+
+
+/* ══════════════ 라이트모드 ══════════════ */
+body.light{--bg:#f0f1f3;--panel:#ffffff;--text:#1a1a1a;--text2:#3a4555;--border:rgba(0,0,0,.1);}
+body.light{background:var(--bg) !important;color:var(--text);}
+body.light #topBar{background:var(--panel);border-color:var(--border);}
+body.light #topBarHomeBtn{background:rgba(168,85,247,.08);border-color:rgba(168,85,247,.2);color:var(--text);}
+body.light #topBarTitle{color:#7c3aed;}
+body.light #topBarBal{background:rgba(245,158,11,.06);border-color:rgba(245,158,11,.2);color:#b45309;}
+body.light #topBarPoint{background:rgba(168,85,247,.06);border-color:rgba(168,85,247,.2);color:#7c3aed;}
+body.light .board-wrap{background:var(--panel);border-color:var(--border);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+body.light canvas{border-color:var(--border);}
+body.light .info-bar{background:var(--panel);border-color:var(--border);}
+body.light .bet-btn{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.12);color:var(--text2);}
+body.light .bet-btn.active{border-color:#7c3aed;background:rgba(124,58,237,.08);color:#7c3aed;}
+body.light .result-overlay{background:rgba(255,255,255,.92);}
+body.light .result-box{background:var(--panel);border-color:var(--border);color:var(--text);}
+body.light .modal-bg{background:rgba(0,0,0,.4);}
+body.light .modal-box{background:var(--panel);border-color:var(--border);}
+body.light .stat-card{background:var(--panel);border-color:var(--border);}
+body.light .game-hud{background:var(--panel);border-color:var(--border);}
+body.light .turn-indicator{color:var(--text);}
+body.light #gmToast{background:var(--panel);border-color:var(--border);color:var(--text);}
+body.light .score-area{background:rgba(0,0,0,.03);}
+.light-toggle{background:none;border:1px solid var(--border);color:var(--text2);font-size:13px;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+</style>
+</head>
+<body data-theme="casino">
+<script>if(localStorage.getItem('ORACLE_LIGHT')!=='0')document.body.classList.add('light');</script>
+<div class="cf" id="cf"></div>
+
+<style>
+/* ── 단독 실행 topBar (슬롯 동일 패턴) ── */
+#topBar{
+  position:sticky;top:0;left:0;right:0;z-index:400;
+  height:44px;
+  background:rgba(7,8,15,.97);
+  border-bottom:1px solid rgba(168,85,247,.22);
+  display:flex;align-items:center;padding:0 10px;gap:6px;
+  backdrop-filter:blur(12px);
+}
+#topBarHomeBtn{
+  width:34px;height:34px;background:rgba(168,85,247,.15);
+  border:1px solid rgba(168,85,247,.3);border-radius:9px;
+  color:#f1f5f9;font-size:17px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+#topBarTitle{font-family:'Teko',sans-serif;font-size:18px;letter-spacing:2px;color:#c084fc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.tb-spacer{flex:1;}
+#topBarBal{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.28);border-radius:8px;padding:4px 8px;font-size:12px;color:#f59e0b;font-weight:700;white-space:nowrap;}
+#topBarPoint{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.35);border-radius:8px;padding:4px 8px;font-size:12px;color:#c084fc;font-weight:700;white-space:nowrap;}
+#topBarCharge{background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;padding:5px 10px;cursor:pointer;white-space:nowrap;}
+/* iframe 제거됨 — padding-top 제거 불필요 */
+#gmToast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(18px);background:rgba(10,4,0,.96);border:1px solid rgba(212,168,67,.3);border-radius:9px;padding:8px 16px;font-size:.8rem;color:#E8B87A;opacity:0;transition:all .3s;pointer-events:none;z-index:500;white-space:nowrap;}
+#gmToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* 베팅 패널 */
+.bet-panel{margin:0 8px 3px;background:rgba(10,4,0,.7);border:1px solid rgba(212,168,67,.2);border-radius:8px;padding:4px 10px;}
+.bet-panel-row{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:nowrap;}
+.bet-info{display:flex;flex-direction:row;align-items:center;gap:6px;}
+.bet-diff-tag{font-family:'Teko',sans-serif;font-size:.72rem;letter-spacing:1px;padding:2px 8px;border-radius:6px;display:inline-block;}
+.bet-diff-tag.beg{background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3);}
+.bet-diff-tag.mid{background:rgba(250,204,21,.15);color:#facc15;border:1px solid rgba(250,204,21,.3);}
+.bet-diff-tag.mas{background:rgba(248,113,113,.15);color:#f87171;border:1px solid rgba(248,113,113,.3);}
+.bet-amount-row{display:flex;align-items:center;gap:4px;margin-top:0;}
+.bet-amount-lbl{font-size:.6rem;color:#553c1e;}
+.bet-amount-val{font-family:'Teko',sans-serif;font-size:.9rem;color:var(--gold);letter-spacing:.5px;}
+.bet-odds-col{display:flex;flex-direction:row;align-items:center;gap:4px;}
+.bet-odds-lbl{font-size:.6rem;color:#553c1e;}
+.bet-odds-val{font-family:'Teko',sans-serif;font-size:.95rem;color:#f87171;letter-spacing:.5px;line-height:1;}
+.bet-payout-val{font-size:.6rem;color:#553c1e;}
+/* [① FIX] bet-status: JS가 텍스트를 채울 때만 보이도록 min-height 유지 */
+.bet-status{min-height:0;overflow:hidden;}
+.bet-status:empty,.bet-status-txt:empty{display:none;}
+.bet-status-txt{font-size:.7rem;color:#553c1e;font-style:italic;}
+.bet-result-win{color:#4ade80;font-family:'Teko',sans-serif;font-size:.85rem;letter-spacing:1px;}
+.bet-result-lose{color:#f87171;font-family:'Teko',sans-serif;font-size:.85rem;letter-spacing:1px;}
+
+
+</style>
+<div id="topBar">
+  <button id="topBarHomeBtn" onclick="goHome()">🏠</button>
+  <span id="topBarTitle">⚫ 오목</span>
+  <button type="button" class="light-toggle" id="lightToggle" onclick="toggleLight()">🌙</button>
+  <div class="tb-spacer"></div>
+  <div id="topBarBal">💰 <span id="topBarBalNum">0</span></div>
+  <div id="topBarPoint">🪙 <span id="topBarPointNum">0</span>P</div>
+  <button id="topBarCharge" onclick="requestCharge()">충전</button>
+</div>
+<div id="gmToast"></div>
+<div id="specClickBanner"></div>
+
+<div class="overlay" id="overlay">
+  <div class="ov-box">
+    <div class="ov-icon" id="ovIcon">🏆</div>
+    <div class="ov-badge" id="ovBadge"></div>
+    <div class="ov-title" id="ovTitle">승리!</div>
+    <div class="ov-sub" id="ovSub">흑돌이 5목을 완성했습니다</div>
+    <div id="ovBetResult" style="font-family:'Teko',sans-serif;font-size:1.1rem;letter-spacing:2px;margin:6px 0 14px;min-height:18px;"></div>
+    <button class="ov-btn" onclick="restartGame()">🔄 다시 시작</button>
+  </div>
+</div>
+
+<!-- ★ 수정: 상단 헤더(잔금/포인트/충전) 없음 — index.html gameBar가 담당 -->
+<!-- ══ 게임 탭 ══ -->
+<div id="tab-game" style="padding-top:48px;">
+
+  <!-- ★ 베팅 패널 (난이도별 테두리 색상) -->
+  <div class="bet-panel diff-beg" id="betPanel">
+    <div class="bet-panel-row">
+      <div class="bet-info">
+        <span class="bet-diff-tag beg" id="betDiffTag">🟢</span>
+        <div class="bet-amount-row">
+          <span class="bet-amount-lbl">베팅</span>
+          <span class="bet-amount-val" id="betAmountVal">₩100,000</span>
+        </div>
+        <span id="handicapBadge">🔰 핸디캡</span>
+      </div>
+      <div class="bet-odds-col">
+        <span class="bet-odds-lbl">배당</span>
+        <span class="bet-odds-val" id="betOddsVal">×2.0</span>
+        <span class="bet-payout-val" id="betPayoutVal">→₩200,000</span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;">
+        <div style="display:flex;gap:8px;font-family:'Teko',sans-serif;font-size:.72rem;color:var(--gold);">
+          <span>⚫<span id="blackWins">0</span></span>
+          <span>⚪<span id="whiteWins">0</span></span>
+        </div>
+        <span id="betResultTxt" style="font-size:.65rem;"></span>
+      </div>
+    </div>
+    <!-- [① FIX] betStatusTxt: JS에서 참조하지만 HTML에 없던 요소 추가 -->
+    <div class="bet-status" id="betStatusArea">
+      <span class="bet-status-txt" id="betStatusTxt"></span>
+    </div>
+  </div>
+
+  <!-- ★ 모드 + 난이도 + 힌트 한 줄 -->
+  <div style="display:flex;gap:4px;padding:3px 8px 2px;align-items:center;">
+    <div class="mode-row" style="flex:0 0 auto;min-width:0;">
+      <button class="mode-btn active" id="modeAI" onclick="setMode('ai')">🤖</button>
+      <button class="mode-btn" id="mode2P" onclick="setMode('2p')">👥</button>
+    </div>
+    <div class="mode-divider" id="dividerAfterMode"></div>
+    <div class="diff-row" id="diffRow" style="flex:1;margin:0;padding:0;">
+      <button class="diff-btn active" id="diffBeg" onclick="setDiff('beg')" title="하수" style="display:flex;align-items:center;justify-content:center;gap:4px;">
+        <svg width="22" height="22" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#4ade80" stroke="#22c55e" stroke-width="4"/>
+          <ellipse cx="35" cy="42" rx="7" ry="8" fill="#166534"/>
+          <ellipse cx="65" cy="42" rx="7" ry="8" fill="#166534"/>
+          <path d="M33 65 Q50 78 67 65" stroke="#166534" stroke-width="5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span style="font-size:0.72rem;letter-spacing:.3px;">하수</span>
+      </button>
+      <button class="diff-btn" id="diffMid" onclick="setDiff('mid')" title="중수" style="display:flex;align-items:center;justify-content:center;gap:4px;">
+        <svg width="22" height="22" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#facc15" stroke="#eab308" stroke-width="4"/>
+          <ellipse cx="35" cy="42" rx="7" ry="8" fill="#713f12"/>
+          <ellipse cx="65" cy="42" rx="7" ry="8" fill="#713f12"/>
+          <path d="M33 68 Q50 68 67 68" stroke="#713f12" stroke-width="5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span style="font-size:0.72rem;letter-spacing:.3px;">중수</span>
+      </button>
+      <button class="diff-btn" id="diffMas" onclick="setDiff('mas')" title="고수" style="display:flex;align-items:center;justify-content:center;gap:4px;">
+        <svg width="22" height="22" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="50" cy="50" r="46" fill="#f87171" stroke="#ef4444" stroke-width="4"/>
+          <line x1="27" y1="35" x2="43" y2="51" stroke="#7f1d1d" stroke-width="6" stroke-linecap="round"/>
+          <line x1="43" y1="35" x2="27" y2="51" stroke="#7f1d1d" stroke-width="6" stroke-linecap="round"/>
+          <line x1="57" y1="35" x2="73" y2="51" stroke="#7f1d1d" stroke-width="6" stroke-linecap="round"/>
+          <line x1="73" y1="35" x2="57" y2="51" stroke="#7f1d1d" stroke-width="6" stroke-linecap="round"/>
+          <path d="M33 72 Q42 62 50 68 Q58 62 67 72" stroke="#7f1d1d" stroke-width="5" fill="none" stroke-linecap="round"/>
+        </svg>
+        <span style="font-size:0.72rem;letter-spacing:.3px;">고수</span>
+      </button>
+    </div>
+    <div class="mode-divider" id="dividerBeforeTools"></div>
+    <button id="hintBtn" onclick="useHint()">💡 힌트 2</button>
+    <button id="practiceBtn" onclick="togglePractice()">연습모드</button>
+    <div id="pvpTurnBanner" aria-live="polite"></div>
+  </div>
+
+  <div class="api-box" id="apiBox">
+    <div class="api-head">🧠 초고수 엔진 <span class="api-badge">로컬</span></div>
+    <div class="api-row">
+      <input class="api-input" id="apiKeyInput" type="password" placeholder="sk-ant-api03-..." autocomplete="off">
+      <button class="api-save" onclick="saveApiKey()">저장</button>
+    </div>
+    <div class="api-msg" id="apiMsg">이 버전은 API 없이 로컬 초고수 엔진으로 동작합니다</div>
+  </div>
+
+  <div class="think-bar" id="thinkBar"></div>
+
+  <!-- ★ 타이머 바 -->
+  <div class="timer-wrap">
+    <div id="timerBar" style="flex:1;"><div id="timerFill" style="background:#4ade80;"></div></div>
+    <span id="timerTxt">—</span>
+  </div>
+
+  <!-- ★ 상태바 -->
+  <div class="status-bar">
+    <div class="turn-ind">
+      <div class="stone-prev black" id="turnStone"></div>
+      <div class="turn-txt" id="turnText">흑돌 차례</div>
+    </div>
+    <div class="move-cnt" id="moveCount">0수</div>
+  </div>
+  <div id="spectatorCommentary" aria-live="polite"></div>
+
+  <div class="board-wrap">
+    <div class="board-outer" style="position:relative;">
+      <canvas id="boardCanvas"></canvas>
+      <canvas class="spec-line-overlay" id="specLineCanvas"></canvas>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn primary" id="undoBtn" onclick="forfeitGame()">🏳️ 게임 포기</button>
+    <button class="ctrl-btn danger" onclick="restartGame()">🚀 게임 시작</button>
+  </div>
+
+  <div style="display:flex;gap:6px;padding:6px 10px 20px;align-items:center;flex-wrap:wrap;">
+    <label style="display:flex;align-items:center;gap:8px;background:#0a0400;border:1px solid rgba(212,168,67,0.18);border-radius:10px;padding:8px 10px;flex:1;min-width:160px;">
+      <input id="optRenju" type="checkbox" style="accent-color:#D4A843;transform:scale(1.05);">
+      <span style="font-family:'Teko',sans-serif;font-size:0.85rem;letter-spacing:1px;color:#D4A843;">금수룰(렌주) · 흑 금지수 적용</span>
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;background:#0a0400;border:1px solid rgba(248,113,113,0.18);border-radius:10px;padding:8px 10px;flex:1;min-width:160px;">
+      <input id="optAggro" type="checkbox" checked style="accent-color:#f87171;transform:scale(1.05);">
+      <span style="font-family:'Teko',sans-serif;font-size:0.85rem;letter-spacing:1px;color:#f87171;">고수 엔진 강화(쌍삼·쌍사 탐지)</span>
+    </label>
+  </div>
+</div>
+
+<script>
+/* ── topBar 단축표기 ── */
+function fmtTopBar(n){n=Math.floor(n||0);return n>=1e6?(n/1e6).toFixed(1)+'M':n>=1e3?(n/1e3).toFixed(0)+'K':n.toLocaleString('ko-KR');}
+// ══════════════════════════════════════════
+//  탭 전환
+// ══════════════════════════════════════════
+function switchTab(tab){}
+
+// ══════════════════════════════════════════════
+//  ① 타이머 시스템
+// ══════════════════════════════════════════════
+const TIMER_SECS = {beg:10, mid:20, mas:30};
+let timerInterval = null;
+let timerRemain = 0;
+
+function startTimer(){
+  stopTimer();
+  if(isSpectating()) return;
+  if(mode !== 'ai' || gameOver || currentPlayer !== 1) return;
+  timerRemain = TIMER_SECS[difficulty] || 10;
+  const total = timerRemain;
+  updateTimerUI(timerRemain, total);
+  timerInterval = setInterval(()=>{
+    timerRemain--;
+    updateTimerUI(timerRemain, total);
+    if(timerRemain <= 0){
+      stopTimer();
+      autoRandomMove();
+    }
+  }, 1000);
+}
+
+function stopTimer(){
+  clearInterval(timerInterval);
+  timerInterval = null;
+  const fill = document.getElementById('timerFill');
+  const txt  = document.getElementById('timerTxt');
+  if(fill) fill.style.width = '100%';
+  if(txt)  txt.textContent = '—';
+}
+
+function updateTimerUI(remain, total){
+  const fill = document.getElementById('timerFill');
+  const txt  = document.getElementById('timerTxt');
+  if(!fill || !txt) return;
+  const pct = Math.max(0, remain / total * 100);
+  fill.style.width = pct + '%';
+  txt.textContent = remain + 's';
+  // 색상: 초록→노랑→빨강
+  if(pct > 50)      fill.style.background = '#4ade80';
+  else if(pct > 25) fill.style.background = '#facc15';
+  else              fill.style.background = '#f87171';
+  // 5초 이하면 txt 빨갛게
+  txt.style.color = remain <= 5 ? '#f87171' : 'var(--gold)';
+}
+
+function autoRandomMove(){
+  if(isSpectating()) return;
+  if(gameOver || currentPlayer !== 1) return;
+  // 연습모드: 잔액 차단 없이 진행
+  const empties = [];
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+    if(board[r][c]===0){
+      let near=false;
+      for(let dr=-2;dr<=2;dr++) for(let dc=-2;dc<=2;dc++){
+        if(!dr&&!dc) continue;
+        const nr=r+dr,nc=c+dc;
+        if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]!==0){near=true;break;}
+      }
+      if(near) empties.push([r,c]);
+    }
+  }
+  if(!empties.length){ for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(board[r][c]===0) empties.push([r,c]); }
+  if(!empties.length) return;
+  const [r,c] = empties[Math.floor(Math.random()*empties.length)];
+  showToastGm('⏱️ 시간 초과! 자동 착수');
+  // [BUG FIX 1] setTimeout(0)으로 래핑된 aiMove 보장 (스크립트 하단에서 재정의된 버전 사용)
+  if(placeStone(r,c) && !gameOver && mode==='ai' && currentPlayer===2){
+    setTimeout(()=>{ if(!gameOver && currentPlayer===2) aiMove(); }, 0);
+  }
+}
+
+// ══════════════════════════════════════════════
+//  ② 힌트 시스템
+// ══════════════════════════════════════════════
+let hintUsed = 0;       // 0,1,2
+let hintDotEl = null;
+
+function useHint(){
+  if(gameOver || currentPlayer !== 1 || mode !== 'ai') return;
+  if(hintUsed >= 2){ showToastGm('💡 힌트를 모두 사용했습니다'); return; }
+  hintUsed++;
+  // 배당률 감소
+  hintOddsMultiplier = hintUsed === 1 ? 0.9 : 0.8; // 1회 -10%, 2회 -20%
+  updateBetPanel();
+
+  // 힌트 계산 (getMoveBeg 로직 활용)
+  const me=1, ai=2;
+  // 즉시 이길 수 있는 수 우선
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+    if(board[r][c]===0){
+      board[r][c]=me; if(checkWin(r,c,me)){board[r][c]=0; showHintDot(r,c); return;} board[r][c]=0;
+    }
+  }
+  // AI 4목 막기
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+    if(board[r][c]===0){
+      board[r][c]=ai; if(checkWin(r,c,ai)){board[r][c]=0; showHintDot(r,c); return;} board[r][c]=0;
+    }
+  }
+  // 최선 착수 추천
+  const cands=[];
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+    if(board[r][c]===0){
+      let near=false;
+      for(let dr=-2;dr<=2;dr++) for(let dc=-2;dc<=2;dc++){
+        if(!dr&&!dc) continue;
+        const nr=r+dr,nc=c+dc;
+        if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]!==0){near=true;break;}
+      }
+      if(near) cands.push({r,c,s:evalPoint(board,r,c,me)*1.1+evalPoint(board,r,c,ai)*0.9});
+    }
+  }
+  if(!cands.length){ cands.push({r:7,c:7,s:0}); }
+  cands.sort((a,b)=>b.s-a.s);
+  showHintDot(cands[0].r, cands[0].c);
+
+  // 힌트 버튼 업데이트
+  const btn = document.getElementById('hintBtn');
+  if(btn){
+    if(hintUsed===1){ btn.textContent='💡 힌트 1'; btn.className='used1'; }
+    else            { btn.textContent='💡 ×'; btn.className='used2'; btn.disabled=true; }
+  }
+  showToastGm(hintUsed===1 ? '💡 힌트 사용 (배당 -10%)' : '💡 힌트 2회 사용 (배당 -20%)');
+}
+
+function showHintDot(r, c){
+  removeHintDot();
+  const outer = document.querySelector('.board-outer');
+  if(!outer) return;
+  const x = PAD + c*CELL;
+  const y = PAD + r*CELL;
+  const dot = document.createElement('div');
+  dot.className = 'hint-dot';
+  dot.style.cssText = `width:${STONE_R*2.2}px;height:${STONE_R*2.2}px;left:${7+x}px;top:${7+y}px;`;
+  outer.appendChild(dot);
+  hintDotEl = dot;
+  // 3초 후 자동 제거
+  setTimeout(removeHintDot, 3000);
+}
+
+function removeHintDot(){
+  if(hintDotEl){ hintDotEl.remove(); hintDotEl=null; }
+}
+
+function resetHint(){
+  hintUsed = 0;
+  hintOddsMultiplier = 1.0;
+  removeHintDot();
+  const btn = document.getElementById('hintBtn');
+  if(btn){ btn.textContent='💡 힌트 2'; btn.className=''; btn.disabled=false; }
+}
+
+// ══════════════════════════════════════════════
+//  ④ 핸디캡 (AI 돌 자동 랜덤 1~3개)
+// ══════════════════════════════════════════════
+function applyHandicap(){
+  // 고수(MAS) 난이도에서만 'AI(백) 선배치'로 난이도를 올리는 옵션
+  // 관전모드(AI vs AI)나 연습모드에서는 적용하지 않음
+  if(mode !== 'ai') return;
+  if(isSpectating()) return;
+  if(typeof practiceMode !== 'undefined' && practiceMode) return;
+  if(difficulty !== 'mas') return;
+
+  const count = Math.floor(Math.random()*3)+1; // 1~3
+  const badge = document.getElementById('handicapBadge');
+  // 중앙 주변에 AI(백) 돌 랜덤 배치
+  const center = 7;
+  const placed = [];
+  const tries = 30;
+  for(let i=0;i<tries && placed.length<count;i++){
+    const r = center + Math.floor(Math.random()*7)-3;
+    const c = center + Math.floor(Math.random()*7)-3;
+    if(r>=2&&r<SIZE-2&&c>=2&&c<SIZE-2&&board[r][c]===0&&!placed.find(p=>p[0]===r&&p[1]===c)){
+      board[r][c] = 2; // AI = 백
+      moveHistory.push({r,c,player:2,handicap:true});
+      placed.push([r,c]);
+    }
+  }
+  if(badge){ badge.textContent='🔰 핸디캡 '+placed.length; badge.style.display='inline'; }
+  drawBoard();
+  showToastGm('핸디캡 적용 · AI(백) '+placed.length+'개 선배치');
+}
+
+// ══════════════════════════════════════════════
+//  ⑦ 돌 이펙트
+// ══════════════════════════════════════════════
+function spawnStoneRing(r, c, player){
+  const outer = document.querySelector('.board-outer');
+  if(!outer) return;
+  const x = PAD + c*CELL;
+  const y = PAD + r*CELL;
+  const ring = document.createElement('div');
+  ring.className = 'stone-ring';
+  const color = player===1 ? 'rgba(200,200,200,0.8)' : 'rgba(255,220,80,0.8)';
+  ring.style.cssText = `width:${STONE_R*2.4}px;height:${STONE_R*2.4}px;left:${7+x}px;top:${7+y}px;border-color:${color};transform:translate(-50%,-50%);`;
+  outer.appendChild(ring);
+  setTimeout(()=>ring.remove(), 600);
+}
+
+function spawnWinBeam(cells){
+  const outer = document.querySelector('.board-outer');
+  if(!outer||!cells||cells.length<2) return;
+  const [r0,c0] = cells[0];
+  const [r1,c1] = cells[cells.length-1];
+  const x0 = 7 + PAD + c0*CELL;
+  const y0 = 7 + PAD + r0*CELL;
+  const x1 = 7 + PAD + c1*CELL;
+  const y1 = 7 + PAD + r1*CELL;
+  const dx = x1-x0, dy = y1-y0;
+  const len = Math.sqrt(dx*dx+dy*dy) + STONE_R*2;
+  const angle = Math.atan2(dy,dx)*180/Math.PI;
+  const beam = document.createElement('div');
+  beam.className = 'win-beam';
+  beam.style.cssText = `left:${x0-STONE_R}px;top:${y0}px;width:${len}px;transform:rotate(${angle}deg);`;
+  outer.appendChild(beam);
+  setTimeout(()=>beam.remove(), 1500);
+}
+
+
+
+// ══════════════════════════════════════════
+//  상수 & 캔버스
+// ══════════════════════════════════════════
+const SIZE=15;
+const canvas=document.getElementById('boardCanvas');
+const ctx=canvas.getContext('2d');
+let CELL,PAD,STONE_R;
+
+// ★ 수정: 상단 헤더 제거 후 오프셋 재계산
+// iframe 내부 window.innerHeight = 화면높이 - gameBar(54px)
+// 보드 위 UI: 점수칩(~48) + 베팅패널(~88) + 모드행(~48) + 난이도행(~46) + 상태바(~38) + 패딩 = ~280px
+// 보드 아래 UI: 컨트롤(~58) + 옵션(~60) = ~120px
+// 여유값 포함 총 오프셋: ~210 사용 (기존 240 → 210으로 축소)
+function sizeCanvas(){
+  woodGrainCache = null;
+  const wrap=document.querySelector('.board-wrap');
+  const topBarH = 44; // sticky topBar 높이
+  const avail=Math.min(wrap.clientWidth-20, window.innerHeight-282-topBarH);
+  const sz=Math.max(240,Math.min(390,avail));
+  canvas.width=sz;canvas.height=sz;
+  PAD=sz*0.055;
+  CELL=(sz-PAD*2)/(SIZE-1);
+  STONE_R=CELL*0.44;
+  // specLineCanvas 동기화
+  const slc=document.getElementById('specLineCanvas');
+  if(slc){slc.width=sz;slc.height=sz;}
+}
+
+// ══════════════════════════════════════════
+//  게임 상태
+// ══════════════════════════════════════════
+let board,currentPlayer,gameOver,moveHistory;
+let mode='ai',difficulty='beg';
+let blackWins=0,whiteWins=0;
+let aiThinking=false;
+
+// ══════════════════════════════════════════
+//  관전모드(무잔고 자동 AI vs AI)
+// ══════════════════════════════════════════
+
+// ── AI 생각시간: 자동 가변 템포(A+B 혼합) ──
+function randInt(min,max){ return Math.floor(min + Math.random()*(max-min+1)); }
+function getMoveCount(){ return Array.isArray(moveHistory) ? moveHistory.length : 0; }
+function getBaseDelayRangeSec(diff, moveCount){
+  if(moveCount <= 20) return [2,4];
+  if(moveCount <= 40) return [3,6];
+  if(diff==='mid') return [6,9];
+  if(diff==='mas') return [7,10];
+  return [5,8];
+}
+function getStrategicExtraDelayMs(player){
+  const empties = [];
+  let occupied = 0;
+  let denseScore = 0;
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(board[r][c]){
+    occupied++;
+    let neighbors = 0;
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++){
+      if(!dr && !dc) continue;
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]) neighbors++;
+    }
+    denseScore += neighbors;
+  }
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(board[r][c]===0){
+    let near=false;
+    for(let dr=-2;dr<=2 && !near;dr++) for(let dc=-2;dc<=2;dc++){
+      if(!dr && !dc) continue;
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]){ near=true; break; }
+    }
+    if(near) empties.push([r,c]);
+  }
+  let winningThreats = 0;
+  let urgentBlocks = 0;
+  let openFourish = 0;
+  const opponent = player===1 ? 2 : 1;
+  const sample = empties.length>18 ? empties.sort(()=>Math.random()-0.5).slice(0,18) : empties;
+  for(const [r,c] of sample){
+    board[r][c]=player;
+    if(checkWin(r,c,player)) winningThreats++;
+    if(typeof countOpenFoursAfterMove==='function') openFourish += Math.min(2, countOpenFoursAfterMove(board,r,c,player));
+    board[r][c]=opponent;
+    if(checkWin(r,c,opponent)) urgentBlocks++;
+    if(typeof countOpenFoursAfterMove==='function') openFourish += Math.min(2, countOpenFoursAfterMove(board,r,c,opponent));
+    board[r][c]=0;
+  }
+  const densityFactor = occupied>0 ? Math.min(1, (denseScore/Math.max(1,occupied*8))) : 0;
+  let extra = 0;
+  extra += Math.min(900, urgentBlocks * 350);
+  extra += Math.min(700, winningThreats * 260);
+  extra += Math.min(500, openFourish * 80);
+  extra += Math.round(250 + densityFactor * 450);
+  return Math.min(1600, Math.max(0, extra));
+}
+function getAIDelayMs(player=currentPlayer){
+  const moveCount = getMoveCount();
+  const diff = (isSpectating()) ? 'mas' : difficulty;
+  const [minSec, maxSec] = getBaseDelayRangeSec(diff, moveCount);
+  const baseMs = randInt(minSec*1000, maxSec*1000);
+  const extraMs = moveCount >= 18 ? getStrategicExtraDelayMs(player) : 0;
+  return baseMs + extraMs;
+}
+
+let spectatorMode = false;
+// [⑥ REFACTOR] isSpectating() 헬퍼 — 16곳 반복 패턴 통합
+function isSpectating(){ return spectatorMode === true; }
+let spectatorToken = 0;
+let gameSessionId = 0;
+let pvpBannerFlashTimer = null;
+let spectatorCommentaryFlashTimer = null;
+const gameplayTimers = new Set();
+
+function scheduleGameplay(fn, delay){
+  const id = setTimeout(()=>{
+    gameplayTimers.delete(id);
+    fn();
+  }, delay);
+  gameplayTimers.add(id);
+  return id;
+}
+function clearGameplayTimers(){
+  gameplayTimers.forEach(id=>clearTimeout(id));
+  gameplayTimers.clear();
+}
+function beginFreshSession(){
+  gameSessionId++;
+  clearGameplayTimers();
+}
+
+function getLineStrengthAt(r,c,player){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  let best=1;
+  for(const [dr,dc] of dirs){
+    let cnt=1;
+    for(let i=1;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cnt++;}
+    for(let i=1;i<5;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cnt++;}
+    if(cnt>best) best=cnt;
+  }
+  return best;
+}
+function countNearbyStones(r,c,player,dist=1){
+  let cnt=0;
+  for(let dr=-dist;dr<=dist;dr++)for(let dc=-dist;dc<=dist;dc++){
+    if(!dr&&!dc) continue;
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]===player) cnt++;
+  }
+  return cnt;
+}
+function getSpectatorCommentary(lastMove){
+  if(!lastMove) return {title:'👀 형세를 살피는 중입니다', body:'고수 AI가 첫 수를 준비하고 있습니다.', lines:[]};
+  const {r,c,player} = lastMove;
+  const who = player===1 ? '⚫ 흑' : '⚪ 백';
+  const opp = player===1 ? 2 : 1;
+  const moveNo = moveHistory.length;
+  const dirs=[[0,1,'가로'],[1,0,'세로'],[1,1,'↘대각'],[1,-1,'↗대각']];
+
+  // ── 분석: 착수한 돌 기준 라인 강도 + 방향 ──
+  let bestLine=1, bestDir=null, bestCells=[];
+  let oppBestLine=1, oppBestDir=null, oppBestCells=[];
+  for(const [dr,dc,name] of dirs){
+    // 내 라인
+    const cells=[[r,c]]; let cnt=1;
+    for(let i=1;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cnt++;cells.push([nr,nc]);}
+    for(let i=1;i<5;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cnt++;cells.unshift([nr,nc]);}
+    if(cnt>bestLine){bestLine=cnt;bestDir=name;bestCells=[...cells];}
+    // 상대가 이 자리에 뒀다면? (방어 분석)
+    const oCells=[[r,c]]; let oCnt=1;
+    for(let i=1;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==opp)break;oCnt++;oCells.push([nr,nc]);}
+    for(let i=1;i<5;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==opp)break;oCnt++;oCells.unshift([nr,nc]);}
+    if(oCnt>oppBestLine){oppBestLine=oCnt;oppBestDir=name;oppBestCells=[...oCells];}
+  }
+
+  // ── 위협도 분석 ──
+  const allies = countNearbyStones(r,c,player,2);
+  const foes = countNearbyStones(r,c,opp,2);
+  const nearCenter = Math.abs(r-7)+Math.abs(c-7) <= 2;
+  const edgeZone = r<=1||r>=13||c<=1||c>=13;
+
+  // ── 해설 라인 데이터 ──
+  const lines = [];
+  // 공격 라인 (빨강/주황)
+  if(bestLine>=2) lines.push({cells:bestCells, color:bestLine>=4?'rgba(255,60,60,0.7)':bestLine>=3?'rgba(255,160,40,0.7)':'rgba(255,200,60,0.5)', type:'attack'});
+  // 방어 라인 (파랑) — 상대 돌 인접 차단
+  if(foes>=2 && oppBestLine>=2) lines.push({cells:oppBestCells, color:'rgba(80,160,255,0.6)', type:'defense'});
+
+  // ── 해설 텍스트 생성 ──
+  let title, body;
+
+  if(moveNo===1 && r===7 && c===7){
+    title=`${who} — 천원(天元) 선점`;
+    body='바둑판 정중앙을 차지했습니다. 모든 방향으로 전개할 수 있는 최고의 시작점입니다.';
+  } else if(bestLine>=4){
+    title=`${who} — ⚡ 승부수! ${bestDir} 4목 완성`;
+    body=`${bestDir} 방향으로 4목이 이어졌습니다. 상대가 즉시 막지 않으면 다음 수에 5목으로 승리합니다!`;
+  } else if(oppBestLine>=3 && foes>=2){
+    title=`${who} — 🛡️ 긴급 방어 (${oppBestDir})`;
+    body=`상대의 ${oppBestDir} ${oppBestLine}목 위협을 차단했습니다. 막지 않았다면 치명적인 연결이 완성될 뻔했습니다.`;
+  } else if(bestLine===3){
+    const openEnds = checkOpenEnds(r,c,player,bestCells);
+    if(openEnds>=2){
+      title=`${who} — 🔥 열린 3목! (${bestDir})`;
+      body=`양쪽이 열린 3목입니다. 상대가 한쪽을 막아도 반대편으로 4목을 만들 수 있는 강력한 수입니다.`;
+    } else {
+      title=`${who} — 3목 연결 (${bestDir})`;
+      body=`${bestDir}으로 3목을 만들었습니다. 아직 한쪽이 막혀있어 위협은 제한적이지만, 확장 가능성을 노리고 있습니다.`;
+    }
+  } else if(foes>=3 && allies<=1){
+    title=`${who} — 🛡️ 방어적 착수`;
+    body='상대 돌이 밀집한 지역에 끼어들었습니다. 상대의 확장을 견제하면서 반격 기회를 엿보는 수입니다.';
+  } else if(moveNo<=8 && nearCenter){
+    title=`${who} — 📍 중앙 포석`;
+    body='초반 중앙 근처에 자리를 잡습니다. 사방으로 발전할 수 있어 유리한 전개를 노리는 정석적인 운영입니다.';
+  } else if(allies>=4){
+    title=`${who} — 💪 세력 확장`;
+    body=`주변에 아군 돌이 ${allies}개 밀집해 있습니다. 두터운 세력을 바탕으로 다방면 공격을 준비하고 있습니다.`;
+  } else if(bestLine===2 && allies>=2){
+    title=`${who} — 2목 연결 (${bestDir})`;
+    body=`${bestDir} 방향으로 2목을 만들며 확장을 준비합니다. 아직 위협적이진 않지만 다음 수에 3목으로 발전할 수 있습니다.`;
+  } else if(edgeZone){
+    title=`${who} — 🏔️ 변(邊) 착수`;
+    body='가장자리에 둔 수입니다. 확장 방향이 제한되지만, 상대의 의표를 찌르거나 측면 라인을 노리는 의도일 수 있습니다.';
+  } else if(foes>=2){
+    title=`${who} — ⚔️ 견제`;
+    body='상대 세력권 가까이에 놓았습니다. 상대의 연결을 방해하면서 자신의 돌과도 연결될 수 있는 다목적 수입니다.';
+  } else {
+    title=`${who} — 포석 진행`;
+    body='형세를 읽으며 신중하게 자리를 잡고 있습니다. 당장의 위협보다는 장기적인 연결 가능성을 높이는 수입니다.';
+  }
+
+  return {title, body, lines};
+}
+
+// 열린 끝 개수 판별 (양쪽 열림 확인)
+function checkOpenEnds(r,c,player,cells){
+  if(!cells||cells.length<2) return 0;
+  const [r0,c0]=cells[0], [r1,c1]=cells[cells.length-1];
+  const dr=cells.length>1?(cells[1][0]-cells[0][0]):0;
+  const dc=cells.length>1?(cells[1][1]-cells[0][1]):0;
+  let open=0;
+  // 앞쪽
+  const br=r0-dr, bc=c0-dc;
+  if(br>=0&&br<SIZE&&bc>=0&&bc<SIZE&&board[br][bc]===0) open++;
+  // 뒤쪽
+  const ar=r1+dr, ac=c1+dc;
+  if(ar>=0&&ar<SIZE&&ac>=0&&ac<SIZE&&board[ar][ac]===0) open++;
+  return open;
+}
+
+// ── 해설 라인을 캔버스에 그리기 ──
+let specLineData = [];
+function drawSpecLines(){
+  const slc = document.getElementById('specLineCanvas');
+  if(!slc) return;
+  slc.width = canvas.width; slc.height = canvas.height;
+  const sctx = slc.getContext('2d');
+  sctx.clearRect(0,0,slc.width,slc.height);
+  if(!isSpectating() || !specLineData.length) return;
+  for(const line of specLineData){
+    if(!line.cells||line.cells.length<2) continue;
+    sctx.save();
+    sctx.strokeStyle = line.color;
+    sctx.lineWidth = line.type==='attack' ? 3 : 2.5;
+    sctx.lineCap = 'round';
+    sctx.shadowColor = line.color;
+    sctx.shadowBlur = 6;
+    sctx.setLineDash(line.type==='defense' ? [6,4] : []);
+    const first=line.cells[0], last=line.cells[line.cells.length-1];
+    const x0=PAD+first[1]*CELL, y0=PAD+first[0]*CELL;
+    const x1=PAD+last[1]*CELL, y1=PAD+last[0]*CELL;
+    sctx.beginPath(); sctx.moveTo(x0,y0); sctx.lineTo(x1,y1); sctx.stroke();
+    // 끝점 원
+    [first,last].forEach(([pr,pc])=>{
+      sctx.beginPath();
+      sctx.arc(PAD+pc*CELL, PAD+pr*CELL, STONE_R*0.22, 0, Math.PI*2);
+      sctx.fillStyle = line.color;
+      sctx.fill();
+    });
+    sctx.restore();
+  }
+}
+function clearSpecLines(){
+  specLineData = [];
+  const slc = document.getElementById('specLineCanvas');
+  if(slc){ const sctx=slc.getContext('2d'); sctx.clearRect(0,0,slc.width,slc.height); }
+}
+
+function syncSpectatorCommentary(lastMove=null, doFlash=false){
+  const el = document.getElementById('spectatorCommentary');
+  if(!el) return;
+  if(mode==='ai' && spectatorMode){
+    const move = lastMove || moveHistory[moveHistory.length-1] || null;
+    const result = getSpectatorCommentary(move);
+    const player = move ? move.player : 1;
+    el.innerHTML = `<div class="sc-title">${result.title}</div><div class="sc-body">${result.body}</div>`;
+    el.classList.add('show');
+    el.classList.toggle('black-note', player===1);
+    el.classList.toggle('white-note', player===2);
+    // 해설 라인 표시
+    specLineData = result.lines || [];
+    drawSpecLines();
+    if(doFlash){
+      el.classList.remove('note-flash');
+      void el.offsetWidth;
+      el.classList.add('note-flash');
+      clearTimeout(spectatorCommentaryFlashTimer);
+      spectatorCommentaryFlashTimer = setTimeout(()=>el.classList.remove('note-flash'), 760);
+    }
+  }else{
+    el.className = '';
+    el.innerHTML = '';
+    clearSpecLines();
+  }
+}
+function syncTopControlState(){
+  const is2p = mode === '2p';
+  const inGame = !gameOver && moveHistory && moveHistory.length > 0;
+  const banner = document.getElementById('pvpTurnBanner');
+  const hintBtn = document.getElementById('hintBtn');
+  const practiceBtn = document.getElementById('practiceBtn');
+  const diffRow = document.getElementById('diffRow');
+  const div1 = document.getElementById('dividerAfterMode');
+  const div2 = document.getElementById('dividerBeforeTools');
+  const modeAI = document.getElementById('modeAI');
+  const mode2P = document.getElementById('mode2P');
+  const lockMode = inGame && !isSpectating();
+  if(modeAI){ modeAI.classList.toggle('active', mode==='ai'); modeAI.style.opacity=lockMode?'.4':''; modeAI.style.pointerEvents=lockMode?'none':''; }
+  if(mode2P){ mode2P.classList.toggle('active', mode==='2p'); mode2P.style.opacity=lockMode?'.4':''; mode2P.style.pointerEvents=lockMode?'none':''; }
+  // 난이도 버튼: 관전 중에는 활성화 유지 (난이도 선택→플레이 전환 가능)
+  const lockDiff = inGame && !isSpectating();
+  ['diffBeg','diffMid','diffMas'].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(btn){ btn.style.opacity=lockDiff?'.4':''; btn.style.pointerEvents=lockDiff?'none':''; }
+  });
+  if(diffRow) diffRow.style.display = is2p ? 'none' : 'flex';
+  if(hintBtn) hintBtn.style.display = is2p ? 'none' : '';
+  if(practiceBtn){
+    practiceBtn.style.display = is2p ? 'none' : '';
+    practiceBtn.classList.toggle('active', !!practiceMode && !is2p);
+  }
+  if(div1) div1.style.display = '';
+  if(div2) div2.style.display = is2p ? 'none' : '';
+  if(banner){
+    if(is2p){
+      banner.classList.add('show');
+      syncPvpTurnBanner(true);
+    }else{
+      banner.classList.remove('show','black-turn','white-turn','flash');
+      banner.textContent='';
+    }
+  }
+  syncSpectatorCommentary(null,false);
+}
+
+let userWantsPlay = false; // 사용자가 명시적으로 게임시작/연습모드를 눌렀는지
+
+function shouldSpectate(){
+  // 사용자가 게임시작 또는 연습모드를 누르기 전까지 항상 관전
+  if(userWantsPlay) return false;
+  if(practiceMode) return false;
+  return mode==='ai';
+}
+
+function stopSpectator(){
+  spectatorMode = false;
+  spectatorToken++;
+  clearGameplayTimers();
+  const hb = document.getElementById('hintBtn');
+  if(hb){ hb.disabled = false; hb.style.opacity=''; }
+  syncSpectatorCommentary(null,false);
+}
+
+function startSpectator(){
+  // 재시작 포함: 호출될 때마다 루프 토큰을 갱신해 새 판을 굴린다
+  clearGameplayTimers();
+  spectatorMode = true;
+  spectatorToken++;
+  userWantsPlay = false;
+
+  // 관전은 고수 AI끼리
+  difficulty = 'mas';
+  ['Beg','Mid','Mas'].forEach(x=>{
+    const el = document.getElementById('diff'+x);
+    if(el) el.classList.toggle('active', x.toLowerCase()==='mas');
+  });
+
+  const hb = document.getElementById('hintBtn');
+  if(hb){ hb.disabled = true; hb.style.opacity='0.35'; }
+  showToastGm('👀 관전모드: 고수 AI vs 고수 AI — 해설과 함께 감상하세요');
+
+  const myToken = spectatorToken;
+  const mid = Math.floor(SIZE/2);
+  syncSpectatorCommentary({r:mid,c:mid,player:1}, false);
+  const mySession = gameSessionId;
+  scheduleGameplay(()=>{
+    if(!spectatorMode || myToken!==spectatorToken || mySession!==gameSessionId) return;
+    if(gameOver || mode!=='ai') return;
+    if(moveHistory.length===0 && currentPlayer===1 && board[mid][mid]===0){
+      placeStone(mid, mid);
+    }
+    spectatorStep(myToken);
+  }, 2000);
+}
+
+function getMoveForPlayer(p){
+  // 기존 엔진은 me=2(백), hu=1(흑) 기준
+  if(p===2){
+    if(difficulty==='beg') return getMoveBeg();
+    if(difficulty==='mid') return getMoveMid(4);
+    return getMoveMas();
+  }
+  // p===1일 때는 보드 색을 잠깐 스왑해서 같은 엔진 재사용
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+    if(board[r][c]===1) board[r][c]=2;
+    else if(board[r][c]===2) board[r][c]=1;
+  }
+  let mv;
+  if(difficulty==='beg') mv = getMoveBeg();
+  else if(difficulty==='mid') mv = getMoveMid(4);
+  else mv = getMoveMas();
+  for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+    if(board[r][c]===1) board[r][c]=2;
+    else if(board[r][c]===2) board[r][c]=1;
+  }
+  return mv;
+}
+
+function spectatorStep(tok){
+  if(!spectatorMode || tok!==spectatorToken) return;
+  if(gameOver || mode!=='ai') return;
+
+  // 타이머/랜덤 자동착수 방지
+  stopTimer();
+
+  const tb = document.getElementById('thinkBar');
+  if(tb) tb.classList.add('show');
+
+  const delay = getAIDelayMs(currentPlayer); // 관전모드: 진행도/위협도/밀집도 기반 자동 템포
+  const mySession = gameSessionId;
+  scheduleGameplay(()=>{
+    if(tb) tb.classList.remove('show');
+    if(!spectatorMode || tok!==spectatorToken || mySession!==gameSessionId) return;
+    if(gameOver || mode!=='ai') return;
+
+    const mv = getMoveForPlayer(currentPlayer);
+    if(mv && !gameOver){
+      placeStone(mv[0], mv[1]);
+    }
+    if(!gameOver && spectatorMode && tok===spectatorToken && mySession===gameSessionId){
+      // 다음 수 진행(다음 spectatorStep에서 다시 자동 딜레이 적용)
+      spectatorStep(tok);
+    }
+  }, delay);
+}
+
+function initBoard(){
+  beginFreshSession();
+  board=Array.from({length:SIZE},()=>Array(SIZE).fill(0));
+  currentPlayer=1;
+  gameOver=false;
+  moveHistory=[];
+  aiThinking=false;
+  betPlaced=false;
+  stopTimer();
+  resetHint();
+  const resTxt=document.getElementById('betResultTxt');
+  if(resTxt) resTxt.textContent='';
+  const hbadge=document.getElementById('handicapBadge');
+  if(hbadge) hbadge.style.display='none';
+  updateStatus();
+  drawBoard();
+  updateBetPanel();
+  syncTopControlState();
+  // 관전모드 조건이면 자동으로 AI vs AI 시작
+  if(typeof shouldSpectate==='function' && shouldSpectate()){
+    startSpectator();
+  } else {
+    stopSpectator();
+  }
+  // 핸디캡 적용 (AI 모드에서만)
+  if(mode==='ai' && !(isSpectating())) scheduleGameplay(()=>applyHandicap(), 80);
+}
+
+// ══════════════════════════════════════════
+//  그리기
+// ══════════════════════════════════════════
+// 나무결 캐시 (sizeCanvas 호출 시 갱신)
+let woodGrainCache = null;
+let woodGrainSize  = 0;
+function buildWoodGrain(sz){
+  const offscreen = document.createElement('canvas');
+  offscreen.width = sz; offscreen.height = sz;
+  const octx = offscreen.getContext('2d');
+  octx.fillStyle='#C8935A';
+  octx.fillRect(0,0,sz,sz);
+  for(let i=0;i<10;i++){
+    octx.beginPath();
+    const y=(i/9)*sz;
+    octx.moveTo(0,y);
+    octx.bezierCurveTo(sz*.3,y+(Math.random()*3-1.5),sz*.7,y+(Math.random()*3-1.5),sz,y);
+    octx.strokeStyle='rgba(0,0,0,0.035)';octx.lineWidth=1;octx.stroke();
+  }
+  woodGrainCache = offscreen;
+  woodGrainSize  = sz;
+}
+
+function drawBoard(){
+  const sz=canvas.width;
+  // 나무결 캐시 사용 (크기 변경 시만 재생성)
+  if(!woodGrainCache || woodGrainSize !== sz) buildWoodGrain(sz);
+  ctx.drawImage(woodGrainCache, 0, 0);
+  ctx.strokeStyle='#7a4e2d';ctx.lineWidth=0.8;
+  for(let i=0;i<SIZE;i++){
+    const x=PAD+i*CELL,y=PAD+i*CELL;
+    ctx.beginPath();ctx.moveTo(x,PAD);ctx.lineTo(x,PAD+(SIZE-1)*CELL);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(PAD,y);ctx.lineTo(PAD+(SIZE-1)*CELL,y);ctx.stroke();
+  }
+  ctx.strokeStyle='#5a3a1a';ctx.lineWidth=2;
+  ctx.strokeRect(PAD,PAD,(SIZE-1)*CELL,(SIZE-1)*CELL);
+  [[3,3],[3,11],[11,3],[11,11],[7,7]].forEach(([r,c])=>{
+    ctx.beginPath();ctx.arc(PAD+c*CELL,PAD+r*CELL,CELL*0.12,0,Math.PI*2);
+    ctx.fillStyle='#5a3a1a';ctx.fill();
+  });
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)if(board[r][c])drawStone(r,c,board[r][c]);
+  if(moveHistory.length){
+    const last=moveHistory[moveHistory.length-1];
+    const x=PAD+last.c*CELL,y=PAD+last.r*CELL;
+    ctx.strokeStyle=board[last.r][last.c]===1?'rgba(255,80,80,0.9)':'rgba(60,120,255,0.9)';
+    ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.arc(x,y,STONE_R*0.34,0,Math.PI*2);ctx.stroke();
+  }
+}
+
+function drawStone(r,c,player){
+  const x=PAD+c*CELL,y=PAD+r*CELL;
+  if(player===1){
+    const g=ctx.createRadialGradient(x-STONE_R*.3,y-STONE_R*.3,STONE_R*.05,x,y,STONE_R);
+    g.addColorStop(0,'#666');g.addColorStop(.4,'#222');g.addColorStop(1,'#050505');
+    ctx.beginPath();ctx.arc(x,y,STONE_R,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=0.5;ctx.stroke();
+  }else{
+    const g=ctx.createRadialGradient(x-STONE_R*.3,y-STONE_R*.3,STONE_R*.05,x,y,STONE_R);
+    g.addColorStop(0,'#fff');g.addColorStop(.5,'#e8e4de');g.addColorStop(1,'#b8b4ae');
+    ctx.beginPath();ctx.arc(x,y,STONE_R,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=0.5;ctx.stroke();
+  }
+}
+
+// ══════════════════════════════════════════
+//  게임 로직 (수정 없음)
+// ══════════════════════════════════════════
+function checkWin(r,c,player){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(const[dr,dc]of dirs){
+    let cnt=1;
+    for(let i=1;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cnt++;}
+    for(let i=1;i<5;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cnt++;}
+    if(cnt>=5)return true;
+  }
+  return false;
+}
+
+function checkWinBoard(b,r,c,player){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(const[dr,dc]of dirs){
+    let cnt=1;
+    for(let i=1;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||b[nr][nc]!==player)break;cnt++;}
+    for(let i=1;i<5;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||b[nr][nc]!==player)break;cnt++;}
+    if(cnt>=5)return true;
+  }
+  return false;
+}
+
+function getWinCells(r,c,player){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  for(const[dr,dc]of dirs){
+    const cells=[[r,c]];
+    for(let i=1;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cells.push([nr,nc]);}
+    for(let i=1;i<5;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||board[nr][nc]!==player)break;cells.unshift([nr,nc]);}
+    if(cells.length>=5)return cells.slice(0,5);
+  }
+  return null;
+}
+
+function highlightWin(cells){
+  ctx.shadowColor='rgba(255,215,0,0.9)';ctx.shadowBlur=14;
+  ctx.strokeStyle='rgba(255,215,0,0.95)';ctx.lineWidth=3;
+  cells.forEach(([r,c])=>{ctx.beginPath();ctx.arc(PAD+c*CELL,PAD+r*CELL,STONE_R*.58,0,Math.PI*2);ctx.stroke();});
+  ctx.shadowBlur=0;
+  // ⑦ 빔 효과
+  spawnWinBeam(cells);
+}
+
+function placeStone(r,c){
+  if(gameOver||board[r][c]||aiThinking)return false;
+  stopTimer();
+  removeHintDot();
+  board[r][c]=currentPlayer;
+  moveHistory.push({r,c,player:currentPlayer});
+  drawBoard();
+  spawnStoneRing(r,c,currentPlayer);
+  // [UX 1] 모바일 햅틱 피드백 (플레이어 착수: 30ms, AI 착수: 10ms)
+  if(navigator.vibrate) navigator.vibrate(currentPlayer===1 ? 30 : 10);
+  if(currentPlayer===1){
+    const foul=getFoulTypeIfAny(r,c,1);
+    if(foul){foulReason=foul;endGame(2);return true;}
+  }
+  if(checkWin(r,c,currentPlayer)){
+    const cells=getWinCells(r,c,currentPlayer);
+    if(cells)highlightWin(cells);
+    endGame(currentPlayer);
+    return true;
+  }
+  if(moveHistory.length===SIZE*SIZE){endGame(0);return true;}
+  currentPlayer=currentPlayer===1?2:1;
+  updateStatus();
+  if(isSpectating()){
+    syncSpectatorCommentary(moveHistory[moveHistory.length-1], true);
+  }
+  return true;
+}
+
+// [UX 2] 게임 포기 버튼 시각적 비활성화 동기화
+function syncUndoBtn(){
+  const btn = document.getElementById('undoBtn');
+  if(!btn) return;
+  // 게임 중이 아니거나 관전모드면 비활성
+  const disabled = gameOver || (isSpectating()) ||
+    !moveHistory || moveHistory.length === 0;
+  btn.classList.toggle('disabled', disabled);
+}
+
+function updateStatus(msg){
+  syncUndoBtn();
+  if(msg){
+    const text=document.getElementById('turnText');
+    text.textContent=msg; text.style.color='#f87171';
+    return;
+  }
+  if(gameOver)return;
+  const stone=document.getElementById('turnStone');
+  const text=document.getElementById('turnText');
+  stone.className='stone-prev '+(currentPlayer===1?'black':'white');
+  if(mode==='ai'){
+    if(isSpectating()){
+      stopTimer();
+      text.textContent = currentPlayer===1 ? '👀 관전중: AI(흑) 생각 중...' : '👀 관전중: AI(백) 생각 중...';
+      text.style.color = 'rgba(160,225,255,0.95)';
+      syncSpectatorCommentary(null,false);
+    } else
+    if(currentPlayer===1){
+      text.textContent='내 차례 (흑)';text.style.color='#D4A843';
+      startTimer(); // 플레이어 차례에 타이머 시작
+    } else {
+      stopTimer();  // AI 차례엔 타이머 정지
+      const lbl={beg:'하수 생각 중...',mid:'중수 생각 중...',mas:'고수 생각 중...'};
+      text.textContent=lbl[difficulty]||'AI 생각 중...';
+      text.style.color='#7ab';
+    }
+  }else{
+    stopTimer();
+    text.textContent=currentPlayer===1?'흑돌 차례':'백돌 차례';
+    text.style.color=currentPlayer===1?'#ffd978':'#eef4ff';
+    syncPvpTurnBanner(true);
+    syncSpectatorCommentary(null,false);
+  }
+  document.getElementById('moveCount').textContent=moveHistory.length+'수';
+}
+
+function endGame(winner){
+  gameOver=true;
+  stopTimer();
+  const badge=document.getElementById('ovBadge');
+  if(mode==='ai'){
+    if(isSpectating()){
+      badge.textContent='👀 관전 · 고수전';badge.style.background='rgba(160,225,255,0.2)';badge.style.color='rgba(160,225,255,0.95)';badge.style.display='inline-block';
+    } else {
+      const bc={beg:'rgba(74,222,128,0.2)',mid:'rgba(250,204,21,0.2)',mas:'rgba(248,113,113,0.2)'};
+      const tc={beg:'#4ade80',mid:'#facc15',mas:'#f87171'};
+      const lt={beg:'🟢 하수전',mid:'🟡 중수전',mas:'🔴 고수전'};
+      badge.textContent=lt[difficulty];badge.style.background=bc[difficulty];badge.style.color=tc[difficulty];badge.style.display='inline-block';
+    }
+  }else{badge.style.display='none';}
+  const icon=document.getElementById('ovIcon'),title=document.getElementById('ovTitle'),sub=document.getElementById('ovSub');
+  if(winner===0){
+    icon.textContent='🤝';
+    title.textContent=(isSpectating())?'관전 종료 · 무승부':'무승부!';
+    sub.textContent=(isSpectating())?'끝내기까지 갔지만 누구도 5목을 완성하지 못했습니다':'바둑판이 꽉 찼습니다';
+    // [BUG FIX] 무승부 시 베팅금 전액 환불 (관전모드 및 연습모드 제외)
+    if(!isSpectating() && betPlaced && mode==='ai'){
+      betPlaced = false;
+      balance += betAmount;
+      saveBalance(); updateBalUI();
+      const ovBetEl = document.getElementById('ovBetResult');
+      if(ovBetEl){ ovBetEl.textContent='🤝 무승부 — 베팅금 환불'; ovBetEl.style.color='#facc15'; }
+      showToastGm('🤝 무승부! ₩' + betAmount.toLocaleString('ko-KR') + ' 환불');
+    }
+  }
+  else if(winner===1){
+    if(isSpectating()){
+      icon.textContent='👀';
+      title.textContent='관전: 흑 AI 승리!';
+      sub.textContent='흑돌이 5목을 먼저 완성했습니다. 연습모드 ON 또는 충전/난이도 선택 후 직접 플레이할 수 있어요';
+      blackWins++;
+    } else {
+      icon.textContent='🏆';title.textContent='흑돌 승리!';
+    if(typeof practiceMode!=='undefined'&&practiceMode){
+      sub.textContent='🏫 연습 성공! 실전에 도전해보세요 💪';
+    } else {
+      const wm={beg:'하수 AI를 이겼습니다!',mid:'중수 AI를 이겼습니다! 대단해요 🎉',mas:'고수 AI를 이겼습니다!! 최고의 실력자입니다 🔥'};
+      sub.textContent=mode==='ai'?(wm[difficulty]||'승리!'):'흑돌이 5목을 완성했습니다';
+    }
+      blackWins++;launchConfetti(50);settleBet(true);
+    }
+  }else{
+    if(foulReason){
+      icon.textContent='🚫';
+      title.textContent='반칙패!';
+      sub.textContent=`흑 금지수: ${foulReason}`;
+      foulReason='';
+      if(!(isSpectating())) settleBet(false);
+      whiteWins++;
+      document.getElementById('whiteWins').textContent=whiteWins;
+      scheduleGameplay(()=>document.getElementById('overlay').classList.add('show'),700);
+      return;
+    }
+    if(isSpectating()){
+      icon.textContent='👀';
+      title.textContent='관전: 백 AI 승리!';
+      sub.textContent='백돌이 끝내기에서 5목을 완성했습니다. 연습모드 ON 또는 충전/난이도 선택 후 직접 플레이할 수 있어요';
+      whiteWins++;
+    } else {
+      icon.textContent=mode==='ai'?'🤖':'🏆';
+      title.textContent=mode==='ai'?'AI 승리!':'백돌 승리!';
+      if(typeof practiceMode!=='undefined'&&practiceMode){
+        sub.textContent='🏫 연습 계속! 다시 해보세요 🔄';
+      } else {
+        const lm={beg:'하수도 못 이겼어요. 한번 더!',mid:'중수 AI가 완성했습니다',mas:'고수 AI의 완벽한 전략이었습니다'};
+        sub.textContent=mode==='ai'?(lm[difficulty]||'AI 승리'):'백돌이 5목을 완성했습니다';
+      }
+      whiteWins++;if(mode!=='ai')launchConfetti(50);if(mode==='ai'){settleBet(false);} 
+    }
+  }
+  document.getElementById('blackWins').textContent=blackWins;
+  document.getElementById('whiteWins').textContent=whiteWins;
+  // 오버레이 버튼 텍스트: 관전 중이면 "직접 플레이", 아니면 "다시 시작"
+  const ovBtn = document.querySelector('.ov-btn');
+  if(ovBtn) ovBtn.textContent = isSpectating() ? '🎮 직접 플레이하기' : '🔄 다시 시작';
+  scheduleGameplay(()=>document.getElementById('overlay').classList.add('show'),700);
+
+  // 관전모드: 자동으로 다음 판 시작
+  if(isSpectating()){
+    scheduleGameplay(()=>{
+      if(!spectatorMode) return;
+      document.getElementById('overlay').classList.remove('show');
+      const ob2=document.getElementById('ovBetResult');
+      if(ob2)ob2.textContent='';
+      clearSpecLines();
+      initBoard(); // shouldSpectate()=true → startSpectator() 자동 호출
+    }, 5000);
+  }
+}
+
+// ══════════════════════════════════════════
+//  ★ 메인(index.html) 연동
+// ══════════════════════════════════════════
+const BAL_KEY  = 'MG_BAL_GOMOKU';
+const AI_KEY   = 'MG_AI_PROFILE';
+let balance      = 0;
+let pointBalance = parseInt(localStorage.getItem('MG_POINTS')||'0')||0;
+let aiProfile    = {tier:'EASY', mood:'RELAXED', threat:'NONE', atmosphereScore:100};
+
+function saveBalance(){
+  localStorage.setItem(BAL_KEY, Math.max(0, Math.round(balance)));
+  
+}
+function sendToParent(msg){
+  /* iframe 제거 — postMessage 비활성화 */
+}
+function postAtmosDelta(delta){
+  // MG_ATMO_DELTA 제거 (인게임 분위기 변동 미니센터에서 처리)
+}
+
+// ★ 수정: gBalVal, gPtVal 요소가 HTML에 없으므로 부모에만 위임
+// index.html gameBar가 잔금/포인트를 표시하므로 중복 표시 불필요
+function updateBalUI(){
+  updateDiffByBalance();
+  // 잔금 변화 시: 사용자가 플레이 중이면 강제 관전 전환하지 않음
+  // 잔액이 0이 되더라도 이미 게임 중이면 유지
+  syncTopControlState();
+  const tb=document.getElementById('topBarBalNum');
+  const tp=document.getElementById('topBarPointNum');
+  if(tb) tb.textContent=fmtTopBar(balance);
+  if(tp) tp.textContent=fmtTopBar(pointBalance);
+}
+
+// ══════════════════════════════════════════
+//  베팅 시스템 (수정 없음)
+// ══════════════════════════════════════════
+const BET_CONFIG = {
+  beg: { amount:100000,  odds:2.0,  label:'🟢 하수전', cls:'beg' },
+  mid: { amount:200000,  odds:5.0,  label:'🟡 중수전', cls:'mid' },
+  mas: { amount:300000,  odds:10.0, label:'🔴 고수전', cls:'mas' },
+};
+let hintOddsMultiplier = 1.0;
+let betAmount    = 0;
+let betOdds      = 0;
+let betPlaced    = false;
+
+function getBetCfg(){ return BET_CONFIG[difficulty] || BET_CONFIG.beg; }
+
+function updateBetPanel(){
+  const cfg = getBetCfg();
+  const isAI = mode === 'ai';
+  const tag    = document.getElementById('betDiffTag');
+  const amtEl  = document.getElementById('betAmountVal');
+  const oddsEl = document.getElementById('betOddsVal');
+  const payEl  = document.getElementById('betPayoutVal');
+  const stTxt  = document.getElementById('betStatusTxt');
+  const resTxt = document.getElementById('betResultTxt');
+  const panel  = document.getElementById('betPanel');
+  if(!tag) return;
+
+  // 연습모드: 베팅금 ₩0 표시
+  if(typeof practiceMode !== 'undefined' && practiceMode){
+    const sym = {beg:'🟢', mid:'🟡', mas:'🔴'};
+    tag.textContent = sym[difficulty] || sym.beg;
+    tag.className   = 'bet-diff-tag beg';
+    tag.style.opacity = '0.7';
+    amtEl.textContent = '₩0';
+    amtEl.style.color = 'rgba(100,180,255,0.8)';
+    oddsEl.textContent = '×0';
+    oddsEl.style.color = 'rgba(100,180,255,0.8)';
+    payEl.textContent = '연습모드';
+    if(stTxt) stTxt.textContent = '🏫 연습모드 — 무료 플레이';
+    if(resTxt) resTxt.textContent = '';
+    if(panel){ panel.className='bet-panel'; panel.style.borderColor='rgba(100,180,255,0.4)'; }
+    return;
+  }
+
+  // 일반모드
+  if(panel){ panel.className='bet-panel diff-'+difficulty; panel.style.borderColor=''; }
+  // 심볼만 표시
+  const sym = {beg:'🟢', mid:'🟡', mas:'🔴'};
+  tag.textContent = sym[difficulty] || cfg.label;
+  tag.className   = 'bet-diff-tag ' + cfg.cls;
+  amtEl.textContent = '₩' + cfg.amount.toLocaleString('ko-KR');
+  // 힌트 배당 반영
+  const effectiveOdds = cfg.odds * (hintOddsMultiplier||1.0);
+  oddsEl.textContent = '×' + effectiveOdds.toFixed(1);
+  const payout = Math.round(cfg.amount * effectiveOdds);
+  payEl.textContent = '→₩' + payout.toLocaleString('ko-KR');
+  if(resTxt) resTxt.textContent = '';
+  if(!isAI){
+    if(stTxt) stTxt.textContent = '※ AI 대전 시에만 베팅 적용';
+    tag.style.opacity = '0.5';
+    amtEl.style.color = '#8fd8ff';
+    oddsEl.style.color = '#8fd8ff';
+    payEl.style.color = '#d8c2a2';
+  } else {
+    if(stTxt) stTxt.textContent = '게임 시작 시 자동 베팅';
+    tag.style.opacity = '1';
+    const colors = {beg:'#4ade80', mid:'#facc15', mas:'#f87171'};
+    amtEl.style.color = colors[difficulty] || 'var(--gold)';
+    oddsEl.style.color = colors[difficulty] || '#f87171';
+  }
+}
+
+function placeBet(){
+  if(mode !== 'ai') return;
+  if(betPlaced) return;
+  const cfg = getBetCfg();
+  if(balance < cfg.amount){
+    // 잔액 부족 시 베팅 없이 연습처럼 진행 (토스트/충전 팝업 없음)
+    return;
+  }
+  betAmount  = cfg.amount;
+  betOdds    = cfg.odds * (hintOddsMultiplier || 1.0); // 베팅 시점의 배당률 확정
+  betPlaced  = true;
+  balance   -= betAmount;
+  saveBalance();
+  updateBalUI();
+  showToastGm('🎲 ₩' + betAmount.toLocaleString('ko-KR') + ' 베팅 완료!');
+}
+
+function settleBet(playerWon){
+  if(!betPlaced || mode !== 'ai') return;
+  betPlaced = false;
+  // 게임 종료 알림 (index 미션 진행도용)
+  try{localStorage.setItem('MG_LAST_RESULT',JSON.stringify({gameId:'gomoku',difficulty,won:playerWon,ts:Date.now()}));}catch(e){}
+  const resTxt  = document.getElementById('betResultTxt');
+  const ovBetEl = document.getElementById('ovBetResult');
+  if(playerWon){
+    const payout = Math.round(betAmount * betOdds); // betOdds는 placeBet 시점에 hintOddsMultiplier 포함
+    balance += payout;
+    saveBalance(); updateBalUI();
+    const msg = '🏆 +₩' + payout.toLocaleString('ko-KR') + ' 획득!';
+    if(resTxt){ resTxt.textContent = '+₩' + payout.toLocaleString('ko-KR') + ' 획득!'; resTxt.className='bet-result-win'; }
+    if(ovBetEl){ ovBetEl.textContent = msg; ovBetEl.style.color='#4ade80'; }
+    showToastGm('🏆 베팅 적중! +₩' + payout.toLocaleString('ko-KR'));
+  } else {
+    const msg = '😔 -₩' + betAmount.toLocaleString('ko-KR') + ' 손실';
+    if(resTxt){ resTxt.textContent = '-₩' + betAmount.toLocaleString('ko-KR') + ' 손실'; resTxt.className='bet-result-lose'; }
+    if(ovBetEl){ ovBetEl.textContent = msg; ovBetEl.style.color='#f87171'; }
+    showToastGm('😔 베팅 실패. -₩' + betAmount.toLocaleString('ko-KR'));
+  }
+}
+
+function showToastGm(msg){
+  const el=document.getElementById('gmToast');
+  if(!el) return;
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ── 관전모드 클릭 시 슬라이드 배너 ──
+let _specBannerCd = false;
+function showSpecClickBanner(){
+  if(_specBannerCd) return; // 연타 방지 (4초 쿨다운)
+  _specBannerCd = true;
+  setTimeout(()=>{ _specBannerCd = false; }, 4000);
+  const wrap = document.getElementById('specClickBanner');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  const inner = document.createElement('div');
+  inner.className = 'scb-inner';
+  inner.textContent = '👀 관전모드 ON. 게임시작(잔금필요) 또는 연습모드로 플레이 해주세요.';
+  wrap.appendChild(inner);
+  setTimeout(()=>{ if(inner.parentNode) inner.remove(); }, 4200);
+}
+
+// postMessage 수신 (수정 없음)
+const ALLOWED_ORIGINS = [window.location.origin, 'null'];
+function isTrustedOrigin(o){ return ALLOWED_ORIGINS.includes(o) || o === window.location.origin; }
+
+window.addEventListener('message', e => {
+  if(!isTrustedOrigin(e.origin)) return;
+  const d = e.data || {};
+  switch(d.type){
+    case 'INIT':
+      balance = parseInt(d.balance ?? localStorage.getItem(BAL_KEY) ?? 0);
+      if(isNaN(balance)||balance<0) balance=0;
+      if(d.points !== undefined) pointBalance = parseInt(d.points)||0;
+      if(d.aiProfile) aiProfile = d.aiProfile;
+      // document.body.classList.add('in-iframe'); — iframe 제거됨
+      saveBalance();
+      updateBalUI();
+      break;
+    case 'POINT_UPDATE':
+      pointBalance = parseInt(d.points||0);
+      if(d.balance !== undefined){ balance=parseInt(d.balance); updateBalUI(); }
+      break;
+    case 'CHARGE': {
+      // [BUG FIX 4] switch-case 안 const 선언 → 중괄호 블록으로 스코프 명확화
+      const add=parseInt(d.amount||0);
+      if(add>0){ balance+=add; saveBalance(); updateBalUI(); showToastGm('✅ '+add.toLocaleString('ko-KR')+'원 충전 완료!'); }
+      break;
+    }
+    case 'BALANCE_UPDATE':
+      if(!betPlaced){ balance=parseInt(d.balance||0); updateBalUI(); }
+      break;
+    case 'AI_PROFILE': {
+      const p = d.profile;
+      if(p && typeof p === 'object') aiProfile = p;
+      else if(d.tier) aiProfile = {...aiProfile, tier: d.tier};
+      localStorage.setItem(AI_KEY, JSON.stringify(aiProfile));
+      break;
+    }
+  }
+});
+
+function initGomokuIntegration(){
+  const stored=localStorage.getItem(BAL_KEY);
+  balance=stored!==null?(parseInt(stored)||0):0;
+  try{ const r=localStorage.getItem(AI_KEY); if(r) aiProfile=JSON.parse(r); }catch(e){}
+  updateBalUI();
+  // REQUEST_POINT_INFO 제거 (직접 이동 구조)
+  updateBetPanel();
+  window.goHome = function(){ sessionStorage.setItem('ORACLE_ENTRY',Date.now()); window.location.href='mini_center.html'; };
+  window.requestCharge = function(){ sessionStorage.setItem('ORACLE_ENTRY',Date.now()); window.location.href='mini_center.html?charge=gomoku'; };
+}
+
+// ══════════════════════════════════════════
+//  금수룰(렌주) (수정 없음)
+// ══════════════════════════════════════════
+let foulReason='';
+function isRenjuOn(){const el=document.getElementById('optRenju');return !!(el&&el.checked);}
+function isAggroOn(){const el=document.getElementById('optAggro');return !(el&&el.checked===false);}
+function countLine(b,r,c,dr,dc,player){let cnt=1;for(let i=1;i<15;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||b[nr][nc]!==player)break;cnt++;}for(let i=1;i<15;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE||b[nr][nc]!==player)break;cnt++;}return cnt;}
+function isOverline(b,r,c,player){const dirs=[[0,1],[1,0],[1,1],[1,-1]];return dirs.some(([dr,dc])=>countLine(b,r,c,dr,dc,player)>5);}
+function getLineTokens(b,r,c,dr,dc,player,span=5){const arr=[];for(let k=-span;k<=span;k++){const nr=r+dr*k,nc=c+dc*k;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE)arr.push(2);else{const v=b[nr][nc];if(v===0)arr.push(0);else if(v===player)arr.push(1);else arr.push(2);}}return arr;}
+// getLineTokens: k=-span~+span 총 (2*span+1)개 토큰, 착수 위치(r,c)는 인덱스 span에 위치
+function countOpenThreesAfterMove(b,r,c,player){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  let cnt=0;
+  for(const[dr,dc]of dirs){
+    const span=5;
+    const t=getLineTokens(b,r,c,dr,dc,player,span);
+    const center=span; // 착수 위치는 항상 인덱스 span
+    for(let i=0;i<=t.length-5;i++){
+      const w=t.slice(i,i+5).join('');
+      // 열린 3: 0-1-1-1-0 패턴이고 착수 위치(center)가 이 창 안에 있어야 함
+      if(w==='01110' && center>=i && center<i+5) cnt++;
+    }
+  }
+  return cnt;
+}
+function countOpenFoursAfterMove(b,r,c,player){
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  let cnt=0;
+  for(const[dr,dc]of dirs){
+    const span=5;
+    const t=getLineTokens(b,r,c,dr,dc,player,span);
+    const center=span; // 착수 위치는 항상 인덱스 span
+    for(let i=0;i<=t.length-6;i++){
+      const w=t.slice(i,i+6).join('');
+      // 열린 4: 0-1-1-1-1-0 패턴이고 착수 위치(center)가 이 창 안에 있어야 함
+      if(w==='011110' && center>=i && center<i+6) cnt++;
+    }
+  }
+  return cnt;
+}
+function getFoulTypeIfAny(r,c,player){if(player!==1)return '';if(!isRenjuOn())return '';if(isOverline(board,r,c,player))return '장목(6목 이상)';const th=countOpenThreesAfterMove(board,r,c,player);if(th>=2)return '쌍삼(열린 3이 2개 이상)';const fo=countOpenFoursAfterMove(board,r,c,player);if(fo>=2)return '쌍사(열린 4가 2개 이상)';return '';}
+
+// ══════════════════════════════════════════
+//  AI 엔진 (수정 없음)
+// ══════════════════════════════════════════
+function evalPoint(b,r,c,player){
+  if(b[r][c]!==0)return -99999;
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  let score=0;
+  b[r][c]=player;
+  for(const[dr,dc]of dirs){
+    let cnt=1,oL=0,oR=0;
+    for(let i=1;i<6;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE)break;if(b[nr][nc]===player)cnt++;else{if(b[nr][nc]===0)oR=1;break;}}
+    for(let i=1;i<6;i++){const nr=r-dr*i,nc=c-dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE)break;if(b[nr][nc]===player)cnt++;else{if(b[nr][nc]===0)oL=1;break;}}
+    const op2=oL+oR;
+    if(cnt>=5)score+=200000;
+    else if(cnt===4&&op2===2)score+=50000;
+    else if(cnt===4&&op2===1)score+=10000;
+    else if(cnt===3&&op2===2)score+=5000;
+    else if(cnt===3&&op2===1)score+=500;
+    else if(cnt===2&&op2===2)score+=100;
+    else if(cnt===2&&op2===1)score+=20;
+    else if(cnt===1&&op2===2)score+=5;
+  }
+  b[r][c]=0;
+  return score;
+}
+
+function hasNeighbor(r,c,dist){
+  for(let dr=-dist;dr<=dist;dr++)for(let dc=-dist;dc<=dist;dc++){
+    if(!dr&&!dc)continue;
+    const nr=r+dr,nc=c+dc;
+    if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&board[nr][nc]!==0)return true;
+  }
+  return moveHistory.length===0&&r===7&&c===7;
+}
+
+function getCands(dist){
+  const cands=[];
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++)
+    if(board[r][c]===0&&hasNeighbor(r,c,dist))cands.push([r,c]);
+  if(!cands.length)cands.push([7,7]);
+  return cands;
+}
+
+function getMoveBeg(){
+  const me=2,hu=1;
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){if(board[r][c]===0){board[r][c]=me;if(checkWin(r,c,me)){board[r][c]=0;return[r,c];}board[r][c]=0;}}
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){if(board[r][c]===0){board[r][c]=hu;if(checkWin(r,c,hu)){board[r][c]=0;return[r,c];}board[r][c]=0;}}
+  // 하수: 4목(5000↑) 및 열린3(3000↑) 방어 — 확률 없이 항상 막음
+  {let bestDef=null,bestDefScore=0;for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){if(board[r][c]===0){const s=evalPoint(board,r,c,hu);if(s>bestDefScore){bestDefScore=s;bestDef=[r,c];}}}if(bestDef&&bestDefScore>=3000)return bestDef;}
+  const cands=getCands(2);
+  const scored=cands.map(([r,c])=>({r,c,s:evalPoint(board,r,c,me)*0.55+evalPoint(board,r,c,hu)*0.45+Math.random()*30}));
+  scored.sort((a,b)=>b.s-a.s);
+  return[scored[0].r,scored[0].c];
+}
+
+function boardEval(b,me){
+  const hu=me===1?2:1;
+  const dirs=[[0,1],[1,0],[1,1],[1,-1]];
+  let score=0;
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    for(const[dr,dc]of dirs){
+      let m=0,o=0,blocked=false;
+      for(let i=0;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE){blocked=true;break;}if(b[nr][nc]===me)m++;else if(b[nr][nc]===hu){o++;blocked=true;break;}}
+      if(!blocked&&o===0){if(m===5)score+=200000;else if(m===4)score+=9000;else if(m===3)score+=600;else if(m===2)score+=60;else if(m===1)score+=5;}
+      let m2=0,o2=0,blocked2=false;
+      for(let i=0;i<5;i++){const nr=r+dr*i,nc=c+dc*i;if(nr<0||nr>=SIZE||nc<0||nc>=SIZE){blocked2=true;break;}if(b[nr][nc]===hu)m2++;else if(b[nr][nc]===me){o2++;blocked2=true;break;}}
+      if(!blocked2&&o2===0){if(m2===5)score-=195000;else if(m2===4)score-=9500;else if(m2===3)score-=550;else if(m2===2)score-=45;}
+    }
+  }
+  return score;
+}
+
+function minimax(b,depth,alpha,beta,isMax,me,hu){
+  if(depth===0)return boardEval(b,me);
+  const cands=[];
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+    if(b[r][c]===0){
+      let near=false;
+      outer:for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){if(!dr&&!dc)continue;const nr=r+dr,nc=c+dc;if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&b[nr][nc]!==0){near=true;break outer;}}
+      if(near){const p=isMax?me:hu;cands.push({r,c,s:evalPoint(b,r,c,p)});}
+    }
+  }
+  if(!cands.length)return 0;
+  cands.sort((a,b2)=>b2.s-a.s);
+  const top=cands.slice(0,Math.min(10,cands.length));
+  if(isMax){
+    let best=-Infinity;
+    for(const{r,c}of top){b[r][c]=me;if(checkWinBoard(b,r,c,me)){b[r][c]=0;return 200000+depth*100;}const val=minimax(b,depth-1,alpha,beta,false,me,hu);b[r][c]=0;best=Math.max(best,val);alpha=Math.max(alpha,best);if(beta<=alpha)break;}
+    return best;
+  }else{
+    let best=Infinity;
+    for(const{r,c}of top){b[r][c]=hu;if(checkWinBoard(b,r,c,hu)){b[r][c]=0;return -200000-depth*100;}const val=minimax(b,depth-1,alpha,beta,true,me,hu);b[r][c]=0;best=Math.min(best,val);beta=Math.min(beta,best);if(beta<=alpha)break;}
+    return best;
+  }
+}
+
+function getMoveMid(depth){
+  // 적응형 depth: 초반(돌<8) depth=3, 중반 depth=4, 후반(돌>30) depth=5
+  const stones = moveHistory.length;
+  if(depth === 4){
+    if(stones < 8)       depth = 3;
+    else if(stones > 30) depth = 5;
+  }
+  const me=2,hu=1;
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){if(board[r][c]===0){board[r][c]=me;if(checkWin(r,c,me)){board[r][c]=0;return[r,c];}board[r][c]=0;}}
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){if(board[r][c]===0){board[r][c]=hu;if(checkWin(r,c,hu)){board[r][c]=0;return[r,c];}board[r][c]=0;}}
+  const cands=getCands(2);
+  const scored=cands.map(([r,c])=>({r,c,s:evalPoint(board,r,c,me)*1.1+evalPoint(board,r,c,hu)*0.9}));
+  scored.sort((a,b)=>b.s-a.s);
+  const top=scored.slice(0,Math.min(12,scored.length));
+  const bCopy=board.map(row=>[...row]);
+  let bestScore=-Infinity,bestMove=[top[0].r,top[0].c];
+  for(const{r,c}of top){bCopy[r][c]=me;if(checkWinBoard(bCopy,r,c,me)){bCopy[r][c]=0;return[r,c];}const val=minimax(bCopy,depth-1,-Infinity,Infinity,false,me,hu);bCopy[r][c]=0;if(val>bestScore){bestScore=val;bestMove=[r,c];}}
+  return bestMove;
+}
+
+function getMoveMas(){return getMovePro(6);}
+
+function getMovePro(depth){
+  const me=2,hu=1;
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){if(board[r][c]===0){board[r][c]=me;if(checkWin(r,c,me)){board[r][c]=0;return[r,c];}board[r][c]=0;}}
+  for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){if(board[r][c]===0){board[r][c]=hu;if(checkWin(r,c,hu)){board[r][c]=0;return[r,c];}board[r][c]=0;}}
+  const cands=getCands(3);
+  const center=(SIZE-1)/2;
+  const scored=cands.map(([r,c])=>{
+    const atk=evalPoint(board,r,c,me);
+    const def=evalPoint(board,r,c,hu);
+    const cen=-(Math.abs(r-center)+Math.abs(c-center))*6;
+    let bonus=0;
+    if(isAggroOn()){
+      board[r][c]=me;const my4=countOpenFoursAfterMove(board,r,c,me);const my3=countOpenThreesAfterMove(board,r,c,me);board[r][c]=0;
+      board[r][c]=hu;const op4=countOpenFoursAfterMove(board,r,c,hu);const op3=countOpenThreesAfterMove(board,r,c,hu);board[r][c]=0;
+      bonus+=my4*9000+my3*1500+op4*7000+op3*900;
+    }
+    return{r,c,s:atk*1.12+def*1.08+cen+bonus};
+  });
+  scored.sort((a,b)=>b.s-a.s);
+  const top=scored.slice(0,Math.min(16,scored.length));
+  const bCopy=board.map(row=>[...row]);
+  let bestScore=-Infinity,bestMove=[top[0].r,top[0].c];
+  for(const{r,c}of top){bCopy[r][c]=me;if(checkWinBoard(bCopy,r,c,me)){bCopy[r][c]=0;return[r,c];}const val=minimax(bCopy,depth-1,-Infinity,Infinity,false,me,hu);bCopy[r][c]=0;if(val>bestScore){bestScore=val;bestMove=[r,c];}}
+  return bestMove;
+}
+
+async function aiMove(){
+  if(gameOver||currentPlayer!==2||mode!=='ai')return;
+  aiThinking=true;updateStatus();syncUndoBtn();
+  document.getElementById('thinkBar').classList.add('show');
+  await new Promise(res=>setTimeout(res, getAIDelayMs()));
+  if(gameOver){aiThinking=false;document.getElementById('thinkBar').classList.remove('show');return;}
+  let move;
+  if(difficulty==='beg')     move=getMoveBeg();
+  else if(difficulty==='mid')move=getMoveMid(4);
+  else                        move=getMoveMas();
+  document.getElementById('thinkBar').classList.remove('show');
+  aiThinking=false;
+  syncUndoBtn();
+  if(!gameOver&&move)placeStone(move[0],move[1]);
+}
+
+// ══════════════════════════════════════════
+//  입력 처리 (수정 없음)
+// ══════════════════════════════════════════
+function getBoardPos(x,y){
+  const r=Math.round((y-PAD)/CELL),c=Math.round((x-PAD)/CELL);
+  if(r<0||r>=SIZE||c<0||c>=SIZE)return null;
+  if(Math.abs(x-(PAD+c*CELL))>CELL*.5||Math.abs(y-(PAD+r*CELL))>CELL*.5)return null;
+  return[r,c];
+}
+function handleInput(x,y){
+  if(gameOver||aiThinking)return;
+  if(isSpectating()){
+    showSpecClickBanner();
+    return;
+  }
+  if(mode==='ai'&&currentPlayer!==1)return;
+  // 잔액 없고 연습모드도 아니면 차단
+  if(mode==='ai' && (typeof practiceMode==='undefined'||!practiceMode)){
+    const cfg = getBetCfg();
+    if(balance < cfg.amount){
+      showToastGm('💸 잔액 부족! 연습모드를 이용해보세요 🏫');
+      return;
+    }
+  }
+  const pos=getBoardPos(x,y);
+  if(!pos)return;
+  if(placeStone(pos[0],pos[1])&&!gameOver&&mode==='ai'&&currentPlayer===2)aiMove();
+}
+canvas.addEventListener('click',e=>{
+  const rc=canvas.getBoundingClientRect();
+  handleInput((e.clientX-rc.left)*(canvas.width/rc.width),(e.clientY-rc.top)*(canvas.height/rc.height));
+});
+// [③ FIX] touchstart에서 preventDefault → Android 스크롤 간섭 차단 + 터치 씹힘 방지
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+},{passive:false});
+canvas.addEventListener('touchend',e=>{
+  e.preventDefault();
+  const t=e.changedTouches[0],rc=canvas.getBoundingClientRect();
+  handleInput((t.clientX-rc.left)*(canvas.width/rc.width),(t.clientY-rc.top)*(canvas.height/rc.height));
+},{passive:false});
+
+// ══════════════════════════════════════════
+//  컨트롤 (수정 없음)
+// ══════════════════════════════════════════
+function undoMove(){
+  if(aiThinking)return;
+  if(mode==='ai'){
+    // [② FIX] 핸디캡 돌(handicap:true)은 무르기 대상에서 제외
+    // 일반 착수만 역순으로 최대 2수(플레이어+AI) 제거
+    if(!moveHistory.length)return;
+    const lastNonHandicap = [...moveHistory].reverse().findIndex(m=>!m.handicap);
+    if(lastNonHandicap === -1) return; // 일반 착수가 없으면 무르기 불가
+    let removed = 0;
+    const target = (moveHistory.length>=2 && moveHistory[moveHistory.length-1].player===2 && !moveHistory[moveHistory.length-1].handicap) ? 2 : 1;
+    while(removed < target && moveHistory.length){
+      const m = moveHistory[moveHistory.length-1];
+      if(m.handicap) break; // 핸디캡 돌에 닿으면 중단
+      moveHistory.pop();
+      board[m.r][m.c]=0;
+      removed++;
+    }
+    if(removed===0) return; // 실제로 제거된 수가 없으면 UI 업데이트 불필요
+    currentPlayer=1;
+  }else{
+    if(!moveHistory.length)return;
+    const m=moveHistory.pop();board[m.r][m.c]=0;currentPlayer=m.player;
+  }
+  // [BUG FIX 2] aiThinking 강제 리셋 (AI 착수 직전 무르기 시 입력 블락 방지)
+  aiThinking=false;
+  gameOver=false;updateStatus();drawBoard();
+  syncUndoBtn();
+}
+
+function updatePvpTopBanner(){
+  syncTopControlState();
+}
+function syncPvpTurnBanner(doFlash=false){
+  const banner = document.getElementById('pvpTurnBanner');
+  if(!banner || mode!=='2p') return;
+  const isBlack = currentPlayer === 1;
+  banner.textContent = isBlack ? '⚫ 흑돌 차례입니다.' : '⚪ 백돌 차례입니다.';
+  banner.classList.toggle('black-turn', isBlack);
+  banner.classList.toggle('white-turn', !isBlack);
+  if(doFlash){
+    banner.classList.remove('flash');
+    void banner.offsetWidth;
+    banner.classList.add('flash');
+    clearTimeout(pvpBannerFlashTimer);
+    pvpBannerFlashTimer = setTimeout(()=>banner.classList.remove('flash'), 680);
+  }
+}
+
+function setMode(m){
+  if(mode===m) return;
+  if(!gameOver && moveHistory.length > 0) return; // 게임 도중 변경 불가
+  beginFreshSession();
+  mode=m;
+  if(m!=='ai') stopSpectator();
+  document.getElementById('apiBox').classList.remove('show');
+  syncTopControlState();
+  restartGame();
+  updateBetPanel();
+}
+function setDiff(d){
+  if(difficulty===d) return;
+  if(!gameOver && moveHistory.length > 0) return; // 게임 도중 변경 불가
+  difficulty=d;
+  ['Beg','Mid','Mas'].forEach(x=>document.getElementById('diff'+x).classList.toggle('active',x.toLowerCase()===d));
+  document.getElementById('apiBox').classList.remove('show');
+  syncTopControlState();
+  updateBetPanel();
+}
+function saveApiKey(){setApiMsg('이 버전은 로컬 초고수 엔진(무과금)이라 API 키가 필요 없습니다.','ok');}
+function setApiMsg(msg,type){const el=document.getElementById('apiMsg');el.textContent=msg;el.className='api-msg '+(type||'');}
+function forfeitGame(){
+  if(gameOver || moveHistory.length === 0) return; // 게임 중이 아니면 무시
+  gameOver = true;
+  stopTimer();
+  // 베팅 정산 (패배)
+  settleBet(false);
+  // 결과 표시
+  updateStatus('🏳️ 포기 — 패배');
+  drawBoard();
+  showToastGm('🏳️ 게임을 포기했습니다.');
+  syncTopControlState();
+}
+function restartGame(){
+  beginFreshSession();
+  document.getElementById('overlay').classList.remove('show');
+  const ob=document.getElementById('ovBetResult');
+  if(ob)ob.textContent='';
+  stopTimer();
+  clearSpecLines();
+
+  // 관전모드 중 게임시작 → 플레이 전환
+  if(isSpectating()){
+    userWantsPlay = true;
+    stopSpectator();
+    // 난이도를 사용자 선택 기준으로 복원 (관전 중 mas 고정이었음)
+    // 잔액 확인 후 기본 난이도 설정
+    const amts = {beg:100000, mid:200000, mas:300000};
+    if(balance < amts[difficulty]){
+      // 현재 난이도 잔액 부족 → 가능한 최고 난이도로
+      if(balance >= amts.mas) difficulty='mas';
+      else if(balance >= amts.mid) difficulty='mid';
+      else if(balance >= amts.beg) difficulty='beg';
+      else {
+        // 잔액 전혀 없음 → 연습모드 안내
+        showToastGm('💸 잔액 부족! 연습모드를 이용해보세요 🏫');
+        userWantsPlay = false;
+        initBoard(); // 다시 관전모드로
+        return;
+      }
+    }
+    ['Beg','Mid','Mas'].forEach(x=>document.getElementById('diff'+x).classList.toggle('active',x.toLowerCase()===difficulty));
+    updateDiffByBalance();
+  }
+
+  initBoard();
+  scheduleGameplay(()=>placeBet(), 150);
+}
+function launchConfetti(n){
+  const c=document.getElementById('cf');
+  const cols=['#D4A843','#FF6B35','#22CC55','#4A90E2','#E74C3C','#9B59B6'];
+  for(let i=0;i<n;i++)setTimeout(()=>{
+    const el=document.createElement('div');el.className='cp';
+    el.style.cssText=`left:${Math.random()*100}vw;width:${5+Math.random()*7}px;height:${5+Math.random()*7}px;background:${cols[Math.floor(Math.random()*cols.length)]};border-radius:${Math.random()>.5?'50%':'0'};animation-duration:${1.5+Math.random()*2}s`;
+    c.appendChild(el);setTimeout(()=>el.remove(),3500);
+  },i*25);
+}
+
+
+// ══════════════════════════════════════════
+//  연습모드 시스템
+// ══════════════════════════════════════════
+let practiceMode = false; // 전역 선언 (래핑보다 먼저 초기화)
+
+// 잔액 기반 중수/고수 버튼 비활성화 업데이트
+function updateDiffByBalance(){
+  const begBtn = document.getElementById('diffBeg');
+  const midBtn = document.getElementById('diffMid');
+  const masBtn = document.getElementById('diffMas');
+  if(!begBtn || !midBtn || !masBtn) return;
+
+  // 연습모드: no-balance 클래스 모두 제거 (연습모드 자체 로직으로 처리)
+  if(practiceMode){
+    begBtn.classList.remove('no-balance');
+    midBtn.classList.remove('no-balance');
+    masBtn.classList.remove('no-balance');
+    return;
+  }
+
+  const BAL_BEG = 100000;  // 하수: ₩10만
+  const BAL_MID = 200000;  // 중수: ₩20만
+  const BAL_MAS = 300000;  // 고수: ₩30만
+
+  // 하수
+  if(balance < BAL_BEG){
+    begBtn.classList.add('no-balance');
+    // 잔액 부족 시 강제로 연습모드 안내 (이미 연습모드 아닌 경우)
+  } else {
+    begBtn.classList.remove('no-balance');
+  }
+
+  // 중수
+  if(balance < BAL_MID){
+    midBtn.classList.add('no-balance');
+    if(difficulty === 'mid') _origSetDiff('beg');
+  } else {
+    midBtn.classList.remove('no-balance');
+  }
+
+  // 고수
+  if(balance < BAL_MAS){
+    masBtn.classList.add('no-balance');
+    if(difficulty === 'mas') _origSetDiff(balance < BAL_MID ? 'beg' : 'mid');
+  } else {
+    masBtn.classList.remove('no-balance');
+  }
+}
+
+// 연습모드 토글
+function togglePractice(){
+  beginFreshSession();
+  practiceMode = !practiceMode;
+  const btn    = document.getElementById('practiceBtn');
+  const midBtn = document.getElementById('diffMid');
+  const masBtn = document.getElementById('diffMas');
+  if(practiceMode){
+    // 연습모드로 들어가면 관전모드 종료
+    userWantsPlay = true;
+    stopSpectator();
+    clearSpecLines();
+    btn.classList.add('active');
+    // 연습모드: 하수/중수/고수 모두 비활성화 (난이도 선택 불가)
+    const begBtn = document.getElementById('diffBeg');
+    begBtn.classList.add('practice-disabled');
+    midBtn.classList.add('practice-disabled');
+    masBtn.classList.add('practice-disabled');
+    begBtn.classList.remove('no-balance');
+    midBtn.classList.remove('no-balance');
+    masBtn.classList.remove('no-balance');
+    // 베팅 패널 업데이트 후 게임 재시작
+    updateBetPanel();
+    syncTopControlState();
+    initBoard();
+    showToastGm('🏫 연습모드 ON — 베팅 없음, 무료 플레이');
+  } else {
+    btn.classList.remove('active');
+    const begBtnOff = document.getElementById('diffBeg');
+    begBtnOff.classList.remove('practice-disabled');
+    midBtn.classList.remove('practice-disabled');
+    masBtn.classList.remove('practice-disabled');
+    updateDiffByBalance();
+    updateBetPanel();
+    syncTopControlState();
+    // 연습모드 해제 → 잔액 없으면 관전모드로 복귀
+    userWantsPlay = (balance >= 100000);
+    initBoard();
+    if(userWantsPlay) showToastGm('연습모드 해제 — 실전 플레이');
+    else showToastGm('연습모드 해제 — 관전모드로 전환');
+  }
+}
+
+// setDiff 래핑: 연습모드/잔액 부족 시 차단 + 관전 중 선택 시 플레이 전환
+const _origSetDiff = setDiff;
+setDiff = function(d){
+  // 연습모드: 난이도 변경 불가 (버튼 전체 비활성화 상태)
+  if(practiceMode){
+    showToastGm('🏫 연습모드에서는 난이도 변경이 불가합니다');
+    return;
+  }
+  // 잔액 확인
+  const amts = {beg:100000, mid:200000, mas:300000};
+  if(amts[d] && balance < amts[d]){
+    const names = {beg:'하수', mid:'중수', mas:'고수'};
+    showToastGm('💸 잔액 부족! ' + names[d] + '는 ₩'+amts[d].toLocaleString('ko-KR')+' 필요. 연습모드를 이용해보세요!');
+    return;
+  }
+  // 관전 중 난이도 선택 → 관전 해제 + 해당 난이도로 플레이 시작
+  if(isSpectating()){
+    userWantsPlay = true;
+    stopSpectator();
+    clearSpecLines();
+    _origSetDiff(d);
+    initBoard();
+    scheduleGameplay(()=>placeBet(), 150);
+    const names = {beg:'하수', mid:'중수', mas:'고수'};
+    showToastGm('🎮 ' + names[d] + ' 모드로 게임 시작!');
+    return;
+  }
+  _origSetDiff(d);
+};
+
+// placeBet 래핑: 연습모드면 베팅 건너뜀
+const _origPlaceBet = placeBet;
+placeBet = function(){
+  if(practiceMode) return; // 연습모드: 베팅 없음
+  _origPlaceBet();
+};
+
+// settleBet 래핑: 연습모드면 정산 없음
+const _origSettleBet = settleBet;
+settleBet = function(playerWon){
+  if(practiceMode){
+    // 결과 메시지만 표시 (배당 없음)
+    const ovBetEl = document.getElementById('ovBetResult');
+    if(ovBetEl){ ovBetEl.textContent = '🏫 연습모드 (배당 없음)'; ovBetEl.style.color='rgba(100,180,255,0.9)'; }
+    return;
+  }
+  _origSettleBet(playerWon);
+};
+
+
+// 연습모드 AI: 일반 하수보다 약한 AI
+// aiMove 래핑
+const _origAiMove = aiMove;
+// [BUG FIX 3] async 함수로 래핑해 원본 aiMove(async)와 반환 타입 일치
+aiMove = async function(){
+  if(practiceMode){
+    // 연습모드: 30% 랜덤 착수 + 70% 하수 AI
+    if(Math.random() < 0.30){
+      // 빈 칸 중 랜덤 착수 (중앙 근처 가중치)
+      const empties = [];
+      for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++){
+        if(!board[r][c]){
+          const dist = Math.abs(r-7)+Math.abs(c-7);
+          const w = Math.max(1, 10-dist);
+          for(let i=0;i<w;i++) empties.push([r,c]);
+        }
+      }
+      if(empties.length){
+        const pick = empties[Math.floor(Math.random()*empties.length)];
+        document.getElementById('thinkBar').classList.add('show');
+        // Promise로 감싸 await 호출 시에도 정상 동작 보장
+        await new Promise(res => setTimeout(()=>{
+          document.getElementById('thinkBar').classList.remove('show');
+          if(!gameOver) placeStone(pick[0],pick[1]);
+          res();
+        }, 300 + Math.random()*400));
+        return;
+      }
+    }
+    // 나머지 70%: 원래 하수 AI
+  }
+  return _origAiMove();
+};
+
+// ── 초기화 ──
+// if(window.self !== window.top){ document.body.classList.add('in-iframe'); } — iframe 제거됨
+window.addEventListener('resize',()=>{sizeCanvas();drawBoard();drawSpecLines();});
+sizeCanvas();
+initBoard();
+syncTopControlState();
+document.getElementById('diffRow').style.display='flex';
+updateDiffByBalance(); // 초기 잔액 기반 버튼 활성화 설정
+initGomokuIntegration();
+
+
+/* ── 라이트/다크 토글 ── */
+function toggleLight(){
+  var on=!document.body.classList.contains('light');
+  document.body.classList.toggle('light',on);
+  localStorage.setItem('ORACLE_LIGHT',on?'1':'0');
+  var btn=document.getElementById('lightToggle');
+  if(btn) btn.textContent=on?'🌙':'☀️';
+}
+(function(){var btn=document.getElementById('lightToggle');if(btn)btn.textContent=document.body.classList.contains('light')?'🌙':'☀️';})();
+
+</script>
+</body>
+</html>
